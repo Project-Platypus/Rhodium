@@ -128,31 +128,7 @@ def evaluate(model, samples, **kwargs):
 def rosen(x, y):
     return (1 - x)**2 + 100*(y-x**2)**2
 
-model = Model("LakeProblem")
-model.parameters = [Parameter("x"),
-                    Parameter("b", 0.42),
-                    Parameter("q", 2.0),
-                    Parameter("mean", 0.02),
-                    Parameter("stdev", 0.001),
-                    Parameter("delta", 0.98)]
-model.responses = [Response("Pollution"),
-                   Response("Utility"),
-                   Response("Inertia"),
-                   Response("Reliability")]
-model.levers = {"x" : RealLever(0.0, 0.1, length=100)}
-model.uncertainties = {"b" : RealUncertainty(0.1, 0.45),
-                       "q" : RealUncertainty(2.0, 4.5),
-                       "mean" : RealUncertainty(0.01, 0.05),
-                       "stdev" : RealUncertainty(0.001, 0.005),
-                       "delta" : RealUncertainty(0.93, 0.99)}
-model.function = lake_problem
 
-optimal_designs = optimize(model, "NSGAII", 10000)
-
-SOWs = sample(model, 100)
-
-for design in optimal_designs:
-    sow = model.fix(design)
     
 
            
