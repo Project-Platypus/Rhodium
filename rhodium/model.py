@@ -3,10 +3,9 @@ import math
 import inspect
 import random
 from abc import ABCMeta, abstractmethod
-from collections import OrderedDict
 from platypus.experimenter import Job, submit_jobs
 from platypus.types import Real
-from platypus.core import Problem
+from platypus.core import Problem, unique, evaluator
 
 class RhodiumError(Exception):
     pass
@@ -99,7 +98,10 @@ class Constraint(object):
         tmp_env.update(_eval_env)
         tmp_env.update(env)
         
-        return eval(self.expr, {}, tmp_env)
+        if isinstance(self.expr, str):
+            return eval(self.expr, {}, tmp_env)
+        else:
+            self.expr(tmp_env)
     
     def distance(self, env):
         """Returns the distance to the feasibility threshold."""
@@ -259,6 +261,7 @@ class EvaluateJob(Job):
         self._args = inspect.getargspec(model.function).args
         
     def run(self):
+        # populate model arguments
         args = {}
         
         for parameter in self.model.parameters:
@@ -267,16 +270,17 @@ class EvaluateJob(Job):
             elif parameter.default_value:
                 args[parameter.name] = parameter.default_value
                 
+        # evaluate the model
         raw_output = self.model.function(**args)
         
         # support output as a dict or list-like object
         if isinstance(raw_output, dict):
-            input.update(raw_output)
+            args.update(raw_output)
         else:
             for i, response in enumerate(self.model.responses):
-                input[response.name] = raw_output[i]
+                args[response.name] = raw_output[i]
             
-        self.output = input
+        self.output = args
 
 def evaluate(model, samples, **kwargs):
     results = submit_jobs(generate_jobs(model, samples), **kwargs)
@@ -346,7 +350,10 @@ def optimize(model, algorithm="NSGAII", NFE=10000, **kwargs):
     
     result = []
     
-    for solution in instance.result:
+    for solution in unique(instance.result):
+        if not solution.feasible:
+            continue
+        
         env = {}
         offset = 0
         

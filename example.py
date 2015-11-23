@@ -89,7 +89,7 @@ print mean(check_feasibility(model, results))
 # Basic MORDM analysis where we optimize the model under well-characterized
 # uncertainty, then subject each optimal policy to deep uncertain SOWs to
 # compute robustness measures
-optimal_policies = optimize(model)
+optimal_policies = optimize(model, NFE=1000)
 SOWs = sample_lhs(model, 100)
 robustness = []
 
