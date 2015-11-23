@@ -2,7 +2,7 @@ import numpy as np
 from scipy.optimize import brentq as root
 from rhodium.model import *
 
-def eval(pollution_limit,
+def lake_problem(pollution_limit,
          b = 0.42,        # decay rate for P in lake (0.42 = irreversible)
          q = 2.0,         # recycling exponent
          mean = 0.02,     # mean of natural inflows
@@ -37,7 +37,7 @@ def eval(pollution_limit,
     
     return (max_P, utility, intertia, reliability)
 
-model = Model(eval)
+model = Model(lake_problem)
 
 # define all parameters to the model that we will be studying
 model.parameters = [Parameter("pollution_limit"),
@@ -53,7 +53,7 @@ model.responses = [Response("max_P", Response.MINIMIZE),
                    Response("inertia", Response.MAXIMIZE),
                    Response("reliability", Response.MAXIMIZE)]
 
-# define any constraints
+# define any constraints (can reference any parameter or response by name)
 model.constraints = [Constraint("reliability >= 0.95")]
 
 # some parameters are levers that we control via our policy
@@ -78,10 +78,22 @@ print evaluate(model, policy2)
 # evaluate model in randomly-generated SOWs (the fix() function assigns the
 # same policy within each SOW)
 SOWs = sample_lhs(model, 100)
-#for SOW in SOWs:
-#    print evaluate(model, fix(SOW, policy1))
+for SOW in SOWs:
+    print evaluate(model, fix(SOW, policy1))
 
 # evaluate a policy against many SOWs and compute the percentage of SOWs that
 # are feasible
 results = evaluate(model, fix(SOWs, policy1))
 print mean(check_feasibility(model, results))
+
+# Basic MORDM analysis where we optimize the model under well-characterized
+# uncertainty, then subject each optimal policy to deep uncertain SOWs to
+# compute robustness measures
+optimal_policies = optimize(model)
+SOWs = sample_lhs(model, 100)
+robustness = []
+
+for i, policy in enumerate(optimal_policies):
+    print "Evaluating design", i
+    results = evaluate(model, fix(SOWs, policy))
+    robustness.append(mean(check_feasibility(model, results)))

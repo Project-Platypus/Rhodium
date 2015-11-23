@@ -6,14 +6,14 @@ modelling.
 ## Example
 
 This is a hypothetical example of how Rhodium will operate once developed.
-Rhodium is designed based on the XLRM framework of Robert Lempert et al.  XLRM
-stand for:
+Rhodium is based on the XLRM framework of Robert Lempert et al.  XLRM
+stands for:
 
 * **X - Exogeneous uncertainties** are factors that influence the model but
   are outside our control.  For example, in climate models, the average
   temperature in future years is an exogeneous uncertainty.
 * **L - Policy levers** are factors that we can control.  For example, a
-  national policy could mandate the restriction of carbon emmissions below a 
+  national policy could mandate the restriction of carbon emissions below a 
   certain limit.  In Rhodium, we call these "controls".
 * **R - Relationships** are embodied in the model and describe how the
   exogeneous uncertainties and policy levers impact the various metrics.
@@ -21,7 +21,7 @@ stand for:
   makers' goals and determine how well a policy performs.
   
 In Rhodium, we begin with the model.  The model is simply a function in Python.
-For example, suppose we are modelling the impacts of pollution on a system.
+For example, suppose we are modeling the impacts of pollution on a system.
 We could write the function as follows:
 
 ```python

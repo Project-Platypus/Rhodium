@@ -1,9 +1,12 @@
+import ast
 import math
 import inspect
 import random
 from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
 from platypus.experimenter import Job, submit_jobs
+from platypus.types import Real
+from platypus.core import Problem
 
 class RhodiumError(Exception):
     pass
@@ -40,6 +43,13 @@ class Response(object):
         self.name = name
         self.type = type
         
+_eval_env = {}
+module = __import__("math", fromlist=[''])
+
+for name in dir(module):
+    if not name.startswith("_"):
+        _eval_env[name] = getattr(module, name)
+        
 class Constraint(object):
     """Defines model constraints.
     
@@ -54,6 +64,58 @@ class Constraint(object):
         super(Constraint, self).__init__()
         self.expr = expr
         
+        if isinstance(expr, str):
+            self._convert()
+        
+    def _convert(self):
+        """Attempts to convert expression to distance function.
+        
+        Constraints are often expressed as inequalities, such as x < 5, meaning
+        that a policy is feasible if the value of x is less than 5.  It is
+        sometimes useful to know how far a policy is from a feasibility
+        threshold.  For example, x = 7 is closer to the feasibility threshold
+        than x = 15.
+        
+        This method attempts to convert a comparison expression to a distance
+        expression by manipulating the AST.  If successful, this method creates
+        the _distance attribute.  Even if this method is successful, the
+        generated expression may not be valid.
+        """
+        root = ast.parse(self.expr, mode="eval")
+        
+        if isinstance(root.body, ast.Compare) and len(root.body.ops) == 1:
+            left_expr = root.body.left
+            right_expr = root.body.comparators[0]
+            
+            distance_expr = ast.Expression(ast.BinOp(left_expr,
+                                                     ast.Sub(),
+                                                     right_expr))
+            
+            ast.fix_missing_locations(distance_expr)
+            self._distance = compile(distance_expr, "<AST>", "eval")
+
+    def is_feasible(self, env):
+        tmp_env = {}
+        tmp_env.update(_eval_env)
+        tmp_env.update(env)
+        
+        return eval(self.expr, {}, tmp_env)
+    
+    def distance(self, env):
+        """Returns the distance to the feasibility threshold."""
+        if self.is_feasible(env):
+            return 0.0
+        elif hasattr(self, "_distance"):
+            try:
+                tmp_env = {}
+                tmp_env.update(_eval_env)
+                tmp_env.update(env)
+                return abs(eval(self._distance, {}, tmp_env)) + 0.001
+            except:
+                return 1.0
+        else:
+            return 1.0
+        
 class Lever(object):
     """Defines an adjustable lever that controls a model parameter.
     
@@ -66,6 +128,10 @@ class Lever(object):
     
     def __init__(self):
         super(Lever, self).__init__()
+        
+    @abstractmethod
+    def to_variables(self):
+        raise NotImplementedError("method not implemented")
     
 class RealLever(Lever):
     
@@ -74,6 +140,9 @@ class RealLever(Lever):
         self.min_value = float(min_value)
         self.max_value = float(max_value)
         self.length = length
+        
+    def to_variables(self):
+        return [Real(self.min_value, self.max_value) for _ in range(self.length)]
         
 class Uncertainty(object):
     
@@ -187,16 +256,20 @@ class EvaluateJob(Job):
         super(EvaluateJob, self).__init__()
         self.model = model
         self.sample = sample
+        self._args = inspect.getargspec(model.function).args
         
     def run(self):
-        input = self.sample.copy()
+        args = {}
         
         for parameter in self.model.parameters:
-            if parameter.name not in input and parameter.default_value:
-                input[parameter.name] = parameter.default_value
+            if parameter.name in self.sample:
+                args[parameter.name] = self.sample[parameter.name]
+            elif parameter.default_value:
+                args[parameter.name] = parameter.default_value
                 
-        raw_output = self.model.function(**self.sample)
+        raw_output = self.model.function(**args)
         
+        # support output as a dict or list-like object
         if isinstance(raw_output, dict):
             input.update(raw_output)
         else:
@@ -211,8 +284,12 @@ def evaluate(model, samples, **kwargs):
 
 def _is_feasible(model, result):
     for constraint in model.constraints:
-        if not eval(constraint.expr, result.copy()):
-            return False
+        if hasattr(constraint, "__call__"):
+            if not constraint(result.copy()):
+                return False
+        else:
+            if not eval(constraint.expr, result.copy()):
+                return False
         
     return True
 
@@ -225,6 +302,69 @@ def check_feasibility(model, results):
 def mean(values):
     return float(sum(values)) / len(values)
 
+def _to_problem(model):
+    variables = []
+    
+    for name, lever in model.levers.iteritems():
+        variables.extend(lever.to_variables())
+    
+    nvars = len(variables)
+    nobjs = sum([1 if r.type == Response.MINIMIZE or r.type == Response.MAXIMIZE else 0 for r in model.responses])
+    nconstrs = len(model.constraints)
+    
+    def function(vars):
+        env = {}
+        offset = 0
+        
+        for name, lever in model.levers.iteritems():
+            env[name] = vars[offset:offset+lever.length]
+            offset += lever.length
+            
+        job = EvaluateJob(model, env)
+        job.run()
+        
+        objectives = [job.output[r.name] for r in model.responses]
+        constraints = [constraint.distance(job.output) for constraint in model.constraints]
+        
+        return objectives, constraints
+    
+    problem = Problem(nvars, nobjs, nconstrs, function)
+    problem.types[:] = variables
+    problem.directions[:] = [Problem.MINIMIZE if r.type == Response.MINIMIZE else Problem.MAXIMIZE for r in model.responses if r.type == Response.MINIMIZE or r.type == Response.MAXIMIZE]
+    problem.constraints[:] = "==0"
+    return problem
+
+def optimize(model, algorithm="NSGAII", NFE=10000, **kwargs):
+    module = __import__("platypus.algorithms", fromlist=[''])
+    class_ref = getattr(module, algorithm)
+    
+    args = kwargs.copy()
+    args["problem"] = _to_problem(model)
+    
+    instance = class_ref(**args)
+    instance.run(NFE)
+    
+    result = []
+    
+    for solution in instance.result:
+        env = {}
+        offset = 0
+        
+        for name, lever in model.levers.iteritems():
+            if lever.length == 1:
+                env[name] = solution.variables[offset]
+            else:
+                env[name] = solution.variables[offset:offset+lever.length]
+
+            offset += lever.length
+        
+        for i, response in enumerate(model.responses):
+            env[response.name] = solution.objectives[i]
+            
+        result.append(env)
+        
+    return result
+        
         
 # def rosen(x, y):
 #     return (1 - x)**2 + 100*(y-x**2)**2
