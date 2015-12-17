@@ -1,6 +1,10 @@
+import math
+import prim
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 from scipy.optimize import brentq as root
-from rhodium.model import *
+from rhodium import *
 
 def lake_problem(pollution_limit,
          b = 0.42,        # decay rate for P in lake (0.42 = irreversible)
@@ -18,7 +22,7 @@ def lake_problem(pollution_limit,
     reliability = 0.0
 
     for _ in xrange(nsamples):
-        X[0] = 0
+        X[0] = 0.0
         
         natural_inflows = np.random.lognormal(
                 math.log(mean**2 / math.sqrt(stdev**2 + mean**2)),
@@ -27,13 +31,13 @@ def lake_problem(pollution_limit,
         
         for t in xrange(1,nvars):
             X[t] = (1-b)*X[t-1] + X[t-1]**q/(1+X[t-1]**q) + decisions[t-1] + natural_inflows[t-1]
-            average_daily_P[t] += X[t]/nsamples
+            average_daily_P[t] += X[t]/float(nsamples)
     
         reliability += np.sum(X < Pcrit)/float(nsamples*nvars)
       
     max_P = np.max(average_daily_P)
     utility = np.sum(alpha*decisions*np.power(delta,np.arange(nvars)))
-    intertia = np.sum(np.diff(decisions) > -0.02)/(nvars-1)
+    intertia = np.sum(np.diff(decisions) > -0.02)/float(nvars-1)
     
     return (max_P, utility, intertia, reliability)
 
@@ -54,46 +58,63 @@ model.responses = [Response("max_P", Response.MINIMIZE),
                    Response("reliability", Response.MAXIMIZE)]
 
 # define any constraints (can reference any parameter or response by name)
-model.constraints = [Constraint("reliability >= 0.95")]
+model.constraints = [] #[Constraint("reliability >= 0.95")]
 
 # some parameters are levers that we control via our policy
-model.levers = {"pollution_limit" : RealLever(0.0, 0.1, length=100)}
+model.levers = [RealLever("pollution_limit", 0.0, 0.1, length=100)]
 
 # some parameters are exogeneous uncertainties, and we want to better
 # understand how these uncertainties impact our model and decision making
 # process
-model.uncertainties = {"b" : RealUncertainty(0.1, 0.45),
-                       "q" : RealUncertainty(2.0, 4.5),
-                       "mean" : RealUncertainty(0.01, 0.05),
-                       "stdev" : RealUncertainty(0.001, 0.005),
-                       "delta" : RealUncertainty(0.93, 0.99)}
+model.uncertainties = [RealUncertainty("b", 0.1, 0.45),
+                       RealUncertainty("q", 2.0, 4.5),
+                       RealUncertainty("mean", 0.01, 0.05),
+                       RealUncertainty("stdev", 0.001, 0.005),
+                       RealUncertainty("delta", 0.93, 0.99)]
 
-# compare explicit policies
-policy1 = {"pollution_limit" : [0.0]*100}
-policy2 = {"pollution_limit" : [0.1]*100}
+output = optimize(model, "NSGAII", 100)
+scatter2d(model, output)
 
-print evaluate(model, policy1)
-print evaluate(model, policy2)
+# construct a specific policy and evaluate it against 1000 states-of-the-world
+# policy = {"pollution_limit" : [0.02]*100}
+# SOWs = sample_lhs(model, 1000)
+# results = evaluate(model, fix(SOWs, policy))
+# metric = [1 if v["reliability"] > 0.9 else 0 for v in results]
 
-# evaluate model in randomly-generated SOWs (the fix() function assigns the
-# same policy within each SOW)
-SOWs = sample_lhs(model, 100)
-for SOW in SOWs:
-    print evaluate(model, fix(SOW, policy1))
+# use PRIM to identify the key uncertainties if we require reliability > 0.9
+# p = prim.Prim(results, metric, exclude=model.levers.keys() + model.responses.keys())
+# box = p.find_box()
+# box.show_tradeoff()
+plt.show()
 
-# evaluate a policy against many SOWs and compute the percentage of SOWs that
-# are feasible
-results = evaluate(model, fix(SOWs, policy1))
-print mean(check_feasibility(model, results))
+
+# df = pd.DataFrame(results)
+# 
+# for lever in model.levers.keys():
+#     df.drop(lever, axis=1, inplace=True)
+# for response in model.responses:
+#     df.drop(response.name, axis=1, inplace=True)
+# prim = Prim(df.to_records(), metric, threshold=0.8, peel_alpha=0.1)
+# box1 = prim.find_box()
+# box1.show_tradeoff().savefig("tradeoff.png")
+# fig = box1.show_pairs_scatter()
+# fig.set_size_inches((12, 12))
+# fig.savefig("scatter.png")
 
 # Basic MORDM analysis where we optimize the model under well-characterized
 # uncertainty, then subject each optimal policy to deep uncertain SOWs to
 # compute robustness measures
-optimal_policies = optimize(model, NFE=1000)
-SOWs = sample_lhs(model, 100)
-robustness = []
 
-for i, policy in enumerate(optimal_policies):
-    print "Evaluating design", i
-    results = evaluate(model, fix(SOWs, policy))
-    robustness.append(mean(check_feasibility(model, results)))
+
+# optimal_policies = optimize(model, NFE=10000)
+# 
+# 
+# SOWs = sample_lhs(model, 100)
+# 
+# 
+# 
+# robustness = []
+# 
+# for policy in optimal_policies:
+#     results = evaluate(model, fix(SOWs, policy))
+#     robustness.append(mean(check_feasibility(model, results)))

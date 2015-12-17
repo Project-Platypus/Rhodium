@@ -1,7 +1,28 @@
+# Copyright 2015 David Hadka
+#
+# This file is part of Rhodium, a Python module for robust decision making and
+# exploratory modeling.
+#
+# Rhodium is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Rhodium is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
+
 import ast
+import six
 import math
 import inspect
 import random
+import operator
+from collections import OrderedDict
 from abc import ABCMeta, abstractmethod
 from platypus.experimenter import Job, submit_jobs
 from platypus.types import Real
@@ -10,7 +31,14 @@ from platypus.core import Problem, unique, evaluator
 class RhodiumError(Exception):
     pass
 
-class Parameter(object):
+class NamedObject(object):
+    """Object with a name."""
+    
+    def __init__(self, name):
+        super(NamedObject, self).__init__()
+        self.name = name
+
+class Parameter(NamedObject):
     """Defines a model parameter (i.e., input).
     
     Defines a model input (i.e., input) and an optional default value.  The
@@ -19,11 +47,10 @@ class Parameter(object):
     """ 
     
     def __init__(self, name, default_value = None):
-        super(Parameter, self).__init__()
-        self.name = name
+        super(Parameter, self).__init__(name)
         self.default_value = default_value
         
-class Response(object):
+class Response(NamedObject):
     """Defines a model response (i.e., output).
     
     Defines a model response (i.e., output) and its type.  The type can be
@@ -38,8 +65,7 @@ class Response(object):
     INFO = 0
     
     def __init__(self, name, type = INFO):
-        super(Response, self).__init__()
-        self.name = name
+        super(Response, self).__init__(name)
         self.type = type
         
 _eval_env = {}
@@ -118,7 +144,7 @@ class Constraint(object):
         else:
             return 1.0
         
-class Lever(object):
+class Lever(NamedObject):
     """Defines an adjustable lever that controls a model parameter.
     
     Model parameters can either be constant, controlled by a lever, or
@@ -128,8 +154,8 @@ class Lever(object):
     
     __metaclass__ = ABCMeta
     
-    def __init__(self):
-        super(Lever, self).__init__()
+    def __init__(self, name):
+        super(Lever, self).__init__(name)
         
     @abstractmethod
     def to_variables(self):
@@ -137,8 +163,8 @@ class Lever(object):
     
 class RealLever(Lever):
     
-    def __init__(self, min_value, max_value, length = 1):
-        super(RealLever, self).__init__()
+    def __init__(self, name, min_value, max_value, length = 1):
+        super(RealLever, self).__init__(name)
         self.min_value = float(min_value)
         self.max_value = float(max_value)
         self.length = length
@@ -146,12 +172,12 @@ class RealLever(Lever):
     def to_variables(self):
         return [Real(self.min_value, self.max_value) for _ in range(self.length)]
         
-class Uncertainty(object):
+class Uncertainty(NamedObject):
     
     __metaclass__ = ABCMeta
     
-    def __init__(self):
-        super(Uncertainty, self).__init__()
+    def __init__(self, name):
+        super(Uncertainty, self).__init__(name)
         
     @abstractmethod    
     def levels(self, nlevels):
@@ -159,8 +185,8 @@ class Uncertainty(object):
         
 class RealUncertainty(Uncertainty):
     
-    def __init__(self, min_value, max_value):
-        super(RealUncertainty, self).__init__()
+    def __init__(self, name, min_value, max_value):
+        super(RealUncertainty, self).__init__(name)
         self.min_value = float(min_value)
         self.max_value = float(max_value)
         
@@ -175,8 +201,8 @@ class RealUncertainty(Uncertainty):
 
 class IntegerUncertainty(Uncertainty):
     
-    def __init__(self, min_value, max_value):
-        super(IntegerUncertainty, self).__init__()
+    def __init__(self, name, min_value, max_value):
+        super(IntegerUncertainty, self).__init__(name)
         self.min_value = int(min_value)
         self.max_value = int(max_value)
         
@@ -186,25 +212,141 @@ class IntegerUncertainty(Uncertainty):
 
 class CategoricalUncertainty(Uncertainty):
     
-    def __init__(self, categories):
-        super(CategoricalUncertainty, self).__init__()
+    def __init__(self, name, categories):
+        super(CategoricalUncertainty, self).__init__(name)
         self.categories = categories
         
     def levels(self, nlevels):
         ilevels = IntegerUncertainty(0, len(self.categories)-1).levels(nlevels)
         return [self.categories[i] for i in ilevels]
+    
+class NamedObjectMap(object):
+    
+    def __init__(self, type):
+        super(NamedObjectMap, self).__init__()
+        self.type = type
+        self._data = OrderedDict()
+        
+        if not issubclass(type, NamedObject):
+            raise TypeError("type must be a NamedObject")
+        
+    def clear(self):
+        self._data = OrderedDict()
+        
+    def __len__(self):
+        return len(self._data)
+
+    def __getitem__(self, key):
+        return self._data[key]
+    
+    def __setitem__(self, key, value):
+        if not isinstance(value, self.type):
+            raise TypeError("can only add " + self.type.__name__ + " objects")
+        
+        if value.name != key:
+            raise ValueError("key does not match name of " + self.type.__name__)
+        
+        self._data[key] = value
+        
+    def __delitem__(self, key):
+        del self._data[key]
+        
+    def __iter__(self):
+        return iter(self._data.values())
+    
+    def __contains__(self, item):
+        return item in self._data
+    
+    def extend(self, value):
+        if hasattr(value, "__iter__"):
+            for item in value:
+                if not isinstance(item, self.type):
+                    raise TypeError("can only add " + self.type.__name__ + " objects")
+                
+            for item in value:
+                self._data[item.name] = item
+        elif isinstance(value, Parameter):
+            self._data[value.name] = value
+        else:
+            raise TypeError("can only add " + str(type) + " objects")
+            
+    def __add__(self, value):
+        self.extend(value)
+        return self
+        
+    def __iadd__(self, value):
+        self.extend(value)
+        return self
+    
+    def keys(self):
+        return self._data.keys()
+    
+    def __getattr__(self, name):
+        return getattr(self._data, name)
+        
+class ParameterMap(NamedObjectMap):
+    
+    def __init__(self):
+        super(ParameterMap, self).__init__(Parameter)
+
+class ResponseMap(NamedObjectMap):
+    
+    def __init__(self):
+        super(ResponseMap, self).__init__(Response)
+        
+class LeverMap(NamedObjectMap):
+    
+    def __init__(self):
+        super(LeverMap, self).__init__(Lever)
+        
+class UncertaintyMap(NamedObjectMap):
+    
+    def __init__(self):
+        super(UncertaintyMap, self).__init__(Uncertainty)
 
 class Model(object):
     
     def __init__(self, function):
         super(Model, self).__init__()
         self.function = function
-        self.parameters = []
-        self.responses = []
+        self._parameters = ParameterMap()
+        self._responses = ResponseMap()
         self.constraints = []
-        self.levers = {}
-        self.uncertainties = {}
+        self._levers = LeverMap()
+        self._uncertainties = UncertaintyMap()
         self.fixed_parameters = {}
+        
+    @property
+    def parameters(self):
+        return self._parameters
+    
+    @parameters.setter
+    def parameters(self, value):
+        self._parameters.extend(value)
+        
+    @property
+    def responses(self):
+        return self._responses
+    
+    @responses.setter
+    def responses(self, value):
+        self._responses.extend(value)
+        
+    @property
+    def levers(self):
+        return self._levers
+        
+    @levers.setter
+    def levers(self, value):
+        self._levers.extend(value)
+        
+    @property
+    def uncertainties(self):
+        return self._uncertainties
+    
+    @uncertainties.setter
+    def uncertainties(self, value):
+        self._uncertainties.extend(value)
         
     def fix(self, *args, **kwargs):
         for arg in args:
@@ -330,7 +472,10 @@ def _to_problem(model):
         objectives = [job.output[r.name] for r in model.responses]
         constraints = [constraint.distance(job.output) for constraint in model.constraints]
         
-        return objectives, constraints
+        if nconstrs > 0:
+            return objectives, constraints
+        else:
+            return objectives
     
     problem = Problem(nvars, nobjs, nconstrs, function)
     problem.types[:] = variables
