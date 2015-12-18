@@ -1,7 +1,10 @@
+import os
 import math
 import prim
+import json
 import numpy as np
 import pandas as pd
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 from scipy.optimize import brentq as root
 from rhodium import *
@@ -72,8 +75,33 @@ model.uncertainties = [RealUncertainty("b", 0.1, 0.45),
                        RealUncertainty("stdev", 0.001, 0.005),
                        RealUncertainty("delta", 0.93, 0.99)]
 
-output = optimize(model, "NSGAII", 100)
-scatter2d(model, output)
+if os.path.exists("data.txt"):
+    with open("data.txt", "r") as f:
+        output = json.load(f)
+else:
+    output = optimize(model, "NSGAII", 1000)
+
+    with open("data.txt", "w") as f:
+        json.dump(output, f)
+
+mpl.rcdefaults()
+#sns.set()
+#mpl.rcParams["axes.facecolor"] = "white"
+cmap = mpl.colors.ListedColormap(sns.color_palette("Blues", 256))
+scatter3d(model, output, s="reliability", cmap=cmap)
+        
+#kdeplot(model, output, x="max_P", y="utility")
+#kdeplot(model, output, x="max_P", y="utility", expr=["reliability >= 0.2", "reliability < 0.2"], alpha=0.8)
+
+# pairs(model, output, expr=["reliability >= 0.2", "reliability < 0.2"],
+#       palette={"reliability >= 0.2" : sns.color_palette()[0],
+#                "reliability < 0.2" : sns.color_palette()[2]})
+
+#joint(model, output, x="max_P", y="utility")
+
+# hist(model, output)
+
+#interact(model, output, "max_P", "utility", "reliability", filled=True)
 
 # construct a specific policy and evaluate it against 1000 states-of-the-world
 # policy = {"pollution_limit" : [0.02]*100}

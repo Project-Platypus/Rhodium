@@ -1,7 +1,7 @@
 # Rhodium
 
 Rhodium is a Python library for robust decision making and exploratory
-modelling.
+modeling.  
 
 ## Example
 

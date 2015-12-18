@@ -20,6 +20,8 @@ import six
 import mpldatacursor
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+import pandas as pd
+import seaborn as sns
 from matplotlib.colors import ColorConverter
 from matplotlib.legend_handler import HandlerPatch
 from mpl_toolkits.mplot3d import Axes3D
@@ -38,6 +40,17 @@ class HandlerSizeLegend(HandlerPatch):
         p2.set_transform(trans)
         
         return [p1, p2]
+    
+def to_dataframe(model, data, keys = None):
+    dict = {}
+    
+    if keys is None:
+        keys = model.responses.keys()
+
+    for key in keys:
+        dict[key] = [d[key] for d in data]
+        
+    return pd.DataFrame(dict)
 
 def scatter3d(model, data,
            x = None,
@@ -49,36 +62,38 @@ def scatter3d(model, data,
            show_colorbar = True,
            show_legend = True,
            **kwargs):
-    fig = plt.figure(facecolor='white')
+    df = to_dataframe(model, data)
+    fig = plt.figure()
+    fig.set_facecolor("white")
     ax = fig.add_subplot(111, projection='3d')
     
     if isinstance(x, six.string_types):
         x_label = x
-        x = [d[x_label] for d in data]
+        x = df[x_label]
     else:
         x_label = None
             
     if isinstance(y, six.string_types):
         y_label = y
-        y = [d[y_label] for d in data]
+        y = df[y_label]
     else:
         y_label = None
         
     if isinstance(z, six.string_types):
         z_label = z
-        z = [d[z_label] for d in data]
+        z = df[z_label]
     else:
         z_label = None
         
     if isinstance(c, six.string_types):
         c_label = c
-        c = [d[c_label] for d in data]
+        c = df[c_label]
     else:
         c_label = None
         
     if isinstance(s, six.string_types):
         s_label = s
-        s = [d[s_label] for d in data]
+        s = df[s_label]
     else:
         s_label = None
         
@@ -95,19 +110,19 @@ def scatter3d(model, data,
     for key in remaining_keys:
         if x is None:
             x_label = key
-            x = [d[x_label] for d in data]
+            x = df[x_label]
         elif y is None:
             y_label = key
-            y = [d[y_label] for d in data]
+            y = df[y_label]
         elif z is None:
             z_label = key
-            z = [d[z_label] for d in data]
+            z = df[z_label]
         elif c is None:
             c_label = key
-            c = [d[c_label] for d in data]
+            c = df[c_label]
         elif s is None:
             s_label = key
-            s = [d[s_label] for d in data]
+            s = df[s_label]
         
     if z is None:
         z = 0
@@ -170,30 +185,31 @@ def scatter2d(model, data,
            show_colorbar = True,
            show_legend = True,
            **kwargs):
+    df = to_dataframe(model, data)
     fig = plt.figure(facecolor='white')
     ax = plt.gca()
     
     if isinstance(x, six.string_types):
         x_label = x
-        x = [d[x_label] for d in data]
+        x = df[x_label]
     else:
         x_label = None
             
     if isinstance(y, six.string_types):
         y_label = y
-        y = [d[y_label] for d in data]
+        y = df[y_label]
     else:
         y_label = None
         
     if isinstance(c, six.string_types):
         c_label = c
-        c = [d[c_label] for d in data]
+        c = df[c_label]
     else:
         c_label = None
         
     if isinstance(s, six.string_types):
         s_label = s
-        s = [d[s_label] for d in data]
+        s = df[s_label]
     else:
         s_label = None
         
@@ -210,16 +226,16 @@ def scatter2d(model, data,
     for key in remaining_keys:
         if x is None:
             x_label = key
-            x = [d[x_label] for d in data]
+            x = df[x_label]
         elif y is None:
             y_label = key
-            y = [d[y_label] for d in data]
+            y = df[y_label]
         elif c is None:
             c_label = key
-            c = [d[c_label] for d in data]
+            c = df[c_label]
         elif s is None:
             s_label = key
-            s = [d[s_label] for d in data]
+            s = df[s_label]
         
     if c is None:
         c = 'b'
@@ -250,8 +266,7 @@ def scatter2d(model, data,
         proxy = mpatches.Circle((0.5, 0.5), 0.25, fc="b")
         ax.legend([proxy],
                   [s_label + " (" + str(s_min) + " - " + str(s_max) + ")"],
-                  handler_map={mpatches.Circle: HandlerSizeLegend()},
-                  **kwargs)
+                  handler_map={mpatches.Circle: HandlerSizeLegend()})
         
     def formatter(**kwargs):
         i = kwargs.get("ind")[0]
@@ -268,6 +283,93 @@ def scatter2d(model, data,
         
     return fig
 
-def parallel(model, data):
+def joint(model, data, x, y, **kwargs):
+    df = to_dataframe(model, data)
+    
+    sns.jointplot(df[x],
+                  df[y],
+                  **kwargs)
+
+def pairs(model, data,
+          expr = None,
+          class_label = "class",
+          **kwargs):
+    df = to_dataframe(model, data)
+    
+    if expr is None:
+        sns.pairplot(df, **kwargs)
+    else:
+        df[class_label] = ["unassigned"]*df.shape[0]
+        
+        if isinstance(expr, six.string_types):
+            expr = [expr]
+            
+        for e in expr:
+            bin = df.query(e)
+            df.loc[bin.index, class_label] = e
+            
+        sns.pairplot(df, hue=class_label, **kwargs)
+     
     
     
+def kdeplot(model, data, x, y,
+            expr = None,
+            alpha=1.0,
+            cmap = ["Reds", "Blues", "Oranges", "Greens", "Greys"],
+            **kwargs):
+    df = to_dataframe(model, data)
+    
+    if expr is None:
+        sns.kdeplot(df[x],
+                    df[y],
+                    cmap=cmap[0],
+                    shade=True,
+                    shade_lowest=False,
+                    alpha=alpha,
+                    **kwargs)
+        
+        proxy = mpatches.Circle((0.5, 0.5),
+                                0.25,
+                                fc=sns.color_palette(cmap[0])[-2])
+        
+        ax = plt.gca()
+        ax.legend([proxy], ["Density"], **kwargs)
+    else:
+        proxies = []
+        
+        if isinstance(expr, six.string_types):
+            expr = [expr]
+            
+        for i, e in reversed(list(enumerate(expr))):
+            bin = df.query(e)
+            sns.kdeplot(bin[x],
+                        bin[y],
+                        cmap=cmap[i % len(cmap)],
+                        shade=True,
+                        shade_lowest=False,
+                        alpha=alpha,
+                        **kwargs)
+            proxies.append(mpatches.Circle((0.5, 0.5),
+                                           0.25,
+                                           fc=sns.color_palette(cmap[i % len(cmap)])[-2]))
+            
+        ax = plt.gca()
+        ax.legend(proxies, expr, **kwargs)
+        
+def hist(model, data):
+    df = to_dataframe(model, data)
+    keys = model.responses.keys()
+    
+    f, axes = plt.subplots(1, len(keys))
+    sns.despine(left=True)
+    
+    for i, k in enumerate(keys):
+        sns.distplot(df[k], kde=False, ax=axes[i])
+        
+    plt.setp(axes, yticks=[])
+    plt.tight_layout()
+    
+def interact(model, data, x, y, z, **kwargs):
+    df = to_dataframe(model, data)
+    
+    sns.interactplot(x, y, z, df, **kwargs)
