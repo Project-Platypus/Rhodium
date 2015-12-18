@@ -84,11 +84,11 @@ else:
     with open("data.txt", "w") as f:
         json.dump(output, f)
 
-mpl.rcdefaults()
-#sns.set()
+sns.set()
+
 #mpl.rcParams["axes.facecolor"] = "white"
-cmap = mpl.colors.ListedColormap(sns.color_palette("Blues", 256))
-scatter3d(model, output, s="reliability", cmap=cmap)
+#cmap = mpl.colors.ListedColormap(sns.color_palette("Blues", 256))
+scatter3d(model, output, s="reliability")#, cmap=cmap)
         
 #kdeplot(model, output, x="max_P", y="utility")
 #kdeplot(model, output, x="max_P", y="utility", expr=["reliability >= 0.2", "reliability < 0.2"], alpha=0.8)

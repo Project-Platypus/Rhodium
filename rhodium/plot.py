@@ -18,6 +18,7 @@
 
 import six
 import mpldatacursor
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import pandas as pd
@@ -27,8 +28,13 @@ from matplotlib.legend_handler import HandlerPatch
 from mpl_toolkits.mplot3d import Axes3D
 
 class HandlerSizeLegend(HandlerPatch):
+    def __call__(self, legend, orig_handle,
+             fontsize,
+             handlebox):
+        print "Here"
+    
     def create_artists(self, legend, orig_handle,
-                       xdescent, ydescent, width, height, fontsize, trans):
+                      xdescent, ydescent, width, height, fontsize, trans):
         p1 = mpatches.Circle(xy=(0.2 * width - 0.5 * xdescent, 0.5 * height - 0.5 * ydescent),
                              radius=(height*0.25)/2)
         self.update_prop(p1, orig_handle, legend)
@@ -63,8 +69,12 @@ def scatter3d(model, data,
            show_legend = True,
            **kwargs):
     df = to_dataframe(model, data)
+    
+    if "axes.facecolor" in mpl.rcParams:
+        orig_facecolor = mpl.rcParams["axes.facecolor"]
+        mpl.rcParams["axes.facecolor"] = "white"
+    
     fig = plt.figure()
-    fig.set_facecolor("white")
     ax = fig.add_subplot(111, projection='3d')
     
     if isinstance(x, six.string_types):
@@ -154,12 +164,11 @@ def scatter3d(model, data,
         cb = fig.colorbar(handle, shrink=0.5, aspect=5)
         cb.set_label(c_label)
     
-    if show_legend:
-        proxy = mpatches.Circle((0.5, 0.5), 0.25, fc="b")
-        ax.legend([proxy],
-                  [s_label + " (" + str(s_min) + " - " + str(s_max) + ")"],
-                  handler_map={mpatches.Circle: HandlerSizeLegend()},
-                  **kwargs)
+#     if show_legend:
+#         proxy = mpatches.Circle((0.5, 0.5), 0.25, fc="b")
+#         ax.legend([proxy],
+#                   [s_label + " (" + str(s_min) + " - " + str(s_max) + ")"],
+#                   handler_map={object: HandlerSizeLegend()})
         
     def formatter(**kwargs):
         i = kwargs.get("ind")[0]
@@ -173,6 +182,9 @@ def scatter3d(model, data,
         return label
         
     mpldatacursor.datacursor(formatter=formatter, hover=True)
+    
+    if "axes.facecolor" in mpl.rcParams:
+        mpl.rcParams["axes.facecolor"] = orig_facecolor
         
     return fig
 
@@ -262,11 +274,11 @@ def scatter2d(model, data,
         cb = fig.colorbar(handle, shrink=0.5, aspect=5)
         cb.set_label(c_label)
     
-    if show_legend:
-        proxy = mpatches.Circle((0.5, 0.5), 0.25, fc="b")
-        ax.legend([proxy],
-                  [s_label + " (" + str(s_min) + " - " + str(s_max) + ")"],
-                  handler_map={mpatches.Circle: HandlerSizeLegend()})
+#     if show_legend:
+#         proxy = mpatches.Circle((0.5, 0.5), 0.25, fc="b")
+#         ax.legend([proxy],
+#                   [s_label + " (" + str(s_min) + " - " + str(s_max) + ")"],
+#                   handler_map={mpatches.Circle: HandlerSizeLegend()})
         
     def formatter(**kwargs):
         i = kwargs.get("ind")[0]
