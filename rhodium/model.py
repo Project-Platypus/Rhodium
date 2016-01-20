@@ -1,4 +1,4 @@
-# Copyright 2015 David Hadka
+# Copyright 2015-2016 David Hadka
 #
 # This file is part of Rhodium, a Python module for robust decision making and
 # exploratory modeling.
@@ -360,15 +360,15 @@ class Model(object):
 def _sample_lhs(model, nsamples):
     samples = {}
     
-    for key, uncertainty in model.uncertainties.iteritems():
+    for uncertainty in model.uncertainties:
         levels = uncertainty.levels(nsamples)
         random.shuffle(levels)
-        samples[key] = levels
+        samples[uncertainty.name] = levels
         
     for i in range(nsamples):
         result = {}
         
-        for key, values in samples.iteritems():
+        for key, values in six.iteritems(samples):
             result[key] = values[i]
     
         yield result
@@ -451,7 +451,7 @@ def mean(values):
 def _to_problem(model):
     variables = []
     
-    for name, lever in model.levers.iteritems():
+    for lever in model.levers:
         variables.extend(lever.to_variables())
     
     nvars = len(variables)
@@ -462,8 +462,8 @@ def _to_problem(model):
         env = {}
         offset = 0
         
-        for name, lever in model.levers.iteritems():
-            env[name] = vars[offset:offset+lever.length]
+        for lever in model.levers:
+            env[lever.name] = vars[offset:offset+lever.length]
             offset += lever.length
             
         job = EvaluateJob(model, env)
@@ -502,11 +502,11 @@ def optimize(model, algorithm="NSGAII", NFE=10000, **kwargs):
         env = {}
         offset = 0
         
-        for name, lever in model.levers.iteritems():
+        for lever in model.levers:
             if lever.length == 1:
-                env[name] = solution.variables[offset]
+                env[lever.name] = solution.variables[offset]
             else:
-                env[name] = solution.variables[offset:offset+lever.length]
+                env[lever.name] = solution.variables[offset:offset+lever.length]
 
             offset += lever.length
         

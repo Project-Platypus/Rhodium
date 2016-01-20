@@ -1,4 +1,4 @@
-# Copyright 2015 David Hadka
+# Copyright 2015-2016 David Hadka
 #
 # This file is part of Rhodium, a Python module for robust decision making and
 # exploratory modeling.
@@ -17,6 +17,7 @@
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
 
 import six
+import warnings
 import mpldatacursor
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -35,6 +36,7 @@ class HandlerSizeLegend(HandlerPatch):
     
     def create_artists(self, legend, orig_handle,
                       xdescent, ydescent, width, height, fontsize, trans):
+        print "Create Artists"
         p1 = mpatches.Circle(xy=(0.2 * width - 0.5 * xdescent, 0.5 * height - 0.5 * ydescent),
                              radius=(height*0.25)/2)
         self.update_prop(p1, orig_handle, legend)
@@ -66,13 +68,31 @@ def scatter3d(model, data,
            s = None,
            s_range = (10, 50),
            show_colorbar = True,
-           show_legend = True,
+           show_legend = False,
+           interactive = False,
+           expr = None,
+           class_label = "class",
            **kwargs):
     df = to_dataframe(model, data)
     
     if "axes.facecolor" in mpl.rcParams:
         orig_facecolor = mpl.rcParams["axes.facecolor"]
         mpl.rcParams["axes.facecolor"] = "white"
+        
+    if expr is not None:
+        df[class_label] = [0.0]*df.shape[0]
+        
+        if isinstance(expr, six.string_types):
+            expr = [expr]
+            
+        for i, e in enumerate(expr):
+            bin = df.query(e)
+            df.loc[bin.index, class_label] = float(i+1) / len(expr)
+            
+        if c is not None:
+            warnings.warn("color and expr arguments both assigned, discarding color", UserWarning)
+            
+        c = class_label
     
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
@@ -107,15 +127,11 @@ def scatter3d(model, data,
     else:
         s_label = None
         
-    remaining_keys = set(model.responses.keys())
-    
     used_keys = set([x_label, y_label, z_label, c_label, s_label])
     used_keys.remove(None)
     
-    if used_keys.issubset(remaining_keys):
-        remaining_keys -= used_keys
-    else:
-        remaining_keys = set()
+    remaining_keys = set(model.responses.keys())
+    remaining_keys -= used_keys
 
     for key in remaining_keys:
         if x is None:
@@ -161,27 +177,36 @@ def scatter3d(model, data,
     ax.set_zlabel(z_label)
         
     if show_colorbar:
-        cb = fig.colorbar(handle, shrink=0.5, aspect=5)
-        cb.set_label(c_label)
+        if expr is None:
+            cb = fig.colorbar(handle, shrink=0.5, aspect=5)
+            cb.set_label(c_label)
+        else:
+            cb = fig.colorbar(handle, shrink=0.5, aspect=5,
+                              ticks=[(i+0.5)/(len(expr)+1) for i in range(len(expr)+1)])
+            plt.clim(0, 1)
+            cb.set_label(c_label)
+            cb.ax.set_xticklabels(["Unassigned"] + expr)
+            cb.ax.set_yticklabels(["Unassigned"] + expr)
     
 #     if show_legend:
 #         proxy = mpatches.Circle((0.5, 0.5), 0.25, fc="b")
 #         ax.legend([proxy],
 #                   [s_label + " (" + str(s_min) + " - " + str(s_max) + ")"],
-#                   handler_map={object: HandlerSizeLegend()})
+#                   handler_map={proxy: HandlerSizeLegend()})
         
-    def formatter(**kwargs):
-        i = kwargs.get("ind")[0]
-        point = data[i]
-        keys = model.responses.keys()
-        label = "Index %d" % i
-        
-        for key in keys:
-            label += "\n%s: %0.2f" % (key, point[key])
-        
-        return label
-        
-    mpldatacursor.datacursor(formatter=formatter, hover=True)
+    if interactive:
+        def formatter(**kwargs):
+            i = kwargs.get("ind")[0]
+            point = data[i]
+            keys = model.responses.keys()
+            label = "Index %d" % i
+            
+            for key in keys:
+                label += "\n%s: %0.2f" % (key, point[key])
+            
+            return label
+            
+        mpldatacursor.datacursor(formatter=formatter, hover=True)
     
     if "axes.facecolor" in mpl.rcParams:
         mpl.rcParams["axes.facecolor"] = orig_facecolor
@@ -195,11 +220,29 @@ def scatter2d(model, data,
            s = None,
            s_range = (10, 50),
            show_colorbar = True,
-           show_legend = True,
+           show_legend = False,
+           interactive = False,
+           expr = None,
+           class_label = "class",
            **kwargs):
     df = to_dataframe(model, data)
     fig = plt.figure(facecolor='white')
     ax = plt.gca()
+    
+    if expr is not None:
+        df[class_label] = [0.0]*df.shape[0]
+        
+        if isinstance(expr, six.string_types):
+            expr = [expr]
+            
+        for i, e in enumerate(expr):
+            bin = df.query(e)
+            df.loc[bin.index, class_label] = float(i+1) / len(expr)
+            
+        if c is not None:
+            warnings.warn("color and expr arguments both assigned, discarding color", UserWarning)
+            
+        c = class_label
     
     if isinstance(x, six.string_types):
         x_label = x
@@ -225,15 +268,11 @@ def scatter2d(model, data,
     else:
         s_label = None
         
-    remaining_keys = set(model.responses.keys())
-    
     used_keys = set([x_label, y_label, c_label, s_label])
     used_keys.remove(None)
     
-    if used_keys.issubset(remaining_keys):
-        remaining_keys -= used_keys
-    else:
-        remaining_keys = set()
+    remaining_keys = set(model.responses.keys())
+    remaining_keys -= used_keys
 
     for key in remaining_keys:
         if x is None:
@@ -271,27 +310,36 @@ def scatter2d(model, data,
     ax.set_ylabel(y_label)
         
     if show_colorbar:
-        cb = fig.colorbar(handle, shrink=0.5, aspect=5)
-        cb.set_label(c_label)
+        if expr is None:
+            cb = fig.colorbar(handle, shrink=0.5, aspect=5)
+            cb.set_label(c_label)
+        else:
+            cb = fig.colorbar(handle, shrink=0.5, aspect=5,
+                              ticks=[(i+0.5)/(len(expr)+1) for i in range(len(expr)+1)])
+            plt.clim(0, 1)
+            cb.set_label(c_label)
+            cb.ax.set_xticklabels(["Unassigned"] + expr)
+            cb.ax.set_yticklabels(["Unassigned"] + expr)
     
-#     if show_legend:
-#         proxy = mpatches.Circle((0.5, 0.5), 0.25, fc="b")
-#         ax.legend([proxy],
-#                   [s_label + " (" + str(s_min) + " - " + str(s_max) + ")"],
-#                   handler_map={mpatches.Circle: HandlerSizeLegend()})
-        
-    def formatter(**kwargs):
-        i = kwargs.get("ind")[0]
-        point = data[i]
-        keys = model.responses.keys()
-        label = "Index %d" % i
-        
-        for key in keys:
-            label += "\n%s: %0.2f" % (key, point[key])
-        
-        return label
-        
-    mpldatacursor.datacursor(formatter=formatter, hover=True)
+    if show_legend:
+        proxy = mpatches.Circle((0.5, 0.5), 0.25, fc="b")
+        ax.legend([proxy],
+                  [s_label + " (" + str(s_min) + " - " + str(s_max) + ")"],
+                  handler_map={mpatches.Circle: HandlerSizeLegend()})
+    
+    if interactive:  
+        def formatter(**kwargs):
+            i = kwargs.get("ind")[0]
+            point = data[i]
+            keys = model.responses.keys()
+            label = "Index %d" % i
+            
+            for key in keys:
+                label += "\n%s: %0.2f" % (key, point[key])
+            
+            return label
+            
+        mpldatacursor.datacursor(formatter=formatter, hover=True)
         
     return fig
 

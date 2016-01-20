@@ -1,12 +1,12 @@
 import os
 import math
-import prim
 import json
 import numpy as np
 import pandas as pd
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from scipy.optimize import brentq as root
+from prim import Prim
 from rhodium import *
 
 def lake_problem(pollution_limit,
@@ -75,55 +75,121 @@ model.uncertainties = [RealUncertainty("b", 0.1, 0.45),
                        RealUncertainty("stdev", 0.001, 0.005),
                        RealUncertainty("delta", 0.93, 0.99)]
 
-if os.path.exists("data.txt"):
-    with open("data.txt", "r") as f:
-        output = json.load(f)
-else:
-    output = optimize(model, "NSGAII", 1000)
+# if os.path.exists("data.txt"):
+#     with open("data.txt", "r") as f:
+#         output = json.load(f)
+# else:
+#output = optimize(model, "NSGAII", 1000)
+# 
+#     with open("data.txt", "w") as f:
+#         json.dump(output, f)
 
-    with open("data.txt", "w") as f:
-        json.dump(output, f)
+# ----------------------------------------------------------------------------
+# Plotting
+# ----------------------------------------------------------------------------
 
-sns.set()
-
-#mpl.rcParams["axes.facecolor"] = "white"
-#cmap = mpl.colors.ListedColormap(sns.color_palette("Blues", 256))
-scatter3d(model, output, s="reliability")#, cmap=cmap)
-        
-#kdeplot(model, output, x="max_P", y="utility")
-#kdeplot(model, output, x="max_P", y="utility", expr=["reliability >= 0.2", "reliability < 0.2"], alpha=0.8)
-
-# pairs(model, output, expr=["reliability >= 0.2", "reliability < 0.2"],
+# # Use Seaborn settings for pretty plots
+# sns.set()
+# 
+# # Plot the points in 2D space
+# scatter2d(model, output)
+# plt.show()
+# 
+# # The optional interactive flag will show additional details of each point when
+# # hovering the mouse
+# scatter2d(model, output, interactive=True)
+# plt.show()
+# 
+# # Most of Rhodiums's plotting functions accept an optional expr argument for
+# # classifying or highlighting points meeting some condition
+# scatter2d(model, output,
+#           expr=["reliability >= 0.2", "reliability < 0.2"],
+#           cmap=mpl.colors.ListedColormap(['gray', 'red', 'blue']))
+# plt.show()
+#
+# # Plot the points in 3D space
+# scatter3d(model, output, s="reliability", interactive=True)
+# plt.show()
+#     
+# # Kernel density estimation plots show density contours for samples.  By
+# # default, it will show the density of all sampled points
+# kdeplot(model, output, x="max_P", y="utility")
+# plt.show()
+# 
+# # Alternatively, we can show the density of all points meeting one or more
+# # conditions
+# kdeplot(model, output, x="max_P", y="utility",
+#         expr=["reliability >= 0.2", "reliability < 0.2"],
+#         alpha=0.8)
+# plt.show()
+# 
+# # Pairwise scatter plots shown 2D scatter plots for all outputs
+# pairs(model, output)
+# plt.show()
+# 
+# # We can also highlight points meeting one or more conditions
+# pairs(model, output,
+#       expr=["reliability >= 0.2", "reliability < 0.2"],
 #       palette={"reliability >= 0.2" : sns.color_palette()[0],
 #                "reliability < 0.2" : sns.color_palette()[2]})
-
-#joint(model, output, x="max_P", y="utility")
-
+# plt.show()
+# 
+# # Joint plots show a single pair of parameters in 2D, their distributions using
+# # histograms, and the Pearson correlation coefficient
+# joint(model, output, x="max_P", y="utility")
+# sns.plt.show()
+#
+# # Interaction plots show the interaction between two parameters (x and y) with
+# # respect to a response (z)
+# interact(model, output, x="max_P", y="utility", z="reliability", filled=True)
+# sns.plt.show()
+#
+# # A histogram of the distribution of points along each parameter
 # hist(model, output)
+# sns.plt.show()
 
-#interact(model, output, "max_P", "utility", "reliability", filled=True)
+# ----------------------------------------------------------------------------
+# Identifying Key Uncertainties
+# ----------------------------------------------------------------------------
+
+# The remaining figures look better using Matplotlib's default settings
+mpl.rcdefaults()
+
+# We can manually construct policies for analysis.  A policy is simply a Python
+# dict storing key-value pairs, one for each lever.
+policy = {"pollution_limit" : [0.02]*100}
+
+# Or select one of our optimization results
+#policy = output[3]
 
 # construct a specific policy and evaluate it against 1000 states-of-the-world
-# policy = {"pollution_limit" : [0.02]*100}
-# SOWs = sample_lhs(model, 1000)
-# results = evaluate(model, fix(SOWs, policy))
-# metric = [1 if v["reliability"] > 0.9 else 0 for v in results]
+SOWs = sample_lhs(model, 100)
+results = evaluate(model, fix(SOWs, policy))
+metric = [1 if v["reliability"] > 0.9 else 0 for v in results]
 
+from SALib.analyze import delta
+
+problem = { 'num_vars' : len(model.uncertainties),
+            'names' : model.uncertainties.keys(),
+            'bounds' : [[u.min_value, u.max_value] for u in model.uncertainties]}
+
+print(problem)
+
+import numpy as np
+
+X = to_dataframe(model, results, keys=model.uncertainties.keys())
+print(X.values)
+Y = to_dataframe(model, results, keys=["reliability"])
+print(Y.values)
+
+print(delta.analyze(problem, X.values, Y.values, num_resamples=10, conf_level=0.95, print_to_console=False))
+ 
 # use PRIM to identify the key uncertainties if we require reliability > 0.9
-# p = prim.Prim(results, metric, exclude=model.levers.keys() + model.responses.keys())
-# box = p.find_box()
-# box.show_tradeoff()
-plt.show()
+#p = Prim(results, metric, exclude=model.levers.keys() + model.responses.keys())
+#box = p.find_box()
+#box.show_scatter()
+#plt.show()
 
-
-# df = pd.DataFrame(results)
-# 
-# for lever in model.levers.keys():
-#     df.drop(lever, axis=1, inplace=True)
-# for response in model.responses:
-#     df.drop(response.name, axis=1, inplace=True)
-# prim = Prim(df.to_records(), metric, threshold=0.8, peel_alpha=0.1)
-# box1 = prim.find_box()
 # box1.show_tradeoff().savefig("tradeoff.png")
 # fig = box1.show_pairs_scatter()
 # fig.set_size_inches((12, 12))
