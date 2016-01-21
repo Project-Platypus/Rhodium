@@ -6,7 +6,6 @@ import pandas as pd
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from scipy.optimize import brentq as root
-from prim import Prim
 from rhodium import *
 
 def lake_problem(pollution_limit,
@@ -163,32 +162,41 @@ policy = {"pollution_limit" : [0.02]*100}
 #policy = output[3]
 
 # construct a specific policy and evaluate it against 1000 states-of-the-world
-SOWs = sample_lhs(model, 100)
-results = evaluate(model, fix(SOWs, policy))
-metric = [1 if v["reliability"] > 0.9 else 0 for v in results]
-
-from SALib.analyze import delta
-
-problem = { 'num_vars' : len(model.uncertainties),
-            'names' : model.uncertainties.keys(),
-            'bounds' : [[u.min_value, u.max_value] for u in model.uncertainties]}
-
-print(problem)
-
-import numpy as np
-
-X = to_dataframe(model, results, keys=model.uncertainties.keys())
-print(X.values)
-Y = to_dataframe(model, results, keys=["reliability"])
-print(Y.values)
-
-print(delta.analyze(problem, X.values, Y.values, num_resamples=10, conf_level=0.95, print_to_console=False))
+# SOWs = sample_lhs(model, 100)
+# results = evaluate(model, fix(SOWs, policy))
+# metric = [1 if v["reliability"] > 0.9 else 0 for v in results]
  
 # use PRIM to identify the key uncertainties if we require reliability > 0.9
 #p = Prim(results, metric, exclude=model.levers.keys() + model.responses.keys())
 #box = p.find_box()
 #box.show_scatter()
 #plt.show()
+
+
+print(sa(model, "reliability", policy=policy, method="morris", nsamples=1000, num_levels=4, grid_jump=2))
+
+# # Run model (example)
+# Y = Ishigami.evaluate(param_values)
+# 
+# # Perform analysis
+# Si = sobol.analyze(problem, Y, print_to_console=False)
+# 
+# 
+# from SALib.analyze import delta
+# 
+# 
+# 
+# print(problem)
+# 
+# import numpy as np
+# 
+# X = to_dataframe(model, results, keys=model.uncertainties.keys())
+# print(X.values)
+# Y = to_dataframe(model, results, keys=["reliability"])
+# print(Y.values)
+# 
+# print(delta.analyze(problem, X.values, Y.values, num_resamples=10, conf_level=0.95, print_to_console=False))
+
 
 # box1.show_tradeoff().savefig("tradeoff.png")
 # fig = box1.show_pairs_scatter()

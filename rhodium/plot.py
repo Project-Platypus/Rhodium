@@ -15,6 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
+from __future__ import division, print_function, absolute_import
 
 import six
 import warnings
@@ -32,11 +33,11 @@ class HandlerSizeLegend(HandlerPatch):
     def __call__(self, legend, orig_handle,
              fontsize,
              handlebox):
-        print "Here"
+        print("Here")
     
     def create_artists(self, legend, orig_handle,
                       xdescent, ydescent, width, height, fontsize, trans):
-        print "Create Artists"
+        print("Create Artists")
         p1 = mpatches.Circle(xy=(0.2 * width - 0.5 * xdescent, 0.5 * height - 0.5 * ydescent),
                              radius=(height*0.25)/2)
         self.update_prop(p1, orig_handle, legend)

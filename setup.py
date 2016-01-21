@@ -16,12 +16,13 @@ class NoseTestCommand(TestCommand):
 
 setup(name='Rhodium',
       version='0.1',
-      description='Robust decision making in Python',
+      description='Robust decision making and exploratory modelling in Python',
       author='David Hadka',
       author_email='dhadka@users.noreply.github.com',
       license="GNU GPL version 3",
       url='https://github.com/Project-Platypus/Rhodium',
       packages=['rhodium'],
+      install_requires=['prim'],
       tests_require=['nose', 'mock'],
       cmdclass={'test': NoseTestCommand},
       classifiers=[

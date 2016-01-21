@@ -15,6 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
+from __future__ import division, print_function, absolute_import
 
 import ast
 import six
@@ -375,8 +376,8 @@ def _sample_lhs(model, nsamples):
         
 def sample_lhs(model, nsamples):
     return list(_sample_lhs(model, nsamples))
-        
-def fix(samples, fixed_parameters):
+
+def _fix_generator(samples, fixed_parameters):
     if inspect.isgenerator(samples) or (hasattr(samples, '__iter__') and not isinstance(samples, dict)):
         for sample in samples:
             result = sample.copy()
@@ -386,6 +387,14 @@ def fix(samples, fixed_parameters):
         result = samples.copy()
         result.update(fixed_parameters)
         yield result
+    
+def fix(samples, fixed_parameters):
+    if inspect.isgenerator(samples) or (hasattr(samples, '__iter__') and not isinstance(samples, dict)):
+        return _fix_generator(samples, fixed_parameters)
+    else:
+        result = samples.copy()
+        result.update(fixed_parameters)
+        return result
         
 def generate_jobs(model, samples):
     if isinstance(samples, dict):
@@ -425,8 +434,12 @@ class EvaluateJob(Job):
         self.output = args
 
 def evaluate(model, samples, **kwargs):
-    results = submit_jobs(generate_jobs(model, samples), **kwargs)
-    return [result.output for result in results]
+    if inspect.isgenerator(samples) or (hasattr(samples, '__iter__') and not isinstance(samples, dict)):
+        results = submit_jobs(generate_jobs(model, samples), **kwargs)
+        return [result.output for result in results]
+    else:
+        results = submit_jobs(generate_jobs(model, samples), **kwargs)
+        return results[0].output
 
 def _is_feasible(model, result):
     for constraint in model.constraints:
