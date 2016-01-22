@@ -27,4 +27,4 @@ __status__ = "Development"
 from .model import *
 from .plot import *
 from .sa import *
-from prim import *
+from .classification import *

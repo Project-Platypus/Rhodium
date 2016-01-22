@@ -74,14 +74,17 @@ model.uncertainties = [RealUncertainty("b", 0.1, 0.45),
                        RealUncertainty("stdev", 0.001, 0.005),
                        RealUncertainty("delta", 0.93, 0.99)]
 
-# if os.path.exists("data.txt"):
-#     with open("data.txt", "r") as f:
-#         output = json.load(f)
-# else:
-#output = optimize(model, "NSGAII", 1000)
-# 
-#     with open("data.txt", "w") as f:
-#         json.dump(output, f)
+if os.path.exists("data.txt"):
+    with open("data.txt", "r") as f:
+        output = json.load(f)
+else:
+    output = optimize(model, "NSGAII", 1000)
+ 
+    with open("data.txt", "w") as f:
+        json.dump(output, f)
+        
+parallel(model, output)
+plt.show()
 
 # ----------------------------------------------------------------------------
 # Plotting
@@ -162,18 +165,22 @@ policy = {"pollution_limit" : [0.02]*100}
 #policy = output[3]
 
 # construct a specific policy and evaluate it against 1000 states-of-the-world
-# SOWs = sample_lhs(model, 100)
-# results = evaluate(model, fix(SOWs, policy))
-# metric = [1 if v["reliability"] > 0.9 else 0 for v in results]
+SOWs = sample_lhs(model, 100)
+results = evaluate(model, fix(SOWs, policy))
+metric = ["Reliable" if v["reliability"] > 0.9 else "Unreliable" for v in results]
  
-# use PRIM to identify the key uncertainties if we require reliability > 0.9
-#p = Prim(results, metric, exclude=model.levers.keys() + model.responses.keys())
-#box = p.find_box()
-#box.show_scatter()
-#plt.show()
+# # use PRIM to identify the key uncertainties if we require reliability > 0.9
+# p = prim(results, metric, include=model.uncertainties.keys(), coi="Reliable")
+# box = p.find_box()
+# box.show_details()
+# plt.show()
+
+# use CART to identify the key uncertainties
+c = cart(results, metric, include=model.uncertainties.keys())
+print_tree(c, coi="Reliable")
 
 
-print(sa(model, "reliability", policy=policy, method="morris", nsamples=1000, num_levels=4, grid_jump=2))
+#print(sa(model, "reliability", policy=policy, method="morris", nsamples=1000, num_levels=4, grid_jump=2))
 
 # # Run model (example)
 # Y = Ishigami.evaluate(param_values)

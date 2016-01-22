@@ -165,6 +165,7 @@ def sa(model, response, policy={}, method="sobol", nsamples=1000, **kwargs):
     # number of samples
     N = _predict_N(method, nsamples, problem["num_vars"], kwargs)
     
+    # generate the samples
     if method == "sobol":
         samples = saltelli.sample(problem, N, **_cleanup_kwargs(saltelli.sample, kwargs))
     elif method == "morris":
@@ -181,12 +182,14 @@ def sa(model, response, policy={}, method="sobol", nsamples=1000, **kwargs):
         else:
             samples = latin.sample(problem, N, **_cleanup_kwargs(latin.sample, kwargs))
         
+    # run the model and collect the responses
     responses = np.zeros(samples.shape[0])
     
     for i in range(samples.shape[0]):
         sample = {k : v for k, v in zip(model.uncertainties.keys(), samples[i])}
         responses[i] = evaluate(model, fix(sample, policy))[response]
     
+    # run the sensitivity analysis method
     if method == "sobol":
         result = sobol.analyze(problem, responses, **_cleanup_kwargs(sobol.analyze, kwargs))
     elif method == "morris":
@@ -200,6 +203,8 @@ def sa(model, response, policy={}, method="sobol", nsamples=1000, **kwargs):
     elif method == "delta":
         result = delta.analyze(problem, samples, responses, **_cleanup_kwargs(delta.analyze, kwargs))
          
+    # convert the SALib results into a form allowing pretty printing and
+    # lookups using the parameter name
     pretty_result = SAResult(result["names"] if "names" in result else problem["names"])
     
     if "S1" in result:
