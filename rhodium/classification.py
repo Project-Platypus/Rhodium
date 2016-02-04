@@ -31,7 +31,6 @@ import matplotlib.image as mpimg
 import sklearn
 from sklearn import tree
 from sklearn.externals.six import StringIO
-from .sdviewer import *
 
 from prim import Prim as prim
 
