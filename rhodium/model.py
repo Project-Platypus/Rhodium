@@ -23,11 +23,10 @@ import math
 import inspect
 import random
 import operator
+import scipy.stats as stats
 from collections import OrderedDict
 from abc import ABCMeta, abstractmethod
-from platypus.experimenter import Job, submit_jobs
-from platypus.types import Real
-from platypus.core import Problem, unique, evaluator
+from platypus import Real
 
 class RhodiumError(Exception):
     pass
@@ -128,7 +127,7 @@ class Constraint(object):
         if isinstance(self.expr, str):
             return eval(self.expr, {}, tmp_env)
         else:
-            self.expr(tmp_env)
+            return self.expr(tmp_env)
     
     def distance(self, env):
         """Returns the distance to the feasibility threshold."""
@@ -183,11 +182,15 @@ class Uncertainty(NamedObject):
     @abstractmethod    
     def levels(self, nlevels):
         raise NotImplementedError("method not implemented")
+    
+    @abstractmethod    
+    def ppf(self, x):
+        raise NotImplementedError("method not implemented")
         
-class RealUncertainty(Uncertainty):
+class UniformUncertainty(Uncertainty):
     
     def __init__(self, name, min_value, max_value):
-        super(RealUncertainty, self).__init__(name)
+        super(UniformUncertainty, self).__init__(name)
         self.min_value = float(min_value)
         self.max_value = float(max_value)
         
@@ -199,6 +202,37 @@ class RealUncertainty(Uncertainty):
             result.append(self.min_value + random.uniform(i*d, (i+1)*d))
         
         return result
+    
+    def ppf(self, x):
+        self.min_value + x*(self.max_value - self.min_value)
+    
+class NormalUncertainty(Uncertainty):
+    
+    def __init__(self, name, mean, stdev):
+        super(NormalUncertainty, self).__init__(name)
+        self.mean = float(mean)
+        self.stdev = float(stdev)
+        
+    def levels(self, nlevels):
+        ulevels = UniformUncertainty(self.name, 0.0, 1.0).levels(nlevels)
+        return stats.norm.ppf(ulevels, self.mean, self.stdev)
+    
+    def ppf(self, x):
+        return stats.norm.ppf(x, self.mean, self.stdev)
+    
+class LogNormalUncertainty(Uncertainty):
+    
+    def __init__(self, name, mu, sigma):
+        super(LogNormalUncertainty, self).__init__(name)
+        self.mu = float(mu)
+        self.sigma = float(sigma)
+        
+    def levels(self, nlevels):
+        ulevels = UniformUncertainty(self.name, 0.0, 1.0).levels(nlevels)
+        return self.mu*stats.lognorm.ppf(ulevels, self.sigma)
+    
+    def ppf(self, x):
+        return self.mu*stats.lognorm.ppf(x, self.sigma)
 
 class IntegerUncertainty(Uncertainty):
     
@@ -208,8 +242,11 @@ class IntegerUncertainty(Uncertainty):
         self.max_value = int(max_value)
         
     def levels(self, nlevels):
-        rlevels = RealUncertainty(self.min_value, self.max_value+0.9999).levels(nlevels)
-        return [int(math.floor(x)) for x in rlevels]
+        ulevels = UniformUncertainty(self.name, self.min_value, self.max_value+0.9999).levels(nlevels)
+        return [int(math.floor(x)) for x in ulevels]
+    
+    def ppf(self, x):
+        return int(math.floor(self.min_value + x*(self.max_value + 0.9999 - self.min_value)))
 
 class CategoricalUncertainty(Uncertainty):
     
@@ -218,8 +255,11 @@ class CategoricalUncertainty(Uncertainty):
         self.categories = categories
         
     def levels(self, nlevels):
-        ilevels = IntegerUncertainty(0, len(self.categories)-1).levels(nlevels)
+        ilevels = IntegerUncertainty(self.name, 0, len(self.categories)-1).levels(nlevels)
         return [self.categories[i] for i in ilevels]
+    
+    def ppf(self, x):
+        return self.categories[int(math.floor(x*(len(self.categories)-0.0001)))]
     
 class NamedObjectMap(object):
     
@@ -357,25 +397,112 @@ class Model(object):
                 raise RhodiumError("fix() only accepts keyword arguments or a dict")
             
         self.fixed_parameters.update(kwargs)
+        
+class ListOfDict(list):
+    """A list of dictionary objects.
+    
+    Represents a list of dictionary objects but provides additional methods for
+    querying and transforming the data.
+    """
+        
+    def append(self, sample):
+        if not isinstance(sample, dict):
+            raise TypeError("ListOfDict can only contain dict objects")
+        
+        super(ListOfDict, self).append(sample)
+        
+    def __str__(self):
+        result = ""
+        
+        for i in range(len(self)):
+            result += "Index "
+            result += str(i)
+            result += ":\n"
+            
+            for key in self[i]:
+                result += "    "
+                result += str(key)
+                result += ": "
+                result += str(self[i][key])
+                result += "\n"
+                
+        return result
+    
+    def __getitem__(self, pos):
+        if isinstance(pos, tuple):
+            indices,keys = pos
+            
+            if isinstance(indices, slice):
+                indices = xrange(*indices.indices(len(self)))
+            elif isinstance(indices, int):
+                indices = [indices]
+                
+            if not isinstance(keys, list) and not isinstance(keys, tuple):
+                keys = [keys]
 
-def _sample_lhs(model, nsamples):
-    samples = {}
+            result = ListOfDict()
+                
+            for i in indices:
+                submap = {}
+                    
+                for key in keys:
+                    submap[key] = super(ListOfDict, self).__getitem__(i)[key]
+                    
+                result.append(submap)
+                    
+            return result
+        elif isinstance(pos, str):
+            return self.as_list(pos)
+        else:
+            return super(ListOfDict, self).__getitem__(pos)
+        
+    def as_list(self, key=None, index=0):
+        result = []
+        
+        if len(self) == 0:
+            return result
+        
+        if key is None:
+            if len(self[0].keys()) > 1:
+                raise ValueError("Can not convert ListOfDict to list that contains more than one key")
+            else:
+                key = list(self[0].keys())[0]
+            
+        for i in range(len(self)):
+            value = super(ListOfDict, self).__getitem__(i)[key]
+            result.append(value[index] if isinstance(value, list) else value)
+                
+        return result
     
-    for uncertainty in model.uncertainties:
-        levels = uncertainty.levels(nsamples)
-        random.shuffle(levels)
-        samples[uncertainty.name] = levels
+    def as_array(self, keys=None, index=0):
+        import numpy
         
-    for i in range(nsamples):
-        result = {}
+        if len(self) == 0:
+            return numpy.empty([0])
         
-        for key, values in six.iteritems(samples):
-            result[key] = values[i]
+        if keys is None:
+            keys = self[0].keys()
+            
+        if isinstance(keys, str):
+            keys = [keys]
+            
+        if isinstance(keys, set):
+            keys = list(keys)
     
-        yield result
+        if len(keys) == 1:
+            key = keys[0]
+            result = numpy.empty([len(self)], dtype=numpy.dtype(type(self[0][key])))
+            
+            for i, env in enumerate(self):
+                result[i] = env[key][index] if isinstance(env[key], list) else env[key]
+        else:
+            dt = { "names" : keys, "formats" : [numpy.dtype(type(self[0][key])) for key in keys] }
+            result = numpy.empty([len(self)], dtype=dt)
+    
+            for i, env in enumerate(self):
+                result[i] = tuple(env[key][index] if isinstance(env[key], list) else env[key] for key in keys)
         
-def sample_lhs(model, nsamples):
-    return list(_sample_lhs(model, nsamples))
+        return result
 
 def _fix_generator(samples, fixed_parameters):
     if inspect.isgenerator(samples) or (hasattr(samples, '__iter__') and not isinstance(samples, dict)):
@@ -396,51 +523,6 @@ def fix(samples, fixed_parameters):
         result.update(fixed_parameters)
         return result
         
-def generate_jobs(model, samples):
-    if isinstance(samples, dict):
-        yield EvaluateJob(model, samples)
-    else:
-        for sample in samples:
-            yield EvaluateJob(model, sample)
-
-class EvaluateJob(Job):
-    
-    def __init__(self, model, sample):
-        super(EvaluateJob, self).__init__()
-        self.model = model
-        self.sample = sample
-        self._args = inspect.getargspec(model.function).args
-        
-    def run(self):
-        # populate model arguments
-        args = {}
-        
-        for parameter in self.model.parameters:
-            if parameter.name in self.sample:
-                args[parameter.name] = self.sample[parameter.name]
-            elif parameter.default_value:
-                args[parameter.name] = parameter.default_value
-                
-        # evaluate the model
-        raw_output = self.model.function(**args)
-        
-        # support output as a dict or list-like object
-        if isinstance(raw_output, dict):
-            args.update(raw_output)
-        else:
-            for i, response in enumerate(self.model.responses):
-                args[response.name] = raw_output[i]
-            
-        self.output = args
-
-def evaluate(model, samples, **kwargs):
-    if inspect.isgenerator(samples) or (hasattr(samples, '__iter__') and not isinstance(samples, dict)):
-        results = submit_jobs(generate_jobs(model, samples), **kwargs)
-        return [result.output for result in results]
-    else:
-        results = submit_jobs(generate_jobs(model, samples), **kwargs)
-        return results[0].output
-
 def _is_feasible(model, result):
     for constraint in model.constraints:
         if hasattr(constraint, "__call__"):
@@ -460,106 +542,3 @@ def check_feasibility(model, results):
         
 def mean(values):
     return float(sum(values)) / len(values)
-
-def _to_problem(model):
-    variables = []
-    
-    for lever in model.levers:
-        variables.extend(lever.to_variables())
-    
-    nvars = len(variables)
-    nobjs = sum([1 if r.type == Response.MINIMIZE or r.type == Response.MAXIMIZE else 0 for r in model.responses])
-    nconstrs = len(model.constraints)
-    
-    def function(vars):
-        env = {}
-        offset = 0
-        
-        for lever in model.levers:
-            env[lever.name] = vars[offset:offset+lever.length]
-            offset += lever.length
-            
-        job = EvaluateJob(model, env)
-        job.run()
-        
-        objectives = [job.output[r.name] for r in model.responses]
-        constraints = [constraint.distance(job.output) for constraint in model.constraints]
-        
-        if nconstrs > 0:
-            return objectives, constraints
-        else:
-            return objectives
-    
-    problem = Problem(nvars, nobjs, nconstrs, function)
-    problem.types[:] = variables
-    problem.directions[:] = [Problem.MINIMIZE if r.type == Response.MINIMIZE else Problem.MAXIMIZE for r in model.responses if r.type == Response.MINIMIZE or r.type == Response.MAXIMIZE]
-    problem.constraints[:] = "==0"
-    return problem
-
-def optimize(model, algorithm="NSGAII", NFE=10000, **kwargs):
-    module = __import__("platypus.algorithms", fromlist=[''])
-    class_ref = getattr(module, algorithm)
-    
-    args = kwargs.copy()
-    args["problem"] = _to_problem(model)
-    
-    instance = class_ref(**args)
-    instance.run(NFE)
-    
-    result = []
-    
-    for solution in unique(instance.result):
-        if not solution.feasible:
-            continue
-        
-        env = {}
-        offset = 0
-        
-        for lever in model.levers:
-            if lever.length == 1:
-                env[lever.name] = solution.variables[offset]
-            else:
-                env[lever.name] = solution.variables[offset:offset+lever.length]
-
-            offset += lever.length
-        
-        for i, response in enumerate(model.responses):
-            env[response.name] = solution.objectives[i]
-            
-        result.append(env)
-        
-    return result
-        
-        
-# def rosen(x, y):
-#     return (1 - x)**2 + 100*(y-x**2)**2
-
-
-    
-
-           
-# model = Model("Rosenbrock")
-# model.parameters = [Parameter("x"), Parameter("y")]
-# model.responses = [Response("f(x,y)")]
-# model.uncertainties = {"x" : RealUncertainty(-10.0, 10.0),
-#                        "y" : RealUncertainty(-10.0, 10.0)}
-# model.function = rosen
-# 
-# model.fix({"x" : 0.25, "y" : 0.75})
-# 
-# samples = list(sample_lhs(model, 1000))
-# results = evaluate(model, samples)
-# 
-# print samples
-# print results
-
-# from sklearn import tree
-# clf = tree.DecisionTreeRegressor(min_samples_leaf=int(0.05*len(samples)))
-# clf.fit(samples, results)
-# 
-# from sklearn.externals.six import StringIO  
-# import pydot 
-# dot_data = StringIO() 
-# tree.export_graphviz(clf, out_file=dot_data) 
-# graph = pydot.graph_from_dot_data(dot_data.getvalue()) 
-# graph.write_pdf("tree.pdf") 

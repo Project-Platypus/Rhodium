@@ -73,6 +73,7 @@ def scatter3d(model, data,
            interactive = False,
            expr = None,
            class_label = "class",
+           pick_handler = None,
            **kwargs):
     df = to_dataframe(model, data)
     
@@ -171,6 +172,7 @@ def scatter3d(model, data,
                         zs = z,
                         c = c,
                         s = s,
+                        picker = kwargs["picker"] if "picker" in kwargs else pick_handler is not None,
                         **kwargs)
         
     ax.set_xlabel(x_label)
@@ -207,7 +209,16 @@ def scatter3d(model, data,
             
             return label
             
-        mpldatacursor.datacursor(formatter=formatter, hover=True)
+        mpldatacursor.datacursor(formatter=formatter, hover=True, **kwargs)
+        
+    if pick_handler:
+        def handle_click(event):
+            if hasattr(event, "ind"):
+                i = event.ind[0]
+                pick_handler(i)
+                plt.draw()
+        
+        fig.canvas.mpl_connect('pick_event', handle_click)
     
     if "axes.facecolor" in mpl.rcParams:
         mpl.rcParams["axes.facecolor"] = orig_facecolor
@@ -371,8 +382,6 @@ def pairs(model, data,
             
         sns.pairplot(df, hue=class_label, **kwargs)
      
-    
-    
 def kdeplot(model, data, x, y,
             expr = None,
             alpha=1.0,
@@ -434,3 +443,35 @@ def interact(model, data, x, y, z, **kwargs):
     df = to_dataframe(model, data)
     
     sns.interactplot(x, y, z, df, **kwargs)
+    
+def animate3d(prefix, dir="images/", steps=36, transform=(10, 0, 0), **kwargs):
+    import os
+    import math
+    import inspect
+    from PIL import Image
+    from images2gif import writeGif
+  
+    base_dir = os.path.join(dir, prefix)
+      
+    if not os.path.exists(base_dir):
+        os.makedirs(base_dir)
+        
+    ax = plt.gca()
+    digits = int(math.log10(steps-1))+1
+    files = []
+      
+    for n in range(steps):
+        if inspect.isfunction(transform):
+            transform(ax)
+        else:
+            ax.azim += transform[0]
+            ax.elev += transform[1]
+            ax.dist += transform[2]
+            
+        filename = os.path.join(base_dir, 'img' + str(n).zfill(digits) + '.png')
+        plt.savefig(filename, bbox_inches='tight')
+        files.append(filename)
+        
+    images = [Image.open(file) for file in files]
+    file_path_name = os.path.join(dir, prefix + '.gif')
+    writeGif(file_path_name, images, **kwargs)
