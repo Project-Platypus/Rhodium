@@ -19,6 +19,7 @@ from __future__ import division, print_function, absolute_import
 
 import six
 import inspect
+import operator
 import itertools
 from SALib.sample import saltelli, fast_sampler, finite_diff, latin
 from SALib.analyze import sobol, fast, dgsm, delta
@@ -27,7 +28,11 @@ from SALib.analyze import morris as morris_analyzer
 from SALib.sample import ff as ff_sampler
 from SALib.analyze import ff as ff_analyzer
 import numpy as np
+import matplotlib.pyplot as plt
 from .model import *
+from .optimization import *
+from .sampling import *
+from .find import *
 
 def _cleanup_kwargs(function, kwargs):
     argspec = inspect.getargspec(function)
@@ -156,11 +161,14 @@ class SAResult(dict):
         return "\n".join(lines)
 
 def sa(model, response, policy={}, method="sobol", nsamples=1000, **kwargs):
+    if len(model.uncertainties) == 0:
+        raise ValueError("no uncertainties defined in model")
+    
     problem = { 'num_vars' : len(model.uncertainties),
                 'names' : model.uncertainties.keys(),
-                'bounds' : [[u.min_value, u.max_value] for u in model.uncertainties],
+                'bounds' : [[0.0, 1.0] for u in model.uncertainties],
                 'groups' : kwargs.get("groups", None) }
-    
+
     # estimate the argument N passed to the sampler that produces the requested
     # number of samples
     N = _predict_N(method, nsamples, problem["num_vars"], kwargs)
@@ -181,9 +189,13 @@ def sa(model, response, policy={}, method="sobol", nsamples=1000, **kwargs):
             samples = kwargs["samples"]
         else:
             samples = latin.sample(problem, N, **_cleanup_kwargs(latin.sample, kwargs))
+            
+    # convert from samples in [0, 1] to uncertainty domain
+    for i, u in enumerate(model.uncertainties):
+        samples[:,i] = u.ppf(samples[:,i])
         
     # run the model and collect the responses
-    responses = np.zeros(samples.shape[0])
+    responses = np.empty(samples.shape[0])
     
     for i in range(samples.shape[0]):
         sample = {k : v for k, v in zip(model.uncertainties.keys(), samples[i])}
@@ -241,3 +253,91 @@ def sa(model, response, policy={}, method="sobol", nsamples=1000, **kwargs):
         pretty_result["sigma"] = {k : v for k, v in zip(result["names"], result["sigma"])}
 
     return pretty_result
+
+def oat(model, response, policy={}, nsamples=100, **kwargs):
+    keys = model.uncertainties.keys()
+    responses = np.empty((nsamples, len(keys)))
+    samples = np.linspace(0.1, 0.99, num=nsamples)
+    base_response = evaluate(model, policy)[response]
+    
+    for i, u in enumerate(model.uncertainties):
+        ppf_samples = u.ppf(samples)
+        
+        for j in range(nsamples):
+            sample = { u.name : ppf_samples[j] }
+            responses[j, i] = evaluate(model, fix(sample, policy))[response]
+
+    minv = np.nanmin(responses, axis=0)
+    maxv = np.nanmax(responses, axis=0)
+    midv = responses[nsamples/2]
+    
+    total_range = maxv-minv
+    negative_percentage = abs(midv - minv) / total_range
+    positive_percentage = abs(maxv - midv) / total_range
+
+    total_range /= np.max(total_range)
+    negative_percentage *= total_range / 2
+    positive_percentage *= total_range / 2
+
+    fig, (ax1, ax2) = plt.subplots(1, 2)
+    
+    # draw the lines first to get colors
+    colors = []
+    
+    for i, u in enumerate(model.uncertainties):
+        h = ax2.plot(samples, responses[:,i])
+        colors.append(h[0].get_color())
+        
+    ax2.axvline(0.5, ls='--', color='k')
+    ax2.axhline(base_response, ls='--', color='k')
+    ax2.set_xlim([0.1, 0.99])
+    ax2.set_xticks([0.1, 0.25, 0.5, 0.75, 0.99])
+    ax2.set_xticklabels(["1", "25", "50", "75", "99"])
+    ax2.set_xlabel("Quantile of Prior (%)")
+    ax2.set_ylabel(response)
+    ax2.yaxis.tick_right()
+    ax2.yaxis.set_label_position("right")
+    ax2.legend(keys)
+    
+    # then draw the tornado chart  
+    ax1.barh(range(len(keys)), negative_percentage, left=0.5-negative_percentage, align='center', color=colors)
+    ax1.barh(range(len(keys)), positive_percentage, left=0.5, align='center', color=colors)
+    ax1.set_yticks(range(len(keys)))
+    ax1.set_yticklabels(keys)
+    ax1.set_xticks([0.0, 0.25, 0.5, 0.75, 1.0])
+    ax1.set_xticklabels(["-100%", "-50%", "0%", "50%", "100%"])
+    ax1.set_xlabel("Percent of Total Variance")
+    ax1.set_xlim([0, 1])
+    
+    return fig
+
+def regional_sa(model, expr, policy={}, nsamples=1000):
+    samples = sample_lhs(model, nsamples)
+    output = evaluate(model, fix(samples, policy))
+    classification = which(output, expr)
+    classes = sorted(set(classification))
+    fig, axarr = plt.subplots(1, len(model.uncertainties))
+    lines = []
+    
+    for i, u in enumerate(model.uncertainties):
+        for k in classes:
+            indices = [classification[j] == k for j in range(len(classification))]
+            values = [output[j][u.name] for j in range(len(indices)) if indices[j]]
+            sorted_values = sorted(enumerate(values), key=operator.itemgetter(1))
+            h = axarr[i].plot([v[1] for v in sorted_values], np.arange(len(values))/float(len(values)-1))
+            lines.append(h[0])
+            
+        values = [output[j][u.name] for j in range(len(indices))]
+        sorted_values = sorted(enumerate(values), key=operator.itemgetter(1))
+        h = axarr[i].plot([v[1] for v in sorted_values], np.arange(len(values))/float(len(values)-1))
+        lines.append(h[0])
+        
+        axarr[i].set_title(u.name)
+        
+    plt.figlegend(lines[:len(classes)] + [lines[-1]],
+                  map(str, classes) + ["Unconditioned"],
+                  loc='lower center',
+                  ncol=3,
+                  labelspacing=0. )
+    
+    return fig
