@@ -29,10 +29,10 @@ from SALib.sample import ff as ff_sampler
 from SALib.analyze import ff as ff_analyzer
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 from .model import *
 from .optimization import *
 from .sampling import *
-from .find import *
 
 def _cleanup_kwargs(function, kwargs):
     argspec = inspect.getargspec(function)
@@ -56,7 +56,7 @@ def _S2_to_dict(matrix, problem):
             if names[j] not in result:
                 result[names[j]] = {}
                 
-            result[names[i]][names[j]] = result[names[j]][names[i]] = matrix[i][j]
+            result[names[i]][names[j]] = result[names[j]][names[i]] = float(matrix[i][j])
             
     return result
 
@@ -79,12 +79,12 @@ def _predict_N(method, nsamples, nvars, kwargs):
     
 class SAResult(dict):
     
-    def __init__(self, keys, *args, **kwargs):
+    def __init__(self, parameters, *args, **kwargs):
         super(SAResult, self).__init__(*args, **kwargs)
-        self.keys = keys
+        self.parameters = parameters
         
     def _longest_name(self):
-        return max(len(k) for k in self.keys)
+        return max(len(k) for k in self.parameters)
                 
     def __str__(self):
         lines = []
@@ -94,7 +94,7 @@ class SAResult(dict):
 
         if "S1" in self:
             lines.append("First order sensitivity indices (confidence interval):")
-            for k in self.keys:
+            for k in self.parameters:
                 line = format_str % (k, self["S1"][k])
                 if "S1_conf" in self:
                     line += format_conf % self["S1_conf"][k]
@@ -102,7 +102,7 @@ class SAResult(dict):
                 
         if "ST" in self:
             lines.append("Total order sensitivity indices (confidence interval):")
-            for k in self.keys:
+            for k in self.parameters:
                 line = format_str % (k, self["ST"][k])
                 if "S1_conf" in self:
                     line += format_conf % self["ST_conf"][k]
@@ -110,7 +110,7 @@ class SAResult(dict):
                 
         if "S2" in self:
             lines.append("Second order sensitivity indices (confidence interval):")
-            for k1, k2 in itertools.combinations(self.keys, 2):
+            for k1, k2 in itertools.combinations(self.parameters, 2):
                 line = format_second % (k1 + " - " + k2, self["S2"][k1][k2])
                 if "S2_conf" in self:
                     line += format_conf % self["S2_conf"][k1][k2]
@@ -118,7 +118,7 @@ class SAResult(dict):
                 
         if "delta" in self:
             lines.append("Borgonovo's delta moment (confidence interval):")
-            for k in self.keys:
+            for k in self.parameters:
                 line = format_str % (k, self["delta"][k])
                 if "delta_conf" in self:
                     line += format_conf % self["delta_conf"][k]
@@ -126,7 +126,7 @@ class SAResult(dict):
                 
         if "vi" in self:
             lines.append("DGSM's Importance Criteria (stdev):")
-            for k in self.keys:
+            for k in self.parameters:
                 line = format_str % (k, self["vi"][k])
                 if "vi_std" in self:
                     line += format_conf % self["vi_std"][k]
@@ -134,7 +134,7 @@ class SAResult(dict):
                 
         if "dgsm" in self:
             lines.append("DGSM's Sensitivity Index (confidence interval):")
-            for k in self.keys:
+            for k in self.parameters:
                 line = format_str % (k, self["dgsm"][k])
                 if "dgsm_conf" in self:
                     line += format_conf % self["dgsm_conf"][k]
@@ -142,12 +142,12 @@ class SAResult(dict):
                 
         if "mu" in self:
             lines.append("Morris Method's mu:")
-            for k in self.keys:
+            for k in self.parameters:
                 lines.append(format_str % (k, self["mu"][k]))
                 
         if "mu_star" in self:
             lines.append("Morris Method's mu* (confidence interval):")
-            for k in self.keys:
+            for k in self.parameters:
                 line = format_str % (k, self["mu_star"][k])
                 if "mu_star_conf" in self:
                     line += format_conf % self["mu_star_conf"][k]
@@ -155,10 +155,184 @@ class SAResult(dict):
                 
         if "sigma" in self:
             lines.append("Morris Method's sigma:")
-            for k in self.keys:
+            for k in self.parameters:
                 lines.append(format_str % (k, self["sigma"][k]))
         
         return "\n".join(lines)
+    
+    def plot(self, **kwargs):
+        nfigs = sum([k in ("S1", "ST", "delta") for k in self.keys()])
+        fig, axarr = plt.subplots(1, nfigs, sharey=True)
+        n = len(self.parameters)
+        index = 0
+        
+        if "S1" in self:
+            axarr[index].bar(range(n),
+                             [self["S1"][k] for k in self.parameters],
+                             yerr=[self["S1_conf"][k] for k in self.parameters] if "S1_conf" in self else None,
+                             align="center")
+            axarr[index].set_title("First order sensitivity indices")
+            axarr[index].set_xticks(range(n))
+            axarr[index].set_xticklabels(self.parameters)
+            index += 1
+            
+        if "ST" in self:
+            axarr[index].bar(range(n),
+                             [self["ST"][k] for k in self.parameters],
+                             yerr=[self["ST_conf"][k] for k in self.parameters] if "ST_conf" in self else None,
+                             align="center")
+            axarr[index].set_title("Total order sensitivity indices")
+            axarr[index].set_xticks(range(n))
+            axarr[index].set_xticklabels(self.parameters)
+            index += 1
+            
+        if "delta" in self:
+            axarr[index].bar(range(n),
+                             [self["delta"][k] for k in self.parameters],
+                             yerr=[self["delta_conf"][k] for k in self.parameters] if "delta_conf" in self else None,
+                             align="center")
+            axarr[index].set_title("Borgonovo's delta moment")
+            axarr[index].set_xticks(range(n))
+            axarr[index].set_xticklabels(self.parameters)
+            index += 1
+            
+        if "vi" in self:
+            axarr[index].bar(range(n),
+                             [self["vi"][k] for k in self.parameters],
+                             yerr=[self["vi_std"][k] for k in self.parameters] if "vi_std" in self else None,
+                             align="center")
+            axarr[index].set_title("DGSM's Importance Criteria")
+            axarr[index].set_xticks(range(n))
+            axarr[index].set_xticklabels(self.parameters)
+            index += 1
+            
+        if "dgsm" in self:
+            axarr[index].bar(range(n),
+                             [self["dgsm"][k] for k in self.parameters],
+                             yerr=[self["dgsm_conf"][k] for k in self.parameters] if "dgsm_conf" in self else None,
+                             align="center")
+            axarr[index].set_title("DGSM's Sensitivity Index")
+            axarr[index].set_xticks(range(n))
+            axarr[index].set_xticklabels(self.parameters)
+            index += 1
+            
+        if "mu" in self:
+            axarr[index].bar(range(n),
+                             [self["mu"][k] for k in self.parameters],
+                             align="center")
+            axarr[index].set_title("Morris Method's mu")
+            axarr[index].set_xticks(range(n))
+            axarr[index].set_xticklabels(self.parameters)
+            index += 1
+
+        if "mu_star" in self:
+            axarr[index].bar(range(n),
+                             [self["mu_star"][k] for k in self.parameters],
+                             yerr=[self["mu_star_conf"][k] for k in self.parameters] if "mu_star_conf" in self else None,
+                             align="center")
+            axarr[index].set_title("Morris Method's mu*")
+            axarr[index].set_xticks(range(n))
+            axarr[index].set_xticklabels(self.parameters)
+            index += 1
+
+        if "sigma" in self:
+            axarr[index].bar(range(n),
+                             [self["sigma"][k] for k in self.parameters],
+                             align="center")
+            axarr[index].set_title("Morris Method's sigma")
+            axarr[index].set_xticks(range(n))
+            axarr[index].set_xticklabels(self.parameters)
+            index += 1
+            
+        return fig
+    
+    def plot_sobol(self, radSc=2.0, scaling=1, widthSc=0.5, STthick=1, varNameMult=1.3, colors=None, groups=None, gpNameMult=1.5):
+        # Derived from https://github.com/calvinwhealton/SensitivityAnalysisPlots
+        fig, ax = plt.subplots(1, 1)
+        color_map = {}
+        
+        # initialize parameters and colors
+        if groups is None:
+            parameters = self.parameters
+            
+            if colors is None:
+                colors = ["k"]
+            
+            for i, parameter in enumerate(parameters):
+                color_map[parameter] = colors[i % len(colors)]
+        else:
+            parameters = []
+            
+            if colors is None:
+                colors = sns.color_palette("deep", max(3, len(groups)))
+            
+            for i, key in enumerate(groups.keys()):
+                parameters.extend(groups[key])
+                
+                for parameter in groups[key]:
+                    color_map[parameter] = colors[i % len(colors)]
+        
+        n = len(parameters)
+        angles = radSc*math.pi*np.arange(0, n)/n
+        x = radSc*np.cos(angles)
+        y = radSc*np.sin(angles)
+        
+        # plot second-order indices
+        for i, j in itertools.combinations(range(n), 2):
+            key1 = self.parameters[i]
+            key2 = self.parameters[j]
+            angle = math.atan((y[j]-y[i])/(x[j]-x[i]))
+                
+            if y[j]-y[i] < 0:
+                angle += math.pi
+                
+            line_hw = scaling*(max(0, self["S2"][key1][key2])**widthSc)/2
+                
+            coords = np.empty((4, 2))
+            coords[0, 0] = x[i] - line_hw*math.sin(angle)
+            coords[1, 0] = x[i] + line_hw*math.sin(angle)
+            coords[2, 0] = x[j] + line_hw*math.sin(angle)
+            coords[3, 0] = x[j] - line_hw*math.sin(angle)
+            coords[0, 1] = y[i] + line_hw*math.cos(angle)
+            coords[1, 1] = y[i] - line_hw*math.cos(angle)
+            coords[2, 1] = y[j] - line_hw*math.cos(angle)
+            coords[3, 1] = y[j] + line_hw*math.cos(angle)
+
+            ax.add_artist(plt.Polygon(coords, color="0.75"))
+            
+        # plot a white circle to cover the second-order lines
+        for i, key in enumerate(parameters):
+            ax.add_artist(plt.Circle((x[i], y[i]), scaling*(max(0, self["ST"][key])**widthSc)/2, color='w'))
+        
+        # plot total order indices
+        for i, key in enumerate(parameters):
+            ax.add_artist(plt.Circle((x[i], y[i]), scaling*(max(0, self["ST"][key])**widthSc)/2, lw=STthick, color='0.4', fill=False))
+        
+        # plot first-order indices
+        for i, key in enumerate(parameters):
+            ax.add_artist(plt.Circle((x[i], y[i]), scaling*(max(0, self["S1"][key])**widthSc)/2, color='0.4'))
+               
+        # add labels
+        for i, key in enumerate(parameters):                
+            ax.text(varNameMult*x[i], varNameMult*y[i], key, ha='center', va='center',
+                    rotation=angles[i]*360/(2*math.pi) - 90,
+                    color=color_map[key])
+            
+        if groups is not None:
+            for i, group in enumerate(groups.keys()):
+                group_angle = np.mean([angles[j] for j in range(n) if parameters[j] in groups[group]])
+                
+                ax.text(gpNameMult*radSc*math.cos(group_angle), gpNameMult*radSc*math.sin(group_angle), group, ha='center', va='center',
+                    rotation=group_angle*360/(2*math.pi) - 90,
+                    color=colors[i % len(colors)])
+                
+        ax.set_axis_bgcolor('white')
+        ax.set_xticks([])
+        ax.set_yticks([])
+        plt.axis('equal')
+        plt.axis([-2*radSc, 2*radSc, -2*radSc, 2*radSc])
+        
+        return fig
 
 def sa(model, response, policy={}, method="sobol", nsamples=1000, **kwargs):
     if len(model.uncertainties) == 0:
@@ -220,37 +394,37 @@ def sa(model, response, policy={}, method="sobol", nsamples=1000, **kwargs):
     pretty_result = SAResult(result["names"] if "names" in result else problem["names"])
     
     if "S1" in result:
-        pretty_result["S1"] = {k : v for k, v in zip(problem["names"], result["S1"])}
+        pretty_result["S1"] = {k : float(v) for k, v in zip(problem["names"], result["S1"])}
     if "S1_conf" in result:
-        pretty_result["S1_conf"] = {k : v for k, v in zip(problem["names"], result["S1_conf"])}
+        pretty_result["S1_conf"] = {k : float(v) for k, v in zip(problem["names"], result["S1_conf"])}
     if "ST" in result:
-        pretty_result["ST"] = {k : v for k, v in zip(problem["names"], result["ST"])}
+        pretty_result["ST"] = {k : float(v) for k, v in zip(problem["names"], result["ST"])}
     if "ST_conf" in result:
-        pretty_result["ST_conf"] = {k : v for k, v in zip(problem["names"], result["ST_conf"])}
+        pretty_result["ST_conf"] = {k : float(v) for k, v in zip(problem["names"], result["ST_conf"])}
     if "S2" in result:
         pretty_result["S2"] = _S2_to_dict(result["S2"], problem)
     if "S2_conf" in result:
         pretty_result["S2_conf"] = _S2_to_dict(result["S2_conf"], problem)
     if "delta" in result:
-        pretty_result["delta"] = {k : v for k, v in zip(problem["names"], result["delta"])}
+        pretty_result["delta"] = {k : float(v) for k, v in zip(problem["names"], result["delta"])}
     if "delta_conf" in result:
-        pretty_result["delta_conf"] = {k : v for k, v in zip(problem["names"], result["delta_conf"])}
+        pretty_result["delta_conf"] = {k : float(v) for k, v in zip(problem["names"], result["delta_conf"])}
     if "vi" in result:
-        pretty_result["vi"] = {k : v for k, v in zip(problem["names"], result["vi"])}
+        pretty_result["vi"] = {k : float(v) for k, v in zip(problem["names"], result["vi"])}
     if "vi_std" in result:
-        pretty_result["vi_std"] = {k : v for k, v in zip(problem["names"], result["vi_std"])}
+        pretty_result["vi_std"] = {k : float(v) for k, v in zip(problem["names"], result["vi_std"])}
     if "dgsm" in result:
-        pretty_result["dgsm"] = {k : v for k, v in zip(problem["names"], result["dgsm"])}
+        pretty_result["dgsm"] = {k : float(v) for k, v in zip(problem["names"], result["dgsm"])}
     if "dgsm_conf" in result:
-        pretty_result["dgsm_conf"] = {k : v for k, v in zip(problem["names"], result["dgsm_conf"])}
+        pretty_result["dgsm_conf"] = {k : float(v) for k, v in zip(problem["names"], result["dgsm_conf"])}
     if "mu" in result:
-        pretty_result["mu"] = {k : v for k, v in zip(result["names"], result["mu"])}
+        pretty_result["mu"] = {k : float(v) for k, v in zip(result["names"], result["mu"])}
     if "mu_star" in result:
-        pretty_result["mu_star"] = {k : v for k, v in zip(result["names"], result["mu_star"])}
+        pretty_result["mu_star"] = {k : float(v) for k, v in zip(result["names"], result["mu_star"])}
     if "mu_star_conf" in result:
-        pretty_result["mu_star_conf"] = {k : v for k, v in zip(result["names"], result["mu_star_conf"])}
+        pretty_result["mu_star_conf"] = {k : float(v) for k, v in zip(result["names"], result["mu_star_conf"])}
     if "sigma" in result:
-        pretty_result["sigma"] = {k : v for k, v in zip(result["names"], result["sigma"])}
+        pretty_result["sigma"] = {k : float(v) for k, v in zip(result["names"], result["sigma"])}
 
     return pretty_result
 
@@ -314,7 +488,7 @@ def oat(model, response, policy={}, nsamples=100, **kwargs):
 def regional_sa(model, expr, policy={}, nsamples=1000):
     samples = sample_lhs(model, nsamples)
     output = evaluate(model, fix(samples, policy))
-    classification = which(output, expr)
+    classification = output.apply(expr)
     classes = sorted(set(classification))
     fig, axarr = plt.subplots(1, len(model.uncertainties))
     lines = []

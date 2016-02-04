@@ -204,7 +204,7 @@ class UniformUncertainty(Uncertainty):
         return result
     
     def ppf(self, x):
-        self.min_value + x*(self.max_value - self.min_value)
+        return self.min_value + x*(self.max_value - self.min_value)
     
 class NormalUncertainty(Uncertainty):
     
@@ -503,6 +503,38 @@ class ListOfDict(list):
                 result[i] = tuple(env[key][index] if isinstance(env[key], list) else env[key] for key in keys)
         
         return result
+    
+    def find(self, expr):
+        result = ListOfDict()
+        
+        for entry, cond in zip(self, self.apply(expr)):
+            if cond:
+                result.append(entry)
+                    
+        return result
+                
+    def apply(self, expr):
+        result = []
+        
+        for entry in self:
+            tmp_env = {}
+            tmp_env.update(_eval_env)
+            tmp_env.update(entry)
+            
+            if isinstance(expr, str):
+                result.append(eval(expr, {}, tmp_env))
+            else:
+                result.append(expr(tmp_env)) 
+                
+        return result
+          
+    def find_min(self, key):
+        index, _ = min(enumerate([d[key] for d in self]), key=operator.itemgetter(1))
+        return self[index]
+    
+    def find_max(self, key):
+        index, _ = max(enumerate([d[key] for d in self]), key=operator.itemgetter(1))
+        return self[index]
 
 def _fix_generator(samples, fixed_parameters):
     if inspect.isgenerator(samples) or (hasattr(samples, '__iter__') and not isinstance(samples, dict)):
