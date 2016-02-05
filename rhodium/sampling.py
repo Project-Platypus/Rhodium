@@ -19,9 +19,19 @@ from __future__ import division, print_function, absolute_import
 
 import six
 import random
-from abc import ABCMeta
 from collections import OrderedDict
 from .model import ListOfDict
+        
+def sample_uniform(model, nsamples):
+    result = ListOfDict()
+        
+    for i in range(nsamples):
+        entry = OrderedDict()
+        
+        for uncertainty in model.uncertainties:
+            entry[uncertainty.name] = uncertainty.ppf(random.uniform(0.0, 1.0))
+    
+        result.append(entry)
         
 def sample_lhs(model, nsamples):
     samples = OrderedDict()

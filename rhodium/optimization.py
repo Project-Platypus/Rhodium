@@ -55,7 +55,8 @@ class EvaluateJob(Job):
             args.update(raw_output)
         else:
             for i, response in enumerate(self.model.responses):
-                args[response.name] = raw_output[i]
+                if response.type is not Response.IGNORE:
+                    args[response.name] = raw_output[i]
             
         self.output = args
 

@@ -167,6 +167,9 @@ def scatter3d(model, data,
         s_max = max(s)
         s = (s_range[1]-s_range[0]) * ((s-s_min) / (s_max-s_min)) + s_range[0]
 
+    if "cmap" not in kwargs:
+        kwargs["cmap"] = plt.get_cmap("rainbow")
+
     handle = ax.scatter(xs = x,
                         ys = y,
                         zs = z,
@@ -311,6 +314,9 @@ def scatter2d(model, data,
         s_min = min(s)
         s_max = max(s)
         s = (s_range[1]-s_range[0]) * ((s-s_min) / (s_max-s_min)) + s_range[0]
+
+    if "cmap" not in kwargs:
+        kwargs["cmap"] = plt.get_cmap("rainbow")
 
     handle = plt.scatter(x = x,
                          y = y,

@@ -246,7 +246,13 @@ class SAResult(dict):
             
         return fig
     
-    def plot_sobol(self, radSc=2.0, scaling=1, widthSc=0.5, STthick=1, varNameMult=1.3, colors=None, groups=None, gpNameMult=1.5):
+    def _is_significant(self, value, confidence_interval, threshold="conf"):
+        if threshold == "conf":
+            return value - abs(confidence_interval) > 0
+        else:
+            return value - abs(float(threshold)) > 0
+    
+    def plot_sobol(self, radSc=2.0, scaling=1, widthSc=0.5, STthick=1, varNameMult=1.3, colors=None, groups=None, gpNameMult=1.5, threshold="sig"):
         # Derived from https://github.com/calvinwhealton/SensitivityAnalysisPlots
         fig, ax = plt.subplots(1, 1)
         color_map = {}
@@ -281,36 +287,37 @@ class SAResult(dict):
         for i, j in itertools.combinations(range(n), 2):
             key1 = self.parameters[i]
             key2 = self.parameters[j]
-            angle = math.atan((y[j]-y[i])/(x[j]-x[i]))
-                
-            if y[j]-y[i] < 0:
-                angle += math.pi
-                
-            line_hw = scaling*(max(0, self["S2"][key1][key2])**widthSc)/2
-                
-            coords = np.empty((4, 2))
-            coords[0, 0] = x[i] - line_hw*math.sin(angle)
-            coords[1, 0] = x[i] + line_hw*math.sin(angle)
-            coords[2, 0] = x[j] + line_hw*math.sin(angle)
-            coords[3, 0] = x[j] - line_hw*math.sin(angle)
-            coords[0, 1] = y[i] + line_hw*math.cos(angle)
-            coords[1, 1] = y[i] - line_hw*math.cos(angle)
-            coords[2, 1] = y[j] - line_hw*math.cos(angle)
-            coords[3, 1] = y[j] + line_hw*math.cos(angle)
-
-            ax.add_artist(plt.Polygon(coords, color="0.75"))
             
-        # plot a white circle to cover the second-order lines
-        for i, key in enumerate(parameters):
-            ax.add_artist(plt.Circle((x[i], y[i]), scaling*(max(0, self["ST"][key])**widthSc)/2, color='w'))
-        
+            if self._is_significant(self["S2"][key1][key2], self["S2_conf"][key1][key2], threshold):
+                angle = math.atan((y[j]-y[i])/(x[j]-x[i]))
+                    
+                if y[j]-y[i] < 0:
+                    angle += math.pi
+                    
+                line_hw = scaling*(max(0, self["S2"][key1][key2])**widthSc)/2
+                    
+                coords = np.empty((4, 2))
+                coords[0, 0] = x[i] - line_hw*math.sin(angle)
+                coords[1, 0] = x[i] + line_hw*math.sin(angle)
+                coords[2, 0] = x[j] + line_hw*math.sin(angle)
+                coords[3, 0] = x[j] - line_hw*math.sin(angle)
+                coords[0, 1] = y[i] + line_hw*math.cos(angle)
+                coords[1, 1] = y[i] - line_hw*math.cos(angle)
+                coords[2, 1] = y[j] - line_hw*math.cos(angle)
+                coords[3, 1] = y[j] + line_hw*math.cos(angle)
+    
+                ax.add_artist(plt.Polygon(coords, color="0.75"))
+            
         # plot total order indices
         for i, key in enumerate(parameters):
-            ax.add_artist(plt.Circle((x[i], y[i]), scaling*(max(0, self["ST"][key])**widthSc)/2, lw=STthick, color='0.4', fill=False))
+            if self._is_significant(self["ST"][key], self["ST_conf"][key], threshold):
+                ax.add_artist(plt.Circle((x[i], y[i]), scaling*(self["ST"][key]**widthSc)/2, color='w'))
+                ax.add_artist(plt.Circle((x[i], y[i]), scaling*(self["ST"][key]**widthSc)/2, lw=STthick, color='0.4', fill=False))
         
         # plot first-order indices
         for i, key in enumerate(parameters):
-            ax.add_artist(plt.Circle((x[i], y[i]), scaling*(max(0, self["S1"][key])**widthSc)/2, color='0.4'))
+            if self._is_significant(self["S1"][key], self["S1_conf"][key], threshold):
+                ax.add_artist(plt.Circle((x[i], y[i]), scaling*(self["S1"][key]**widthSc)/2, color='0.4'))
                
         # add labels
         for i, key in enumerate(parameters):                

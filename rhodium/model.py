@@ -62,7 +62,8 @@ class Response(NamedObject):
     
     MINIMIZE = -1
     MAXIMIZE = 1
-    INFO = 0
+    INFO = 2
+    IGNORE = 0
     
     def __init__(self, name, type = INFO):
         super(Response, self).__init__(name)
@@ -404,6 +405,12 @@ class ListOfDict(list):
     Represents a list of dictionary objects but provides additional methods for
     querying and transforming the data.
     """
+    
+    def ListOfDict(self, data=[]):
+        super(ListOfDict, self).__init__()
+        
+        for entry in data:
+            self.append(entry)
         
     def append(self, sample):
         if not isinstance(sample, dict):
@@ -427,6 +434,9 @@ class ListOfDict(list):
                 result += "\n"
                 
         return result
+    
+    def __getslice__(self, i, j):
+        return self.__getitem__(slice(i, j))
     
     def __getitem__(self, pos):
         if isinstance(pos, tuple):
@@ -453,10 +463,24 @@ class ListOfDict(list):
             return result
         elif isinstance(pos, str):
             return self.as_list(pos)
+        elif isinstance(pos, slice):
+            indices = xrange(*pos.indices(len(self)))
+            result = ListOfDict()
+            
+            for i in indices:
+                result.append(super(ListOfDict, self).__getitem__(i))
+                
+            return result    
         else:
             return super(ListOfDict, self).__getitem__(pos)
         
-    def as_list(self, key=None, index=0):
+    def _trim(self, value, index=None):
+        if index is not None and isinstance(value, (list, tuple)):
+            return value[index]
+        else:
+            return value
+        
+    def as_list(self, key=None, index=None):
         result = []
         
         if len(self) == 0:
@@ -470,11 +494,27 @@ class ListOfDict(list):
             
         for i in range(len(self)):
             value = super(ListOfDict, self).__getitem__(i)[key]
-            result.append(value[index] if isinstance(value, list) else value)
+            result.append(self._trim(value, index))
                 
         return result
     
-    def as_array(self, keys=None, index=0):
+    def as_dataframe(self, keys=None, index=None):
+        import pandas as pd
+        
+        dict = OrderedDict()
+        
+        if keys is None:
+            keys = self[0].keys()
+            
+        if isinstance(keys, str):
+            keys = [keys]
+    
+        for key in keys:
+            dict[key] = [self._trim(d[key], index) for d in self]
+            
+        return pd.DataFrame(dict)
+    
+    def as_array(self, keys=None, index=None):
         import numpy
         
         if len(self) == 0:
@@ -494,13 +534,13 @@ class ListOfDict(list):
             result = numpy.empty([len(self)], dtype=numpy.dtype(type(self[0][key])))
             
             for i, env in enumerate(self):
-                result[i] = env[key][index] if isinstance(env[key], list) else env[key]
+                result[i] = self._trim(env[key], index)
         else:
             dt = { "names" : keys, "formats" : [numpy.dtype(type(self[0][key])) for key in keys] }
             result = numpy.empty([len(self)], dtype=dt)
     
             for i, env in enumerate(self):
-                result[i] = tuple(env[key][index] if isinstance(env[key], list) else env[key] for key in keys)
+                result[i] = tuple(self._trim(env[key], index) for key in keys)
         
         return result
     
@@ -515,16 +555,39 @@ class ListOfDict(list):
                 
     def apply(self, expr):
         result = []
+        result_keys = []
         
+        # parse the expression to determine any simple result names
+        if isinstance(expr, str):
+            root = ast.parse(expr, mode="exec")
+            
+            if isinstance(root.body[0], ast.Assign):
+                target = root.body[0].targets[0]
+                
+                if isinstance(target, ast.Tuple):
+                    result_keys.extend([t.id for t in target.elts if isinstance(t, ast.Name)])
+                elif isinstance(target, ast.Name):
+                    result_keys.append(target.id)
         for entry in self:
             tmp_env = {}
             tmp_env.update(_eval_env)
             tmp_env.update(entry)
             
             if isinstance(expr, str):
-                result.append(eval(expr, {}, tmp_env))
+                if len(result_keys) > 0:
+                    six.exec_(expr, {}, tmp_env)
+                    
+                    for key in result_keys:
+                        entry[key] = tmp_env[key]
+                
+                    if len(result_keys) == 1:
+                        result.append(tmp_env[key])
+                    else:
+                        result.append([tmp_env[key] for key in result_keys])
+                else:
+                    result.append(eval(expr, {}, tmp_env))
             else:
-                result.append(expr(tmp_env)) 
+                result.append(expr(tmp_env))
                 
         return result
           
