@@ -23,9 +23,12 @@ import mpldatacursor
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+import numpy as np
+import numpy.ma as ma
 import pandas as pd
 import seaborn as sns
-from matplotlib.colors import ColorConverter
+from scipy.interpolate import griddata
+from matplotlib.colors import ColorConverter, Normalize
 from matplotlib.legend_handler import HandlerPatch
 from mpl_toolkits.mplot3d import Axes3D
 
@@ -49,17 +52,6 @@ class HandlerSizeLegend(HandlerPatch):
         p2.set_transform(trans)
         
         return [p1, p2]
-    
-def to_dataframe(model, data, keys = None):
-    dict = {}
-    
-    if keys is None:
-        keys = model.responses.keys()
-
-    for key in keys:
-        dict[key] = [d[key] for d in data]
-        
-    return pd.DataFrame(dict)
 
 def scatter3d(model, data,
            x = None,
@@ -75,7 +67,7 @@ def scatter3d(model, data,
            class_label = "class",
            pick_handler = None,
            **kwargs):
-    df = to_dataframe(model, data)
+    df = data.as_dataframe(model.responses.keys())
     
     if "axes.facecolor" in mpl.rcParams:
         orig_facecolor = mpl.rcParams["axes.facecolor"]
@@ -240,7 +232,7 @@ def scatter2d(model, data,
            expr = None,
            class_label = "class",
            **kwargs):
-    df = to_dataframe(model, data)
+    df = data.as_dataframe(model.responses.keys())
     fig = plt.figure(facecolor='white')
     ax = plt.gca()
     
@@ -362,7 +354,7 @@ def scatter2d(model, data,
     return fig
 
 def joint(model, data, x, y, **kwargs):
-    df = to_dataframe(model, data)
+    df = data.as_dataframe(model.responses.keys())
     
     sns.jointplot(df[x],
                   df[y],
@@ -372,7 +364,7 @@ def pairs(model, data,
           expr = None,
           class_label = "class",
           **kwargs):
-    df = to_dataframe(model, data)
+    df = data.as_dataframe(model.responses.keys())
     
     if expr is None:
         sns.pairplot(df, **kwargs)
@@ -393,7 +385,7 @@ def kdeplot(model, data, x, y,
             alpha=1.0,
             cmap = ["Reds", "Blues", "Oranges", "Greens", "Greys"],
             **kwargs):
-    df = to_dataframe(model, data)
+    df = data.as_dataframe(model.responses.keys())
     
     if expr is None:
         sns.kdeplot(df[x],
@@ -433,7 +425,7 @@ def kdeplot(model, data, x, y,
         ax.legend(proxies, expr, **kwargs)
         
 def hist(model, data):
-    df = to_dataframe(model, data)
+    df = data.as_dataframe(model.responses.keys())
     keys = model.responses.keys()
     
     f, axes = plt.subplots(1, len(keys))
@@ -446,9 +438,191 @@ def hist(model, data):
     plt.tight_layout()
     
 def interact(model, data, x, y, z, **kwargs):
-    df = to_dataframe(model, data)
-    
+    df = data.as_dataframe(model.responses.keys())
     sns.interactplot(x, y, z, df, **kwargs)
+    
+def contour2d(model, data, x=None, y=None, z=None, levels=15, size=100, xlim=None, ylim=None, labels=True, show_colorbar=True, shrink=0.05, method='cubic', **kwargs):
+    df = data.as_dataframe(model.responses.keys())
+    
+    if isinstance(x, six.string_types):
+        x_label = x
+        x = df[x_label]
+    else:
+        x_label = None
+            
+    if isinstance(y, six.string_types):
+        y_label = y
+        y = df[y_label]
+    else:
+        y_label = None
+        
+    if isinstance(z, six.string_types):
+        z_label = z
+        z = df[z_label]
+    else:
+        z_label = None
+        
+    used_keys = set([x_label, y_label, z_label])
+    used_keys.remove(None)
+    
+    remaining_keys = set(model.responses.keys())
+    remaining_keys -= used_keys
+
+    for key in remaining_keys:
+        if x is None:
+            x_label = key
+            x = df[x_label]
+        elif y is None:
+            y_label = key
+            y = df[y_label]
+        elif z is None:
+            z_label = key
+            z = df[z_label]
+
+    # compute the grid
+    if xlim is None:
+        xmin = np.min(x)
+        xmax = np.max(x)
+    else:
+        xmin = xlim[0]
+        xmax = xlim[1]
+        
+    if ylim is None:
+        ymin = np.min(y)
+        ymax = np.max(y)
+    else:
+        ymin = ylim[0]
+        ymax = ylim[1]
+
+    # grid the data
+    xshrink = shrink*(xmax-xmin)
+    yshrink = shrink*(ymax-ymin)
+    xi, yi = np.mgrid[(xmin+xshrink):(xmax-xshrink):complex(size), (ymin+yshrink):(ymax-yshrink):complex(size)]
+    x = x.values
+    y = y.values
+    z = z.values
+    x = np.reshape(x, (x.shape[0], 1))
+    y = np.reshape(y, (y.shape[0], 1))
+    points = np.concatenate((x, y), axis=1)
+    
+    zi = griddata(points, z, (xi, yi), method=method)
+    
+    # generate the plot
+    fig = plt.figure(facecolor='white')
+    ax = plt.gca()
+    
+    if labels:
+        CS = plt.contour(xi, yi, zi, levels, colors="k", linewidths=0.5)
+        plt.clabel(CS, **kwargs)
+    
+    if "cmap" not in kwargs:
+        kwargs["cmap"] = plt.get_cmap("rainbow")
+    
+    plt.contourf(xi, yi, zi, levels, **kwargs)
+    ax.set_xlim(xmin+xshrink, xmax-xshrink)
+    ax.set_ylim(ymin+yshrink, ymax-yshrink)
+    ax.set_xlabel(x_label)
+    ax.set_ylabel(y_label)
+    
+    # draw colorbar
+    if show_colorbar:
+        cb = plt.colorbar()
+        cb.set_label(z_label)
+
+    return fig
+
+def contour3d(model, data, x=None, y=None, z=None, xlim=None, ylim=None, levels=15, size=100, show_colorbar=True, shrink=0.05, method='cubic', **kwargs):
+    df = data.as_dataframe(model.responses.keys())
+    
+    if "axes.facecolor" in mpl.rcParams:
+        orig_facecolor = mpl.rcParams["axes.facecolor"]
+        mpl.rcParams["axes.facecolor"] = "white"
+    
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    
+    if isinstance(x, six.string_types):
+        x_label = x
+        x = df[x_label]
+    else:
+        x_label = None
+            
+    if isinstance(y, six.string_types):
+        y_label = y
+        y = df[y_label]
+    else:
+        y_label = None
+        
+    if isinstance(z, six.string_types):
+        z_label = z
+        z = df[z_label]
+    else:
+        z_label = None
+        
+    used_keys = set([x_label, y_label, z_label])
+    used_keys.remove(None)
+    
+    remaining_keys = set(model.responses.keys())
+    remaining_keys -= used_keys
+
+    for key in remaining_keys:
+        if x is None:
+            x_label = key
+            x = df[x_label]
+        elif y is None:
+            y_label = key
+            y = df[y_label]
+        elif z is None:
+            z_label = key
+            z = df[z_label]
+            
+    # compute the grid
+    if xlim is None:
+        xmin = np.min(x)
+        xmax = np.max(x)
+    else:
+        xmin = xlim[0]
+        xmax = xlim[1]
+        
+    if ylim is None:
+        ymin = np.min(y)
+        ymax = np.max(y)
+    else:
+        ymin = ylim[0]
+        ymax = ylim[1]
+
+    # grid the data
+    xshrink = shrink*(xmax-xmin)
+    yshrink = shrink*(ymax-ymin)
+    xi, yi = np.mgrid[(xmin+xshrink):(xmax-xshrink):complex(size), (ymin+yshrink):(ymax-yshrink):complex(size)]
+    x = x.values
+    y = y.values
+    z = z.values
+    x = np.reshape(x, (x.shape[0], 1))
+    y = np.reshape(y, (y.shape[0], 1))
+    points = np.concatenate((x, y), axis=1)
+    
+    zi = griddata(points, z, (xi, yi), method=method)
+    
+    if "cmap" not in kwargs:
+        kwargs["cmap"] = plt.get_cmap("rainbow")
+    
+    zmin = np.nanmin(zi)
+    zmax = np.nanmax(zi)
+
+    handle = ax.plot_surface(xi, yi, zi, rstride=int(size/levels), cstride=int(size/levels), vmin=zmin, vmax=zmax, **kwargs)
+    
+    if show_colorbar:
+        cb = fig.colorbar(handle, shrink=0.5, aspect=5)
+        cb.set_label(z_label)
+    
+    ax.set_xlim(xmin+xshrink, xmax-xshrink)
+    ax.set_ylim(ymin+yshrink, ymax-yshrink)
+    ax.set_xlabel(x_label)
+    ax.set_ylabel(y_label)
+    ax.set_zlabel(z_label)
+    
+    return fig
     
 def animate3d(prefix, dir="images/", steps=36, transform=(10, 0, 0), **kwargs):
     import os
