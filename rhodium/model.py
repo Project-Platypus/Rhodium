@@ -46,9 +46,12 @@ class Parameter(NamedObject):
     model.
     """ 
     
-    def __init__(self, name, default_value = None):
+    def __init__(self, name, default_value = None, **kwargs):
         super(Parameter, self).__init__(name)
         self.default_value = default_value
+
+        for k, v in six.iteritems(kwargs):
+            setattr(self, k, v)
         
 class Response(NamedObject):
     """Defines a model response (i.e., output).
@@ -65,9 +68,12 @@ class Response(NamedObject):
     INFO = 2
     IGNORE = 0
     
-    def __init__(self, name, type = INFO):
+    def __init__(self, name, type = INFO, **kwargs):
         super(Response, self).__init__(name)
         self.type = type
+        
+        for k, v in six.iteritems(kwargs):
+            setattr(self, k, v)
         
 _eval_env = {}
 module = __import__("math", fromlist=[''])
