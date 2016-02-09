@@ -34,6 +34,9 @@ def sample_uniform(model, nsamples):
         result.append(entry)
         
 def sample_lhs(model, nsamples):
+    if len(model.uncertainties) == 0:
+        raise ValueError("model has no uncertainties defined")
+    
     samples = OrderedDict()
     
     for uncertainty in model.uncertainties:

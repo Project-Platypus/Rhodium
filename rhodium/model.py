@@ -396,6 +396,15 @@ class Model(object):
     def uncertainties(self, value):
         self._uncertainties.extend(value)
         
+    def __enter__(self):
+        return self
+        
+    def __exit__(self, type, value, traceback):
+        self.close()
+        
+    def close(self):
+        pass
+        
     def fix(self, *args, **kwargs):
         for arg in args:
             if isinstance(arg, dict):

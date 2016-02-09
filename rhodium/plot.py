@@ -24,13 +24,32 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import numpy as np
-import numpy.ma as ma
 import pandas as pd
 import seaborn as sns
+from sets import Set
 from scipy.interpolate import griddata
 from matplotlib.colors import ColorConverter, Normalize
 from matplotlib.legend_handler import HandlerPatch
 from mpl_toolkits.mplot3d import Axes3D
+
+def _combine_keys(*args):
+    result = []
+    result_set = Set()
+    
+    for arg in args:
+        if arg is None:
+            continue
+        
+        if hasattr(arg, "__iter__") and not isinstance(arg, six.string_types):
+            for key in arg:
+                if key not in result_set:
+                    result.append(key)
+                    result_set.add(key)
+        elif arg not in result_set:
+            result.append(arg)
+            result_set.add(arg)
+            
+    return result
 
 class HandlerSizeLegend(HandlerPatch):
     def __call__(self, legend, orig_handle,
@@ -67,7 +86,7 @@ def scatter3d(model, data,
            class_label = "class",
            pick_handler = None,
            **kwargs):
-    df = data.as_dataframe(model.responses.keys())
+    df = data.as_dataframe(_combine_keys(model.responses.keys(), x, y, z, c, s))
     
     if "axes.facecolor" in mpl.rcParams:
         orig_facecolor = mpl.rcParams["axes.facecolor"]
@@ -121,7 +140,7 @@ def scatter3d(model, data,
     else:
         s_label = None
         
-    used_keys = set([x_label, y_label, z_label, c_label, s_label])
+    used_keys = set([x_label, y_label, z_label, c_label, s_label, None])
     used_keys.remove(None)
     
     remaining_keys = set(model.responses.keys())
@@ -232,7 +251,7 @@ def scatter2d(model, data,
            expr = None,
            class_label = "class",
            **kwargs):
-    df = data.as_dataframe(model.responses.keys())
+    df = data.as_dataframe(_combine_keys(model.responses.keys(), x, y, c, s))
     fig = plt.figure(facecolor='white')
     ax = plt.gca()
     
@@ -275,7 +294,7 @@ def scatter2d(model, data,
     else:
         s_label = None
         
-    used_keys = set([x_label, y_label, c_label, s_label])
+    used_keys = set([x_label, y_label, c_label, s_label, None])
     used_keys.remove(None)
     
     remaining_keys = set(model.responses.keys())
@@ -354,7 +373,7 @@ def scatter2d(model, data,
     return fig
 
 def joint(model, data, x, y, **kwargs):
-    df = data.as_dataframe(model.responses.keys())
+    df = data.as_dataframe(_combine_keys(x, y))
     
     sns.jointplot(df[x],
                   df[y],
@@ -385,7 +404,7 @@ def kdeplot(model, data, x, y,
             alpha=1.0,
             cmap = ["Reds", "Blues", "Oranges", "Greens", "Greys"],
             **kwargs):
-    df = data.as_dataframe(model.responses.keys())
+    df = data.as_dataframe(_combine_keys(x, y))
     
     if expr is None:
         sns.kdeplot(df[x],
@@ -442,7 +461,7 @@ def interact(model, data, x, y, z, **kwargs):
     sns.interactplot(x, y, z, df, **kwargs)
     
 def contour2d(model, data, x=None, y=None, z=None, levels=15, size=100, xlim=None, ylim=None, labels=True, show_colorbar=True, shrink=0.05, method='cubic', **kwargs):
-    df = data.as_dataframe(model.responses.keys())
+    df = data.as_dataframe(_combine_keys(model.responses.keys(), x, y, z))
     
     if isinstance(x, six.string_types):
         x_label = x
@@ -462,7 +481,7 @@ def contour2d(model, data, x=None, y=None, z=None, levels=15, size=100, xlim=Non
     else:
         z_label = None
         
-    used_keys = set([x_label, y_label, z_label])
+    used_keys = set([x_label, y_label, z_label, None])
     used_keys.remove(None)
     
     remaining_keys = set(model.responses.keys())
@@ -532,7 +551,10 @@ def contour2d(model, data, x=None, y=None, z=None, levels=15, size=100, xlim=Non
     return fig
 
 def contour3d(model, data, x=None, y=None, z=None, xlim=None, ylim=None, levels=15, size=100, show_colorbar=True, shrink=0.05, method='cubic', **kwargs):
-    df = data.as_dataframe(model.responses.keys())
+    df = data.as_dataframe(_combine_keys(model.responses.keys(), x, y, z))
+    
+    if len(df.columns) < 3:
+        raise ValueError("insufficient number of dimensions")
     
     if "axes.facecolor" in mpl.rcParams:
         orig_facecolor = mpl.rcParams["axes.facecolor"]
@@ -559,7 +581,7 @@ def contour3d(model, data, x=None, y=None, z=None, xlim=None, ylim=None, levels=
     else:
         z_label = None
         
-    used_keys = set([x_label, y_label, z_label])
+    used_keys = set([x_label, y_label, z_label, None])
     used_keys.remove(None)
     
     remaining_keys = set(model.responses.keys())
