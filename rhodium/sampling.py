@@ -20,10 +20,10 @@ from __future__ import division, print_function, absolute_import
 import six
 import random
 from collections import OrderedDict
-from .model import ListOfDict
+from .model import DataSet
         
 def sample_uniform(model, nsamples):
-    result = ListOfDict()
+    result = DataSet()
         
     for i in range(nsamples):
         entry = OrderedDict()
@@ -44,7 +44,7 @@ def sample_lhs(model, nsamples):
         random.shuffle(levels)
         samples[uncertainty.name] = levels
         
-    result = ListOfDict()
+    result = DataSet()
         
     for i in range(nsamples):
         entry = OrderedDict()

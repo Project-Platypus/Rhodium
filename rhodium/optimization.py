@@ -20,7 +20,7 @@ from __future__ import division, print_function, absolute_import
 import inspect
 from collections import OrderedDict
 from platypus import Job, submit_jobs, Problem, unique
-from .model import Response, ListOfDict
+from .model import Response, DataSet
 
 def generate_jobs(model, samples):
     if isinstance(samples, dict):
@@ -63,7 +63,7 @@ class EvaluateJob(Job):
 def evaluate(model, samples, **kwargs):
     if inspect.isgenerator(samples) or (hasattr(samples, '__iter__') and not isinstance(samples, dict)):
         results = submit_jobs(generate_jobs(model, samples), **kwargs)
-        return ListOfDict([result.output for result in results])
+        return DataSet([result.output for result in results])
     else:
         results = submit_jobs(generate_jobs(model, samples), **kwargs)
         return results[0].output
@@ -116,7 +116,7 @@ def optimize(model, algorithm="NSGAII", NFE=10000, **kwargs):
     instance = class_ref(**args)
     instance.run(NFE)
     
-    result = ListOfDict()
+    result = DataSet()
     
     for solution in unique(instance.result):
         if not solution.feasible:

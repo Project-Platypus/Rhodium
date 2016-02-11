@@ -443,8 +443,8 @@ def kdeplot(model, data, x, y,
         ax = plt.gca()
         ax.legend(proxies, expr, **kwargs)
         
-def hist(model, data):
-    df = data.as_dataframe(model.responses.keys())
+def hist(model, data, keys=None):
+    df = data.as_dataframe(model.responses.keys() if keys is None else _combine_keys(keys))
     keys = model.responses.keys()
     
     f, axes = plt.subplots(1, len(keys))
@@ -457,7 +457,7 @@ def hist(model, data):
     plt.tight_layout()
     
 def interact(model, data, x, y, z, **kwargs):
-    df = data.as_dataframe(model.responses.keys())
+    df = data.as_dataframe(_combine_keys(x, y, z))
     sns.interactplot(x, y, z, df, **kwargs)
     
 def contour2d(model, data, x=None, y=None, z=None, levels=15, size=100, xlim=None, ylim=None, labels=True, show_colorbar=True, shrink=0.05, method='cubic', **kwargs):

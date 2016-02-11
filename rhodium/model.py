@@ -17,12 +17,14 @@
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import division, print_function, absolute_import
 
+import os
 import ast
 import six
 import math
 import inspect
 import random
 import operator
+import pandas as pd
 import scipy.stats as stats
 from collections import OrderedDict
 from abc import ABCMeta, abstractmethod
@@ -414,24 +416,22 @@ class Model(object):
             
         self.fixed_parameters.update(kwargs)
         
-class ListOfDict(list):
-    """A list of dictionary objects.
-    
-    Represents a list of dictionary objects but provides additional methods for
-    querying and transforming the data.
-    """
-    
-    def ListOfDict(self, data=[]):
-        super(ListOfDict, self).__init__()
+class DataSet(list):
+
+    def __init__(self, data=[]):
+        super(DataSet, self).__init__()
         
-        for entry in data:
-            self.append(entry)
+        if isinstance(data, six.string_types):
+            self.load(data)
+        else:
+            for entry in data:
+                self.append(entry)
         
     def append(self, sample):
         if not isinstance(sample, dict):
-            raise TypeError("ListOfDict can only contain dict objects")
+            raise TypeError("DataSet can only contain dict objects")
         
-        super(ListOfDict, self).append(sample)
+        super(DataSet, self).append(sample)
         
     def __str__(self):
         result = ""
@@ -465,13 +465,13 @@ class ListOfDict(list):
             if not isinstance(keys, list) and not isinstance(keys, tuple):
                 keys = [keys]
 
-            result = ListOfDict()
+            result = DataSet()
                 
             for i in indices:
                 submap = {}
                     
                 for key in keys:
-                    submap[key] = super(ListOfDict, self).__getitem__(i)[key]
+                    submap[key] = super(DataSet, self).__getitem__(i)[key]
                     
                 result.append(submap)
                     
@@ -480,14 +480,25 @@ class ListOfDict(list):
             return self.as_list(pos)
         elif isinstance(pos, slice):
             indices = xrange(*pos.indices(len(self)))
-            result = ListOfDict()
+            result = DataSet()
             
             for i in indices:
-                result.append(super(ListOfDict, self).__getitem__(i))
+                result.append(super(DataSet, self).__getitem__(i))
                 
             return result    
         else:
-            return super(ListOfDict, self).__getitem__(pos)
+            return super(DataSet, self).__getitem__(pos)
+        
+    def __setitem__(self, pos, value):
+        if isinstance(pos, str):
+            if isinstance(value, (list, tuple)) and len(value) == len(self):
+                for i, o in enumerate(self):
+                    o[pos] = value[i]
+            else:
+                for o in self:
+                    o[pos] = value
+        else:
+            return super(DataSet, self).__setitem__(pos)
         
     def _trim(self, value, index=None):
         if index is not None and isinstance(value, (list, tuple)):
@@ -503,19 +514,17 @@ class ListOfDict(list):
         
         if key is None:
             if len(self[0].keys()) > 1:
-                raise ValueError("Can not convert ListOfDict to list that contains more than one key")
+                raise ValueError("Can not convert DataSet to list that contains more than one key")
             else:
                 key = list(self[0].keys())[0]
             
         for i in range(len(self)):
-            value = super(ListOfDict, self).__getitem__(i)[key]
+            value = super(DataSet, self).__getitem__(i)[key]
             result.append(self._trim(value, index))
                 
         return result
     
     def as_dataframe(self, keys=None, index=None):
-        import pandas as pd
-        
         dict = OrderedDict()
         
         if keys is None:
@@ -560,7 +569,7 @@ class ListOfDict(list):
         return result
     
     def find(self, expr):
-        result = ListOfDict()
+        result = DataSet()
         
         for entry, cond in zip(self, self.apply(expr)):
             if cond:
@@ -583,6 +592,7 @@ class ListOfDict(list):
                     result_keys.extend([t.id for t in target.elts if isinstance(t, ast.Name)])
                 elif isinstance(target, ast.Name):
                     result_keys.append(target.id)
+                    
         for entry in self:
             tmp_env = {}
             tmp_env.update(_eval_env)
@@ -613,8 +623,52 @@ class ListOfDict(list):
     def find_max(self, key):
         index, _ = max(enumerate([d[key] for d in self]), key=operator.itemgetter(1))
         return self[index]
+    
+    def save(self, file, format=None, **kwargs):
+        if format is None:
+            _, format = os.path.splitext(file)
+            
+            if len(format) > 0 and format[0] == ".":
+                format = format[1:]
+                
+        if format == "xls" or format == "xlsx":
+            self.as_dataframe().to_excel(file, **kwargs)
+        elif format == "csv":
+            self.as_dataframe().to_csv(file, **kwargs)
+        elif format == "json":
+            self.as_dataframe().to_json(file, **kwargs)
+        elif format == "pkl":
+            self.as_dataframe().to_pickle(file, **kwargs)
+        else:
+            raise ValueError("unsupported file format '%s'" % str(format))
+        
+    def load(self, file, format=None, **kwargs):
+        if format is None:
+            _, format = os.path.splitext(file)
+            
+            if len(format) > 0 and format[0] == ".":
+                format = format[1:]
+            
+        if format == "xls" or format == "xlsx":
+            df = pd.read_excel(file, **kwargs)
+        elif format == "csv":
+            df = pd.read_csv(file, **kwargs)
+        elif format == "json":
+            df = pd.read_json(file, **kwargs)
+        elif format == "pkl":
+            df = pd.read_pickle(file, **kwargs)
+        else:
+            raise ValueError("unsupported file format '%s'" % str(format))
+        
+        for i, row in df.iterrows():
+            entry = OrderedDict()
+                
+            for key in df.columns.values:
+                entry[key] = row[key]
+                
+            self.append(entry)
 
-def _fix_generator(samples, fixed_parameters):
+def _overwrite_generator(samples, fixed_parameters):
     if inspect.isgenerator(samples) or (hasattr(samples, '__iter__') and not isinstance(samples, dict)):
         for sample in samples:
             result = sample.copy()
@@ -625,30 +679,45 @@ def _fix_generator(samples, fixed_parameters):
         result.update(fixed_parameters)
         yield result
     
-def fix(samples, fixed_parameters):
+def overwrite(samples, fixed_parameters):
     if inspect.isgenerator(samples) or (hasattr(samples, '__iter__') and not isinstance(samples, dict)):
-        return _fix_generator(samples, fixed_parameters)
+        return _overwrite_generator(samples, fixed_parameters)
     else:
         result = samples.copy()
         result.update(fixed_parameters)
         return result
-        
-def _is_feasible(model, result):
-    for constraint in model.constraints:
-        if hasattr(constraint, "__call__"):
-            if not constraint(result.copy()):
-                return False
-        else:
-            if not eval(constraint.expr, result.copy()):
-                return False
-        
-    return True
-
-def check_feasibility(model, results):
-    if isinstance(results, dict):
-        return _is_feasible(model, results)
+    
+def _update_generator(samples, fixed_parameters):
+    if inspect.isgenerator(samples) or (hasattr(samples, '__iter__') and not isinstance(samples, dict)):
+        for sample in samples:
+            result = fixed_parameters.copy()
+            result.update(sample)
+            yield result
     else:
-        return [_is_feasible(model, result) for result in results]
+        result = fixed_parameters.copy()
+        result.update(samples)
+        yield result
+    
+def update(samples, fixed_parameters):
+    if inspect.isgenerator(samples) or (hasattr(samples, '__iter__') and not isinstance(samples, dict)):
+        return _update_generator(samples, fixed_parameters)
+    else:
+        result = fixed_parameters.copy()
+        result.update(samples)
+        return result
+    
+def populate_defaults(model, samples):
+    if isinstance(samples, dict):
+        samples = [samples]
         
-def mean(values):
-    return float(sum(values)) / len(values)
+    argspec = inspect.getargspec(model.function)
+    default_values = {k:v for k, v in zip(argspec.args[-len(argspec.defaults):], argspec.defaults)}
+    
+    for sample in samples:
+        for parameter in model.parameters:
+            if parameter.name not in sample:
+                if parameter.default_value is not None:
+                    sample[parameter.name] = parameter.default_value
+                else:
+                    sample[parameter.name] = default_values[parameter.name]
+                    
