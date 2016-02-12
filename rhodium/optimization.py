@@ -19,7 +19,7 @@ from __future__ import division, print_function, absolute_import
 
 import inspect
 from collections import OrderedDict
-from platypus import Job, submit_jobs, Problem, unique
+from platypus import Job, Problem, unique
 from .model import Response, DataSet
 
 def generate_jobs(model, samples):
@@ -60,12 +60,17 @@ class EvaluateJob(Job):
             
         self.output = args
 
-def evaluate(model, samples, **kwargs):
+def evaluate(model, samples, evaluator=None):
+    if evaluator is None:
+        from .config import RhodiumConfig
+        
+        evaluator = RhodiumConfig.default_evaluator
+    
     if inspect.isgenerator(samples) or (hasattr(samples, '__iter__') and not isinstance(samples, dict)):
-        results = submit_jobs(generate_jobs(model, samples), **kwargs)
+        results = evaluator.evaluate_all(generate_jobs(model, samples))
         return DataSet([result.output for result in results])
     else:
-        results = submit_jobs(generate_jobs(model, samples), **kwargs)
+        results = evaluator.evaluate_all(generate_jobs(model, samples))
         return results[0].output
 
 def _to_problem(model):

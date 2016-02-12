@@ -1,4 +1,4 @@
-# Copyright 2015 David Hadka
+# Copyright 2015-2016 David Hadka
 #
 # This file is part of Rhodium, a Python module for robust decision making and
 # exploratory modeling.
@@ -15,23 +15,23 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
+from __future__ import absolute_import, division, print_function
 
-__author__ = "David Hadka"
-__copyright__ = "Copyright 2015, David Hadka"
-__license__ = "GPLv3"
-__version__ = "0.1"
-__maintainer__ = "David Hadka"
-__email__ = "dhadka@users.noreply.github.com"
-__status__ = "Development"
+import matplotlib.pyplot as plt
+from platypus.config import PlatypusConfig
 
-from .config import *
-from .model import *
-from .plot import *
-from .sa import *
-from .classification import *
-from .cache import *
-from .optimization import *
-from .sampling import *
-from .robustness import *
-
-from platypus.evaluator import *
+class _RhodiumConfig(object):
+    
+    def __init__(self):
+        super(_RhodiumConfig, self).__init__()
+        self.default_cmap = plt.get_cmap("rainbow")
+     
+    @property
+    def default_evaluator(self):
+        return PlatypusConfig.default_evaluator
+     
+    @default_evaluator.setter
+    def default_evaluator(self, value):
+        PlatypusConfig.default_evaluator = value
+        
+RhodiumConfig = _RhodiumConfig()

@@ -153,6 +153,17 @@ class Constraint(object):
         else:
             return 1.0
         
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        del state["_distance"]
+        return state
+
+    def __setstate__(self, newstate):
+        self.__dict__.update(newstate)
+        
+        if isinstance(self.expr, str):
+            self._convert()
+        
 class Lever(NamedObject):
     """Defines an adjustable lever that controls a model parameter.
     
@@ -331,8 +342,8 @@ class NamedObjectMap(object):
     def keys(self):
         return self._data.keys()
     
-    def __getattr__(self, name):
-        return getattr(self._data, name)
+    #def __getattr__(self, name):
+    #    return getattr(self._data, name)
         
 class ParameterMap(NamedObjectMap):
     

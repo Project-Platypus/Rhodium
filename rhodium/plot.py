@@ -31,6 +31,7 @@ from scipy.interpolate import griddata
 from matplotlib.colors import ColorConverter, Normalize
 from matplotlib.legend_handler import HandlerPatch
 from mpl_toolkits.mplot3d import Axes3D
+from .config import RhodiumConfig
 
 def _combine_keys(*args):
     result = []
@@ -179,7 +180,7 @@ def scatter3d(model, data,
         s = (s_range[1]-s_range[0]) * ((s-s_min) / (s_max-s_min)) + s_range[0]
 
     if "cmap" not in kwargs:
-        kwargs["cmap"] = plt.get_cmap("rainbow")
+        kwargs["cmap"] = RhodiumConfig.default_cmap
 
     handle = ax.scatter(xs = x,
                         ys = y,
@@ -327,7 +328,7 @@ def scatter2d(model, data,
         s = (s_range[1]-s_range[0]) * ((s-s_min) / (s_max-s_min)) + s_range[0]
 
     if "cmap" not in kwargs:
-        kwargs["cmap"] = plt.get_cmap("rainbow")
+        kwargs["cmap"] = RhodiumConfig.default_cmap
 
     handle = plt.scatter(x = x,
                          y = y,
@@ -380,10 +381,11 @@ def joint(model, data, x, y, **kwargs):
                   **kwargs)
 
 def pairs(model, data,
+          keys = None,
           expr = None,
           class_label = "class",
           **kwargs):
-    df = data.as_dataframe(model.responses.keys())
+    df = data.as_dataframe(keys if keys is not None else model.responses.keys())
     
     if expr is None:
         sns.pairplot(df, **kwargs)
@@ -535,7 +537,7 @@ def contour2d(model, data, x=None, y=None, z=None, levels=15, size=100, xlim=Non
         plt.clabel(CS, **kwargs)
     
     if "cmap" not in kwargs:
-        kwargs["cmap"] = plt.get_cmap("rainbow")
+        kwargs["cmap"] = RhodiumConfig.default_cmap
     
     plt.contourf(xi, yi, zi, levels, **kwargs)
     ax.set_xlim(xmin+xshrink, xmax-xshrink)
@@ -627,7 +629,7 @@ def contour3d(model, data, x=None, y=None, z=None, xlim=None, ylim=None, levels=
     zi = griddata(points, z, (xi, yi), method=method)
     
     if "cmap" not in kwargs:
-        kwargs["cmap"] = plt.get_cmap("rainbow")
+        kwargs["cmap"] = RhodiumConfig.default_cmap
     
     zmin = np.nanmin(zi)
     zmax = np.nanmax(zi)
