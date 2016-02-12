@@ -380,7 +380,7 @@ def sa(model, response, policy={}, method="sobol", nsamples=1000, **kwargs):
     
     for i in range(samples.shape[0]):
         sample = {k : v for k, v in zip(model.uncertainties.keys(), samples[i])}
-        responses[i] = evaluate(model, fix(sample, policy))[response]
+        responses[i] = evaluate(model, overwrite(sample, policy))[response]
     
     # run the sensitivity analysis method
     if method == "sobol":
@@ -446,7 +446,7 @@ def oat(model, response, policy={}, nsamples=100, **kwargs):
         
         for j in range(nsamples):
             sample = { u.name : ppf_samples[j] }
-            responses[j, i] = evaluate(model, fix(sample, policy))[response]
+            responses[j, i] = evaluate(model, overwrite(sample, policy))[response]
 
     minv = np.nanmin(responses, axis=0)
     maxv = np.nanmax(responses, axis=0)
@@ -494,7 +494,7 @@ def oat(model, response, policy={}, nsamples=100, **kwargs):
 
 def regional_sa(model, expr, policy={}, nsamples=1000):
     samples = sample_lhs(model, nsamples)
-    output = evaluate(model, fix(samples, policy))
+    output = evaluate(model, overwrite(samples, policy))
     classification = output.apply(expr)
     classes = sorted(set(classification))
     fig, axarr = plt.subplots(1, len(model.uncertainties))

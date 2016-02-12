@@ -28,7 +28,7 @@ import pandas as pd
 import scipy.stats as stats
 from collections import OrderedDict
 from abc import ABCMeta, abstractmethod
-from platypus import Real
+from platypus import Real, Integer
 
 class RhodiumError(Exception):
     pass
@@ -181,6 +181,10 @@ class Lever(NamedObject):
     def to_variables(self):
         raise NotImplementedError("method not implemented")
     
+    @abstractmethod
+    def from_variables(self, variables):
+        raise NotImplementedError("method not implemented")
+    
 class RealLever(Lever):
     
     def __init__(self, name, min_value, max_value, length = 1):
@@ -191,6 +195,41 @@ class RealLever(Lever):
         
     def to_variables(self):
         return [Real(self.min_value, self.max_value) for _ in range(self.length)]
+    
+    def from_variables(self, variables):
+        if self.length == 1:
+            return variables[0]
+        else:
+            return variables
+    
+class IntegerLever(Lever):
+    
+    def __init__(self, name, min_value, max_value, length = 1):
+        super(IntegerLever, self).__init__(name)
+        self.min_value = int(min_value)
+        self.max_value = int(max_value)
+        self.length = length
+        
+    def to_variables(self):
+        return [Integer(self.min_value, self.max_value) for _ in range(self.length)]
+    
+    def from_variables(self, variables):
+        if self.length == 1:
+            return variables[0]
+        else:
+            return variables
+    
+class CategoricalLever(Lever):
+    
+    def __init__(self, name, categories):
+        super(CategoricalLever, self).__init__(name)
+        self.categories = categories
+        
+    def to_variables(self):
+        return [Integer(0, len(self.categories)-1)]
+    
+    def from_variables(self, variables):
+        return self.categories[variables[0]]
         
 class Uncertainty(NamedObject):
     

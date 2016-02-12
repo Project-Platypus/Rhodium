@@ -75,9 +75,12 @@ def evaluate(model, samples, evaluator=None):
 
 def _to_problem(model):
     variables = []
+    lengths = []
     
     for lever in model.levers:
-        variables.extend(lever.to_variables())
+        vars = lever.to_variables()
+        variables.extend(vars)
+        lengths.append(len(vars))
     
     nvars = len(variables)
     nobjs = sum([1 if r.type == Response.MINIMIZE or r.type == Response.MAXIMIZE else 0 for r in model.responses])
@@ -87,12 +90,9 @@ def _to_problem(model):
         env = {}
         offset = 0
         
-        for lever in model.levers:
-            if lever.length == 1:
-                env[lever.name] = vars[offset]
-            else:
-                env[lever.name] = vars[offset:offset+lever.length]
-            offset += lever.length
+        for i, lever in enumerate(model.levers):
+            env[lever.name] = lever.from_variables(vars[offset:(offset+lengths[i])])
+            offset += lengths[i]
             
         job = EvaluateJob(model, env)
         job.run()

@@ -32,15 +32,18 @@ import sklearn
 from sklearn import tree
 from sklearn.externals.six import StringIO
 
-from prim import Prim as prim
+from prim import Prim
 
-def cart(x,
-         y, 
-         threshold = None, 
-         threshold_type = ">",
-         include = None,
-         exclude = None,
-         **kwargs):
+class Cart(object):
+    
+    def __init__(self,
+                 x,
+                 y, 
+                 threshold = None, 
+                 threshold_type = ">",
+                 include = None,
+                 exclude = None,
+                 **kwargs):
         """Generates a decision tree for classification.
         
         Parameters
@@ -63,6 +66,7 @@ def cart(x,
         exclude : list of str
             the names of variables excluded from the PRIM analysis
         """
+        super(Cart, self).__init__()
         
         # Ensure the input x is a numpy matrix/array
         if isinstance(x, pd.DataFrame):
@@ -147,146 +151,163 @@ def cart(x,
         clf = clf.fit(x, y)
         
         # add our custom metadata to the classifier
-        clf.feature_names_ = feature_names
-        clf.x_ = x
-        clf.y_ = y
+        self._feature_names = feature_names
+        self._x = x
+        self._y = y
+        self._clf = clf
+    
+    def _get_names(self, **kwargs):
+        clf = self._clf
+        feature_names = kwargs.get("feature_names", None)
+        class_names = kwargs.get("class_names", None)
         
-        return clf
-    
-def _get_names(clf, **kwargs):
-    feature_names = kwargs.get("feature_names", None)
-    class_names = kwargs.get("class_names", None)
-    
-    if feature_names is None:
-        feature_names = clf.feature_names_
+        if feature_names is None:
+            feature_names = self._feature_names
+            
+        if class_names is None:
+            class_names = clf.classes_
+            
+        return feature_names, class_names
         
-    if class_names is None:
-        class_names = clf.classes_
-        
-    return feature_names, class_names
+    def _create_graph(self, **kwargs):
+        clf = self._clf
+        dot_data = StringIO()
+        feature_names, class_names = self._get_names(**kwargs)
     
-def _create_graph(clf, **kwargs):
-    dot_data = StringIO()
-    feature_names, class_names = _get_names(clf, **kwargs)
-
-    if sklearn.__version__ >= 0.17:
-        tree.export_graphviz(clf,
-                             out_file=dot_data,  
-                             feature_names=feature_names,
-                             class_names=class_names,  
-                             filled=kwargs.get("filled", True),
-                             rounded=kwargs.get("rounded", True),  
-                             special_characters=kwargs.get("special_characters", True),
-                             **kwargs)
-    else:
-        tree.export_graphviz(clf,
-                             out_file=dot_data,  
-                             feature_names=feature_names,
-                             **kwargs)
-
-    return pydot.graph_from_dot_data(dot_data.getvalue())
-
-def print_tree(clf, coi=None, all=True, **kwargs):
-    feature_names, class_names = _get_names(clf, **kwargs)
-    
-    if not hasattr(coi, "__iter__") and not isinstance(coi, six.string_types):
-        coi = [coi]
-    
-    left      = clf.tree_.children_left
-    right     = clf.tree_.children_right
-    threshold = clf.tree_.threshold
-    features  = [feature_names[i] for i in clf.tree_.feature]
-    classes   = [class_names[np.argmax(i)] for i in clf.tree_.value]
-    
-    # get ids of the nodes to print
-    if all:
-        idx = range(1, clf.tree_.node_count)
-    else:
-        idx = np.argwhere(left == -1)[:,0]     
-
-    def recurse(left, right, child, lineage=None):
-        if lineage is None:
-            lineage = []
-        if child in left:
-            parent = np.where(left == child)[0].item()
-            split = "l"
-        elif child in right:
-            parent = np.where(right == child)[0].item()
-            split = "r"
-
-        lineage.append((features[parent], "<=" if split=="l" else ">", threshold[parent]))
-
-        if parent == 0:
-            lineage.reverse()
-            return lineage
+        if sklearn.__version__ >= 0.17:
+            tree.export_graphviz(clf,
+                                 out_file=dot_data,  
+                                 feature_names=feature_names,
+                                 class_names=class_names,  
+                                 filled=kwargs.get("filled", True),
+                                 rounded=kwargs.get("rounded", True),  
+                                 special_characters=kwargs.get("special_characters", True),
+                                 **kwargs)
         else:
-            return recurse(left, right, parent, lineage)
-
-    for child in idx:
-        if coi is None or classes[child] in coi:
-            print("Node %d: %s" % (child, classes[child]))
-            
-            if coi is not None:
-                value = clf.tree_.value[child][0]
-                ncoi = sum([value[i] if class_names[i] in coi else 0 for i in range(clf.n_classes_)])
-                density = ncoi/np.sum(value)
-                coverage = ncoi/sum([1 if yi in coi else 0 for yi in clf.y_])
-                print("    Density: %.2f%%" % (100*density,))
-                print("    Coverage: %.2f%%" % (100*coverage,))
-            
-            print("    Rule: " + " and\n          ".join(_collapse_bounds(recurse(left, right, child), feature_names)))
-            
-def _collapse_bounds(rules, keys):
-    bounds = {}
+            tree.export_graphviz(clf,
+                                 out_file=dot_data,  
+                                 feature_names=feature_names,
+                                 **kwargs)
     
-    for rule in rules:
-        if rule[0] in bounds:
-            if rule[1] == "<=" and rule[2] <= bounds[rule[0]][1]:
-                bounds[rule[0]][1] = rule[2]
-            elif rule[1] == ">" and rule[2] > bounds[rule[0]][0]:
-                bounds[rule[0]][0] = rule[2]
+        return pydot.graph_from_dot_data(dot_data.getvalue())
+    
+    def __str__(self):
+        return self._to_string()
+        
+    def print_tree(self, coi=None, all=True, **kwargs):
+        print(self._to_string(coi, all, **kwargs))
+    
+    def _to_string(self, coi=None, all=True, **kwargs):
+        result = ""
+        clf = self._clf
+        feature_names, class_names = self._get_names(**kwargs)
+        
+        if not hasattr(coi, "__iter__") and not isinstance(coi, six.string_types):
+            coi = [coi]
+        
+        left      = clf.tree_.children_left
+        right     = clf.tree_.children_right
+        threshold = clf.tree_.threshold
+        features  = [feature_names[i] for i in clf.tree_.feature]
+        classes   = [class_names[np.argmax(i)] for i in clf.tree_.value]
+        
+        # get ids of the nodes to print
+        if all:
+            idx = range(1, clf.tree_.node_count)
         else:
-            bounds[rule[0]] = [rule[2] if rule[1] == ">" else -np.inf,
-                               rule[2] if rule[1] == "<=" else np.inf]
-            
-    result = []
+            idx = np.argwhere(left == -1)[:,0]     
     
-    for key in keys:
-        if key in bounds:
-            if np.isinf(bounds[key][0]):
-                rule = "%s <= %f" % (key, bounds[key][1])
-            elif np.isinf(bounds[key][1]):
-                rule = "%s > %f" % (key, bounds[key][0])
+        def recurse(left, right, child, lineage=None):
+            if lineage is None:
+                lineage = []
+            if child in left:
+                parent = np.where(left == child)[0].item()
+                split = "l"
+            elif child in right:
+                parent = np.where(right == child)[0].item()
+                split = "r"
+    
+            lineage.append((features[parent], "<=" if split=="l" else ">", threshold[parent]))
+    
+            if parent == 0:
+                lineage.reverse()
+                return lineage
             else:
-                rule = "%f <= %s <= %f" % (bounds[key][0], key, bounds[key][1])
-
-            result.append(rule)
-            
-    return result
+                return recurse(left, right, parent, lineage)
     
-def show_tree(clf, **kwargs):
-    graph = _create_graph(clf, **kwargs)
+        for child in idx:
+            if coi is None or classes[child] in coi:
+                if len(result) > 0:
+                    result += "\n"
+                
+                result += "Node %d: %s\n" % (child, classes[child])
+                
+                if coi is not None:
+                    value = clf.tree_.value[child][0]
+                    ncoi = sum([value[i] if class_names[i] in coi else 0 for i in range(clf.n_classes_)])
+                    density = ncoi/np.sum(value)
+                    coverage = ncoi/sum([1 if yi in coi else 0 for yi in self._y])
+                    result += "    Density: %.2f%%\n" % (100*density,)
+                    result += "    Coverage: %.2f%%\n" % (100*coverage,)
+                
+                result += "    Rule: " + " and\n          ".join(self._collapse_bounds(recurse(left, right, child), feature_names))
+                
+        return result
+                
+    def _collapse_bounds(self, rules, keys):
+        bounds = {}
+        
+        for rule in rules:
+            if rule[0] in bounds:
+                if rule[1] == "<=" and rule[2] <= bounds[rule[0]][1]:
+                    bounds[rule[0]][1] = rule[2]
+                elif rule[1] == ">" and rule[2] > bounds[rule[0]][0]:
+                    bounds[rule[0]][0] = rule[2]
+            else:
+                bounds[rule[0]] = [rule[2] if rule[1] == ">" else -np.inf,
+                                   rule[2] if rule[1] == "<=" else np.inf]
+                
+        result = []
+        
+        for key in keys:
+            if key in bounds:
+                if np.isinf(bounds[key][0]):
+                    rule = "%s <= %f" % (key, bounds[key][1])
+                elif np.isinf(bounds[key][1]):
+                    rule = "%s > %f" % (key, bounds[key][0])
+                else:
+                    rule = "%f <= %s <= %f" % (bounds[key][0], key, bounds[key][1])
     
-    if "inline" in mpl.get_backend():
-        # running inline in IPython
-        from IPython.display import Image  
-        return Image(graph.create_png())
-    else:
-        # otherwise show within matplotlib
-        img_data = StringIO(graph.create_png())
-        img = mpimg.imread(img_data)
-        fig = plt.imshow(img)
-        fig.axes.get_xaxis().set_visible(False)
-        fig.axes.get_yaxis().set_visible(False)
-        return fig
-    
-def save(clf, file, format="png", **kwargs):
-    graph = _create_graph(clf, **kwargs) 
-    graph.write(file, format=format)
-    
-def save_pdf(clf, file, feature_names=None, **kwargs):
-    save(clf, file, "pdf", feature_names, **kwargs)
-    
-def save_png(clf, file, feature_names=None, **kwargs):
-    save(clf, file, "png", feature_names, **kwargs)
+                result.append(rule)
+                
+        return result
+        
+    def show_tree(self, **kwargs):
+        graph = self._create_graph(**kwargs)
+        
+        if "inline" in mpl.get_backend():
+            # running inline in IPython
+            from IPython.display import Image  
+            return Image(graph.create_png())
+        else:
+            # otherwise show within matplotlib
+            img_data = StringIO(graph.create_png())
+            img = mpimg.imread(img_data)
+            fig = plt.imshow(img)
+            fig.axes.get_xaxis().set_visible(False)
+            fig.axes.get_yaxis().set_visible(False)
+            return fig
+        
+    def save(self, file, format="png", **kwargs):
+        graph = self._create_graph(**kwargs) 
+        graph.write(file, format=format)
+        
+    def save_pdf(self, file, feature_names=None, **kwargs):
+        self.save(file, "pdf", feature_names, **kwargs)
+        
+    def save_png(self, file, feature_names=None, **kwargs):
+        self.save(file, "png", feature_names, **kwargs)
+        
+    def __getattr__(self, name):
+        return getattr(self._clf, name)
     
