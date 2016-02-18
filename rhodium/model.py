@@ -337,16 +337,25 @@ class NamedObjectMap(object):
         return len(self._data)
 
     def __getitem__(self, key):
-        return self._data[key]
+        if isinstance(key, six.integer_types):
+            for i, (k, v) in enumerate(six.iteritems(self._data)):
+                if i == key:
+                    return v
+            raise KeyError(key)
+        else:
+            return self._data[key]
     
     def __setitem__(self, key, value):
         if not isinstance(value, self.type):
             raise TypeError("can only add " + self.type.__name__ + " objects")
         
-        if value.name != key:
-            raise ValueError("key does not match name of " + self.type.__name__)
-        
-        self._data[key] = value
+        if isinstance(key, six.integer_types):
+            self._data = OrderedDict([(value.name, value) if i==key else (k, v) for i, (k, v) in enumerate(six.iteritems(self._data))])
+        else: 
+            if value.name != key:
+                raise ValueError("key does not match name of " + self.type.__name__)
+            
+            self._data[key] = value
         
     def __delitem__(self, key):
         del self._data[key]
@@ -451,7 +460,7 @@ class Model(object):
     def __enter__(self):
         return self
         
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
         
     def close(self):
@@ -485,6 +494,9 @@ class DataSet(list):
         
     def __str__(self):
         result = ""
+        
+        if len(self) == 0:
+            result += "Empty (no feasible solutions)"
         
         for i in range(len(self)):
             result += "Index "

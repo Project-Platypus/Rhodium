@@ -18,8 +18,9 @@
 from __future__ import division, print_function, absolute_import
 
 import inspect
+import functools
 from collections import OrderedDict
-from platypus import Job, Problem, unique
+from platypus import Job, Problem, unique, nondominated
 from .model import Response, DataSet
 
 def generate_jobs(model, samples):
@@ -53,57 +54,72 @@ class EvaluateJob(Job):
         # support output as a dict or list-like object
         if isinstance(raw_output, dict):
             args.update(raw_output)
-        else:
-            for i, response in enumerate(self.model.responses):
+        elif isinstance(raw_output, (list, tuple)):
+            offset = 0
+            
+            for response in self.model.responses:
                 if response.type is not Response.IGNORE:
-                    args[response.name] = raw_output[i]
+                    args[response.name] = raw_output[offset]
+                    offset += 1
+        elif len(self.model.responses) == 1 and self.model.responses[0].type != Response.IGNORE:
+            args[self.model.responses[0].name] = raw_output
             
         self.output = args
 
-def evaluate(model, samples, evaluator=None):
+def evaluate(model, samples, evaluator=None, log_frequency=None):
     if evaluator is None:
         from .config import RhodiumConfig
-        
         evaluator = RhodiumConfig.default_evaluator
+        
+    if log_frequency is None:
+        from .config import RhodiumConfig
+        log_frequency = RhodiumConfig.default_log_frequency
     
     if inspect.isgenerator(samples) or (hasattr(samples, '__iter__') and not isinstance(samples, dict)):
-        results = evaluator.evaluate_all(generate_jobs(model, samples))
+        results = evaluator.evaluate_all(generate_jobs(model, samples), job_name="Evaluate", log_frequency=log_frequency)
         return DataSet([result.output for result in results])
     else:
-        results = evaluator.evaluate_all(generate_jobs(model, samples))
+        results = evaluator.evaluate_all(generate_jobs(model, samples), job_name="Evaluate", log_frequency=log_frequency)
         return results[0].output
+
+def _evaluation_function(vars, model, nvars, nobjs, nconstrs, levers):
+    env = {}
+    offset = 0
+    
+    for lever, length in levers:
+        env[lever.name] = lever.from_variables(vars[offset:(offset+length)])
+        offset += length
+        
+    job = EvaluateJob(model, env)
+    job.run()
+    
+    objectives = [job.output[r.name] for r in model.responses if r.type in [Response.MINIMIZE, Response.MAXIMIZE]]
+    constraints = [constraint.distance(job.output) for constraint in model.constraints]
+    
+    if nconstrs > 0:
+        return objectives, constraints
+    else:
+        return objectives
 
 def _to_problem(model):
     variables = []
-    lengths = []
+    levers = []
     
     for lever in model.levers:
         vars = lever.to_variables()
         variables.extend(vars)
-        lengths.append(len(vars))
+        levers.append((lever, len(vars)))
     
     nvars = len(variables)
     nobjs = sum([1 if r.type == Response.MINIMIZE or r.type == Response.MAXIMIZE else 0 for r in model.responses])
     nconstrs = len(model.constraints)
     
-    def function(vars):
-        env = {}
-        offset = 0
-        
-        for i, lever in enumerate(model.levers):
-            env[lever.name] = lever.from_variables(vars[offset:(offset+lengths[i])])
-            offset += lengths[i]
-            
-        job = EvaluateJob(model, env)
-        job.run()
-        
-        objectives = [job.output[r.name] for r in model.responses if r.type in [Response.MINIMIZE, Response.MAXIMIZE]]
-        constraints = [constraint.distance(job.output) for constraint in model.constraints]
-        
-        if nconstrs > 0:
-            return objectives, constraints
-        else:
-            return objectives
+    function = functools.partial(_evaluation_function,
+                                 model=model,
+                                 nvars=nvars,
+                                 nobjs=nobjs,
+                                 nconstrs=nconstrs,
+                                 levers=levers)
     
     problem = Problem(nvars, nobjs, nconstrs, function)
     problem.types[:] = variables
@@ -123,7 +139,126 @@ def optimize(model, algorithm="NSGAII", NFE=10000, **kwargs):
     
     result = DataSet()
     
-    for solution in unique(instance.result):
+    for solution in unique(nondominated(instance.result)):
+        if not solution.feasible:
+            continue
+        
+        env = OrderedDict()
+        offset = 0
+        
+        for lever in model.levers:
+            if lever.length == 1:
+                env[lever.name] = solution.variables[offset]
+            else:
+                env[lever.name] = solution.variables[offset:offset+lever.length]
+
+            offset += lever.length
+        
+        if any([r.type not in [Response.MINIMIZE, Response.MAXIMIZE] for r in model.responses]):
+            # if there are any responses not included in the optimization, we must
+            # re-evaluate the model to get all responses
+            env = evaluate(model, env)
+        else:
+            for i, response in enumerate(model.responses):
+                env[response.name] = solution.objectives[i]
+            
+        result.append(env)
+        
+    return result
+
+def _robust_evaluation_function(vars, model, SOWs, nvars, nobjs, nconstrs, levers, obj_aggregate, constr_aggregate):
+    objectives = {}
+    constraints = {}
+    
+    for response in model.responses:
+        if response.type in [Response.MINIMIZE, Response.MAXIMIZE]:
+            objectives[response] = []
+            
+    for constraint in model.constraints:
+        constraints[constraint] = [] 
+    
+    for SOW in SOWs:
+        env = SOW.copy()
+        offset = 0
+        
+        for lever, length in levers:
+            env[lever.name] = lever.from_variables(vars[offset:(offset+length)])
+            offset += length
+            
+        job = EvaluateJob(model, env)
+        job.run()
+        
+        for response in model.responses:
+            if response.type in [Response.MINIMIZE, Response.MAXIMIZE]:
+                objectives[response].append(job.output[response.name])
+                
+        for constraint in model.constraints:
+            constraints[constraint].append(constraint.distance(job.output))
+        
+    if isinstance(obj_aggregate, dict):
+        objective_values = [obj_aggregate[r.name](objectives[r]) for r in model.responses if r.type in [Response.MINIMIZE, Response.MAXIMIZE]]
+    else:
+        objective_values = [obj_aggregate(objectives[r]) for r in model.responses if r.type in [Response.MINIMIZE, Response.MAXIMIZE]]
+        
+    if isinstance(constr_aggregate, dict):
+        constraint_values = [constr_aggregate[c](constraints[c]) for c in model.constraints]
+    else:
+        constraint_values = [constr_aggregate(constraints[c]) for c in model.constraints]
+
+    if nconstrs > 0:
+        return objective_values, constraint_values
+    else:
+        return objective_values
+
+def _to_robust_problem(model, SOWs, obj_aggregate, constr_aggregate):
+    variables = []
+    levers = []
+    
+    for lever in model.levers:
+        vars = lever.to_variables()
+        variables.extend(vars)
+        levers.append((lever, len(vars)))
+    
+    nvars = len(variables)
+    nobjs = sum([1 if r.type == Response.MINIMIZE or r.type == Response.MAXIMIZE else 0 for r in model.responses])
+    nconstrs = len(model.constraints)
+    
+    function = functools.partial(_robust_evaluation_function,
+                                 model=model,
+                                 SOWs=SOWs,
+                                 nvars=nvars,
+                                 nobjs=nobjs,
+                                 nconstrs=nconstrs,
+                                 levers=levers,
+                                 obj_aggregate=obj_aggregate,
+                                 constr_aggregate=constr_aggregate)
+    
+    problem = Problem(nvars, nobjs, nconstrs, function)
+    problem.types[:] = variables
+    problem.directions[:] = [Problem.MINIMIZE if r.type == Response.MINIMIZE else Problem.MAXIMIZE for r in model.responses if r.type == Response.MINIMIZE or r.type == Response.MAXIMIZE]
+    problem.constraints[:] = "==0"
+    return problem
+
+def robust_optimize(model, SOWs, algorithm="NSGAII", NFE=10000, obj_aggregate=None, constr_aggregate=None, **kwargs):
+    module = __import__("platypus", fromlist=[''])
+    class_ref = getattr(module, algorithm)
+    
+    if obj_aggregate is None:
+        from .robustness import mean
+        obj_aggregate = mean
+             
+    if constr_aggregate is None:
+        constr_aggregate = max
+    
+    args = kwargs.copy()
+    args["problem"] = _to_robust_problem(model, SOWs, obj_aggregate, constr_aggregate)
+    
+    instance = class_ref(**args)
+    instance.run(NFE)
+    
+    result = DataSet()
+    
+    for solution in unique(nondominated(instance.result)):
         if not solution.feasible:
             continue
         

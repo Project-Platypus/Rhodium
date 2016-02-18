@@ -34,4 +34,12 @@ class _RhodiumConfig(object):
     def default_evaluator(self, value):
         PlatypusConfig.default_evaluator = value
         
+    @property
+    def default_log_frequency(self):
+        return PlatypusConfig.default_log_frequency
+    
+    @default_log_frequency.setter
+    def default_log_frequency(self, value):
+        PlatypusConfig.default_log_frequency = value
+        
 RhodiumConfig = _RhodiumConfig()
