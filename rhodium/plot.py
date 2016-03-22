@@ -32,6 +32,7 @@ from matplotlib.colors import ColorConverter, Normalize
 from matplotlib.legend_handler import HandlerPatch
 from mpl_toolkits.mplot3d import Axes3D
 from .config import RhodiumConfig
+from .model import Response
 
 def _combine_keys(*args):
     result = []
@@ -198,13 +199,13 @@ def scatter3d(model, data,
         if expr is None:
             cb = fig.colorbar(handle, shrink=0.5, aspect=5)
             cb.set_label(c_label)
-        else:
-            cb = fig.colorbar(handle, shrink=0.5, aspect=5,
-                              ticks=[(i+0.5)/(len(expr)+1) for i in range(len(expr)+1)])
-            plt.clim(0, 1)
-            cb.set_label(c_label)
-            cb.ax.set_xticklabels(["Unassigned"] + expr)
-            cb.ax.set_yticklabels(["Unassigned"] + expr)
+#         else:
+#             cb = fig.colorbar(handle, shrink=0.5, aspect=5,
+#                               ticks=[(i+0.5)/(len(expr)+1) for i in range(len(expr)+1)])
+#             plt.clim(0, 1)
+#             cb.set_label(c_label)
+#             cb.ax.set_xticklabels(["Unassigned"] + expr)
+#             cb.ax.set_yticklabels(["Unassigned"] + expr)
     
 #     if show_legend:
 #         proxy = mpatches.Circle((0.5, 0.5), 0.25, fc="b")
@@ -679,3 +680,154 @@ def animate3d(prefix, dir="images/", steps=36, transform=(10, 0, 0), **kwargs):
     images = [Image.open(file) for file in files]
     file_path_name = os.path.join(dir, prefix + '.gif')
     writeGif(file_path_name, images, **kwargs)
+    
+def parallel_coordinates(model, data, c=None, cols=None, ax=None, color=None,
+                     use_columns=False, xticks=None, colormap=None,
+                     target="top", expr=None, class_label="class", **kwds):
+    if "axes.facecolor" in mpl.rcParams:
+        orig_facecolor = mpl.rcParams["axes.facecolor"]
+        mpl.rcParams["axes.facecolor"] = "white"
+    
+    df = data.as_dataframe(_combine_keys(model.responses.keys(), c))
+    
+    if expr is not None:
+        df[class_label] = ["unassigned"]*df.shape[0]
+        
+        if isinstance(expr, six.string_types):
+            expr = [expr]
+            
+        for i, e in enumerate(expr):
+            bin = df.query(e)
+            df.loc[bin.index, class_label] = expr[i]
+            
+        if c is not None:
+            warnings.warn("color and expr arguments both assigned, discarding color", UserWarning)
+            
+        c = class_label
+        
+    if c is None:
+        c = df.columns.values[-1]
+        
+    class_col = df[c]
+    is_class = df.dtypes[c].name == "object"
+    
+    if is_class:
+        df = df.drop(c, axis=1)
+    else:
+        class_min = class_col.min()
+        class_max = class_col.max()
+        
+    if cols is not None:
+        df = df[cols]
+    
+    df_min = df.min()
+    df_max = df.max()
+    df = (df - df_min) / (df_max - df_min)
+    n = len(df)
+
+    used_legends = set([])
+
+    ncols = len(df.columns)
+    
+    for i in range(ncols):
+        if target == "top":
+            if model.responses[df.columns.values[i]].type == Response.MINIMIZE:
+                df.ix[:,i] = 1-df.ix[:,i]
+        elif target == "bottom":
+            if model.responses[df.columns.values[i]].type == Response.MAXIMIZE:
+                df.ix[:,i] = 1-df.ix[:,i]
+
+    # determine values to use for xticks
+    if use_columns is True:
+        if not np.all(np.isreal(list(df.columns))):
+            raise ValueError('Columns must be numeric to be used as xticks')
+        x = df.columns
+    elif xticks is not None:
+        if not np.all(np.isreal(xticks)):
+            raise ValueError('xticks specified must be numeric')
+        elif len(xticks) != ncols:
+            raise ValueError('Length of xticks must match number of columns')
+        x = xticks
+    else:
+        x = range(ncols)
+
+    fig = plt.figure()
+    ax = plt.gca()
+
+    cmap = plt.get_cmap(colormap)
+    
+    if is_class:
+        from pandas.tools.plotting import _get_standard_colors
+        classes = class_col.drop_duplicates()
+        print(classes)
+        color_values = _get_standard_colors(num_colors=len(classes),
+                                        colormap=colormap, color_type='random',
+                                        color=color)
+        cmap = dict(zip(classes, color_values))
+
+    for i in range(n):
+        y = df.iloc[i].values
+        kls = class_col.iat[i]
+        
+        if is_class:
+            label = str(kls)
+            
+            if label not in used_legends:
+                used_legends.add(label)
+                ax.plot(x, y, label=label, color=cmap[kls], **kwds)
+            else:
+                ax.plot(x, y, color=cmap[kls], **kwds)
+        else:
+            ax.plot(x, y, color=cmap((kls - class_min)/(class_max-class_min)), **kwds)
+
+    for i in x:
+        ax.axvline(i, linewidth=2, color='black')
+        
+        if target == "top":
+            value = df_min[i] if model.responses[df.columns.values[i]].type == Response.MINIMIZE else df_max[i]
+            format = "%.2f*"
+        elif target == "bottom":
+            value = df_max[i] if model.responses[df.columns.values[i]].type == Response.MINIMIZE else df_min[i]
+            format = "%.2f"
+        else:
+            value = df_max[i]
+            format = "%.2f*" if model.responses[df.columns.values[i]].type == Response.MAXIMIZE else "%.2f"
+            
+        ax.text(i, 1.001, format % value, ha="center", fontsize=10)
+            
+        if target == "top":
+            value = df_max[i] if model.responses[df.columns.values[i]].type == Response.MINIMIZE else df_min[i]
+            format = "%.2f"
+        elif target == "bottom":
+            value = df_min[i] if model.responses[df.columns.values[i]].type == Response.MINIMIZE else df_max[i]
+            format = "%.2f*"
+        else:
+            value = df_min[i]
+            format = "%.2f" if model.responses[df.columns.values[i]].type == Response.MAXIMIZE else "%.2f*"
+            
+        ax.text(i, -0.001, format % value, ha="center", va="top", fontsize=10)
+
+    plt.yticks([])
+    plt.xticks(x, rotation=0)
+    ax.set_xticklabels(df.columns, {"weight" : "bold", "size" : 12})
+    ax.set_xlim(x[0]-0.1, x[-1]+0.1)
+    ax.tick_params(direction="out", pad=10)
+    
+    bbox_props = dict(boxstyle="rarrow,pad=0.3", fc="white", ec="black", lw=2)
+    if target == "top":
+        ax.text(-0.05, 0.5, "Target", ha="center", va="center", rotation=90, bbox=bbox_props, transform=ax.transAxes)
+    elif target == "bottom":
+        ax.text(-0.05, 0.5, "Target", ha="center", va="center", rotation=-90, bbox=bbox_props, transform=ax.transAxes)
+
+    if is_class:
+        ax.legend(loc='center right', bbox_to_anchor=(1.25, 0.5))
+        fig.subplots_adjust(right=0.8)
+    else:
+        cax,_ = mpl.colorbar.make_axes(ax)
+        cb = mpl.colorbar.ColorbarBase(cax, cmap=cmap, spacing='proportional', norm=mpl.colors.Normalize(vmin=class_min, vmax=class_max), format='%.2f')
+        cb.set_label(c)
+        cb.set_clim(class_min, class_max)
+    
+    mpl.rcParams["axes.facecolor"] = orig_facecolor
+    
+    return fig

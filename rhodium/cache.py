@@ -113,7 +113,7 @@ def cache(key, value):
 
     if not inspect.isfunction(value):
         if _CACHE_WARNINGS:
-            warnings.warn("cache value should be a function", UserWarning)
+            warnings.warn("cache value should be a function to enable lazy evaluation", UserWarning)
         
     if key not in _CACHE:
         if inspect.isfunction(value):

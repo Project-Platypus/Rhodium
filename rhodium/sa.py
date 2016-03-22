@@ -252,7 +252,7 @@ class SAResult(dict):
         else:
             return value - abs(float(threshold)) > 0
     
-    def plot_sobol(self, radSc=2.0, scaling=1, widthSc=0.5, STthick=1, varNameMult=1.3, colors=None, groups=None, gpNameMult=1.5, threshold="sig"):
+    def plot_sobol(self, radSc=2.0, scaling=1, widthSc=0.5, STthick=1, varNameMult=1.3, colors=None, groups=None, gpNameMult=1.5, threshold="conf"):
         # Derived from https://github.com/calvinwhealton/SensitivityAnalysisPlots
         fig, ax = plt.subplots(1, 1)
         color_map = {}
