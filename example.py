@@ -7,6 +7,10 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from scipy.optimize import brentq as root
 from rhodium import *
+from rhodium.config import RhodiumConfig
+from platypus import MapEvaluator
+
+RhodiumConfig.default_evaluator = MapEvaluator()
 
 def lake_problem(pollution_limit,
          b = 0.42,        # decay rate for P in lake (0.42 = irreversible)
@@ -60,7 +64,7 @@ model.responses = [Response("max_P", Response.MINIMIZE),
                    Response("reliability", Response.MAXIMIZE)]
 
 # define any constraints (can reference any parameter or response by name)
-model.constraints = [] #[Constraint("reliability >= 0.95")]
+model.constraints = [Constraint("reliability >= 0.95 and utility >= 0.25")]
 
 # some parameters are levers that we control via our policy
 model.levers = [RealLever("pollution_limit", 0.0, 0.1, length=100)]
@@ -68,24 +72,22 @@ model.levers = [RealLever("pollution_limit", 0.0, 0.1, length=100)]
 # some parameters are exogeneous uncertainties, and we want to better
 # understand how these uncertainties impact our model and decision making
 # process
-model.uncertainties = [RealUncertainty("b", 0.1, 0.45),
-                       RealUncertainty("q", 2.0, 4.5),
-                       RealUncertainty("mean", 0.01, 0.05),
-                       RealUncertainty("stdev", 0.001, 0.005),
-                       RealUncertainty("delta", 0.93, 0.99)]
+model.uncertainties = [UniformUncertainty("b", 0.1, 0.45),
+                       UniformUncertainty("q", 2.0, 4.5),
+                       UniformUncertainty("mean", 0.01, 0.05),
+                       UniformUncertainty("stdev", 0.001, 0.005),
+                       UniformUncertainty("delta", 0.93, 0.99)]
 
 if os.path.exists("data.txt"):
     with open("data.txt", "r") as f:
         output = json.load(f)
+    output = DataSet(output)
 else:
     output = optimize(model, "NSGAII", 1000)
  
     with open("data.txt", "w") as f:
         json.dump(output, f)
-        
-parallel(model, output)
-plt.show()
-
+   
 # ----------------------------------------------------------------------------
 # Plotting
 # ----------------------------------------------------------------------------
@@ -105,8 +107,7 @@ plt.show()
 # # Most of Rhodiums's plotting functions accept an optional expr argument for
 # # classifying or highlighting points meeting some condition
 # scatter2d(model, output,
-#           expr=["reliability >= 0.2", "reliability < 0.2"],
-#           cmap=mpl.colors.ListedColormap(['gray', 'red', 'blue']))
+#           brush=[Brush("reliability >= 0.2"), Brush("reliability < 0.2")])
 # plt.show()
 #
 # # Plot the points in 3D space
@@ -121,7 +122,7 @@ plt.show()
 # # Alternatively, we can show the density of all points meeting one or more
 # # conditions
 # kdeplot(model, output, x="max_P", y="utility",
-#         expr=["reliability >= 0.2", "reliability < 0.2"],
+#         brush=["reliability >= 0.2", "reliability < 0.2"],
 #         alpha=0.8)
 # plt.show()
 # 
@@ -131,9 +132,7 @@ plt.show()
 # 
 # # We can also highlight points meeting one or more conditions
 # pairs(model, output,
-#       expr=["reliability >= 0.2", "reliability < 0.2"],
-#       palette={"reliability >= 0.2" : sns.color_palette()[0],
-#                "reliability < 0.2" : sns.color_palette()[2]})
+#       brush=["reliability >= 0.2", "reliability < 0.2"])
 # plt.show()
 # 
 # # Joint plots show a single pair of parameters in 2D, their distributions using
@@ -150,24 +149,28 @@ plt.show()
 # hist(model, output)
 # sns.plt.show()
 
+# # A parallel coordinates plot to view interactions among responses
+# parallel_coordinates(model, output, colormap="rainbow")     
+# plt.show()
+
 # ----------------------------------------------------------------------------
 # Identifying Key Uncertainties
 # ----------------------------------------------------------------------------
 
 # The remaining figures look better using Matplotlib's default settings
-mpl.rcdefaults()
+#mpl.rcdefaults()
 
 # We can manually construct policies for analysis.  A policy is simply a Python
 # dict storing key-value pairs, one for each lever.
-policy = {"pollution_limit" : [0.02]*100}
+#policy = {"pollution_limit" : [0.02]*100}
 
 # Or select one of our optimization results
 #policy = output[3]
 
 # construct a specific policy and evaluate it against 1000 states-of-the-world
-SOWs = sample_lhs(model, 100)
-results = evaluate(model, fix(SOWs, policy))
-metric = ["Reliable" if v["reliability"] > 0.9 else "Unreliable" for v in results]
+#SOWs = sample_lhs(model, 100)
+#results = evaluate(model, update(SOWs, policy))
+#metric = ["Reliable" if v["reliability"] > 0.9 else "Unreliable" for v in results]
  
 # # use PRIM to identify the key uncertainties if we require reliability > 0.9
 # p = prim(results, metric, include=model.uncertainties.keys(), coi="Reliable")
@@ -176,8 +179,8 @@ metric = ["Reliable" if v["reliability"] > 0.9 else "Unreliable" for v in result
 # plt.show()
 
 # use CART to identify the key uncertainties
-c = cart(results, metric, include=model.uncertainties.keys())
-print_tree(c, coi="Reliable")
+#c = cart(results, metric, include=model.uncertainties.keys())
+#print_tree(c, coi="Reliable")
 
 
 #print(sa(model, "reliability", policy=policy, method="morris", nsamples=1000, num_levels=4, grid_jump=2))
