@@ -17,7 +17,9 @@
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import absolute_import, division, print_function
 
+import matplotlib as mpl
 import matplotlib.pyplot as plt
+import seaborn as sns
 from platypus.config import PlatypusConfig
 
 class _RhodiumConfig(object):
@@ -25,6 +27,9 @@ class _RhodiumConfig(object):
     def __init__(self):
         super(_RhodiumConfig, self).__init__()
         self.default_cmap = plt.get_cmap("rainbow")
+        self.default_brush_colors = sns.color_palette()
+        self.default_unassigned_brush_color = mpl.colors.colorConverter.to_rgb("#CCCCCC")
+        self.default_unassigned_label = "Unassigned"
      
     @property
     def default_evaluator(self):

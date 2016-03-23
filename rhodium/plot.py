@@ -33,6 +33,7 @@ from matplotlib.legend_handler import HandlerPatch
 from mpl_toolkits.mplot3d import Axes3D
 from .config import RhodiumConfig
 from .model import Response
+from .brush import Brush, BrushSet, apply_brush, color_brush, brush_color_map
 
 def _combine_keys(*args):
     result = []
@@ -84,8 +85,7 @@ def scatter3d(model, data,
            show_colorbar = True,
            show_legend = False,
            interactive = False,
-           expr = None,
-           class_label = "class",
+           brush = None,
            pick_handler = None,
            **kwargs):
     df = data.as_dataframe(_combine_keys(model.responses.keys(), x, y, z, c, s))
@@ -94,20 +94,9 @@ def scatter3d(model, data,
         orig_facecolor = mpl.rcParams["axes.facecolor"]
         mpl.rcParams["axes.facecolor"] = "white"
         
-    if expr is not None:
-        df[class_label] = [0.0]*df.shape[0]
-        
-        if isinstance(expr, six.string_types):
-            expr = [expr]
-            
-        for i, e in enumerate(expr):
-            bin = df.query(e)
-            df.loc[bin.index, class_label] = float(i+1) / len(expr)
-            
-        if c is not None:
-            warnings.warn("color and expr arguments both assigned, discarding color", UserWarning)
-            
-        c = class_label
+    if brush is not None:
+        brush_set = BrushSet(brush)
+        c, color_map = color_brush(brush_set, df)
     
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
@@ -196,16 +185,17 @@ def scatter3d(model, data,
     ax.set_zlabel(z_label)
         
     if show_colorbar:
-        if expr is None:
+        if brush is None:
             cb = fig.colorbar(handle, shrink=0.5, aspect=5)
             cb.set_label(c_label)
-#         else:
-#             cb = fig.colorbar(handle, shrink=0.5, aspect=5,
-#                               ticks=[(i+0.5)/(len(expr)+1) for i in range(len(expr)+1)])
-#             plt.clim(0, 1)
-#             cb.set_label(c_label)
-#             cb.ax.set_xticklabels(["Unassigned"] + expr)
-#             cb.ax.set_yticklabels(["Unassigned"] + expr)
+        else:
+            handle.set_array(np.arange(0, len(color_map)+1))
+            handle.cmap = mpl.colors.ListedColormap(list(six.itervalues(color_map)))
+            cb = fig.colorbar(handle, shrink=0.5, aspect=5,
+                              ticks=[(i+0.5) for i in range(len(color_map))])
+            cb.set_label("")
+            cb.ax.set_xticklabels(color_map.keys())
+            cb.ax.set_yticklabels(color_map.keys())
     
 #     if show_legend:
 #         proxy = mpatches.Circle((0.5, 0.5), 0.25, fc="b")
@@ -250,27 +240,15 @@ def scatter2d(model, data,
            show_colorbar = True,
            show_legend = False,
            interactive = False,
-           expr = None,
-           class_label = "class",
+           brush = None,
            **kwargs):
     df = data.as_dataframe(_combine_keys(model.responses.keys(), x, y, c, s))
     fig = plt.figure(facecolor='white')
     ax = plt.gca()
     
-    if expr is not None:
-        df[class_label] = [0.0]*df.shape[0]
-        
-        if isinstance(expr, six.string_types):
-            expr = [expr]
-            
-        for i, e in enumerate(expr):
-            bin = df.query(e)
-            df.loc[bin.index, class_label] = float(i+1) / len(expr)
-            
-        if c is not None:
-            warnings.warn("color and expr arguments both assigned, discarding color", UserWarning)
-            
-        c = class_label
+    if brush is not None:
+        brush_set = BrushSet(brush)
+        c, color_map = color_brush(brush_set, df)
     
     if isinstance(x, six.string_types):
         x_label = x
@@ -341,16 +319,17 @@ def scatter2d(model, data,
     ax.set_ylabel(y_label)
         
     if show_colorbar:
-        if expr is None:
+        if brush is None:
             cb = fig.colorbar(handle, shrink=0.5, aspect=5)
             cb.set_label(c_label)
         else:
+            handle.set_array(np.arange(0, len(color_map)+1))
+            handle.cmap = mpl.colors.ListedColormap(list(six.itervalues(color_map)))
             cb = fig.colorbar(handle, shrink=0.5, aspect=5,
-                              ticks=[(i+0.5)/(len(expr)+1) for i in range(len(expr)+1)])
-            plt.clim(0, 1)
-            cb.set_label(c_label)
-            cb.ax.set_xticklabels(["Unassigned"] + expr)
-            cb.ax.set_yticklabels(["Unassigned"] + expr)
+                              ticks=[(i+0.5) for i in range(len(color_map))])
+            cb.set_label("")
+            cb.ax.set_xticklabels(color_map.keys())
+            cb.ax.set_yticklabels(color_map.keys())
     
     if show_legend:
         proxy = mpatches.Circle((0.5, 0.5), 0.25, fc="b")
@@ -383,33 +362,30 @@ def joint(model, data, x, y, **kwargs):
 
 def pairs(model, data,
           keys = None,
-          expr = None,
-          class_label = "class",
+          brush = None,
+          brush_label = "class",
           **kwargs):
     df = data.as_dataframe(keys if keys is not None else model.responses.keys())
     
-    if expr is None:
+    if brush is None:
         sns.pairplot(df, **kwargs)
     else:
-        df[class_label] = ["unassigned"]*df.shape[0]
+        brush_set = BrushSet(brush)
+        df[brush_label] = apply_brush(brush_set, df)
         
-        if isinstance(expr, six.string_types):
-            expr = [expr]
+        if "palette" not in kwargs:
+            kwargs["palette"] = brush_color_map(brush_set, df[brush_label])
             
-        for e in expr:
-            bin = df.query(e)
-            df.loc[bin.index, class_label] = e
-            
-        sns.pairplot(df, hue=class_label, **kwargs)
+        sns.pairplot(df, hue=brush_label, **kwargs)
      
 def kdeplot(model, data, x, y,
-            expr = None,
+            brush = None,
             alpha=1.0,
             cmap = ["Reds", "Blues", "Oranges", "Greens", "Greys"],
             **kwargs):
-    df = data.as_dataframe(_combine_keys(x, y))
+    df = data.as_dataframe()
     
-    if expr is None:
+    if brush is None:
         sns.kdeplot(df[x],
                     df[y],
                     cmap=cmap[0],
@@ -426,12 +402,10 @@ def kdeplot(model, data, x, y,
         ax.legend([proxy], ["Density"], **kwargs)
     else:
         proxies = []
-        
-        if isinstance(expr, six.string_types):
-            expr = [expr]
+        brush_set = BrushSet(brush)
             
-        for i, e in reversed(list(enumerate(expr))):
-            bin = df.query(e)
+        for i, brush in reversed(list(enumerate(brush_set))):
+            bin = df.query(brush.expr)
             sns.kdeplot(bin[x],
                         bin[y],
                         cmap=cmap[i % len(cmap)],
@@ -444,7 +418,7 @@ def kdeplot(model, data, x, y,
                                            fc=sns.color_palette(cmap[i % len(cmap)])[-2]))
             
         ax = plt.gca()
-        ax.legend(proxies, expr, **kwargs)
+        ax.legend(proxies, brush_set.keys(), **kwargs)
         
 def hist(model, data, keys=None):
     df = data.as_dataframe(model.responses.keys() if keys is None else _combine_keys(keys))
@@ -683,39 +657,32 @@ def animate3d(prefix, dir="images/", steps=36, transform=(10, 0, 0), **kwargs):
     
 def parallel_coordinates(model, data, c=None, cols=None, ax=None, color=None,
                      use_columns=False, xticks=None, colormap=None,
-                     target="top", expr=None, class_label="class", **kwds):
+                     target="top", brush=None, brush_label="class", **kwds):
     if "axes.facecolor" in mpl.rcParams:
         orig_facecolor = mpl.rcParams["axes.facecolor"]
         mpl.rcParams["axes.facecolor"] = "white"
     
     df = data.as_dataframe(_combine_keys(model.responses.keys(), c))
-    
-    if expr is not None:
-        df[class_label] = ["unassigned"]*df.shape[0]
         
-        if isinstance(expr, six.string_types):
-            expr = [expr]
-            
-        for i, e in enumerate(expr):
-            bin = df.query(e)
-            df.loc[bin.index, class_label] = expr[i]
-            
-        if c is not None:
-            warnings.warn("color and expr arguments both assigned, discarding color", UserWarning)
-            
-        c = class_label
-        
-    if c is None:
-        c = df.columns.values[-1]
-        
-    class_col = df[c]
-    is_class = df.dtypes[c].name == "object"
-    
-    if is_class:
-        df = df.drop(c, axis=1)
+    if brush is not None:
+        brush_set = BrushSet(brush)
+        assignment = apply_brush(brush_set, df)
+        color_map = brush_color_map(brush_set, assignment)
+        class_col = pd.DataFrame({brush_label : apply_brush(brush_set, df)})[brush_label]
+        is_class = True
     else:
-        class_min = class_col.min()
-        class_max = class_col.max()
+        if c is None:
+            c = df.columns.values[-1]
+        
+        class_col = df[c]
+        is_class = df.dtypes[c].name == "object"
+        color_map = None
+    
+        if is_class:
+            df = df.drop(c, axis=1)
+        else:
+            class_min = class_col.min()
+            class_max = class_col.max()
         
     if cols is not None:
         df = df[cols]
@@ -757,13 +724,15 @@ def parallel_coordinates(model, data, c=None, cols=None, ax=None, color=None,
     cmap = plt.get_cmap(colormap)
     
     if is_class:
-        from pandas.tools.plotting import _get_standard_colors
-        classes = class_col.drop_duplicates()
-        print(classes)
-        color_values = _get_standard_colors(num_colors=len(classes),
-                                        colormap=colormap, color_type='random',
-                                        color=color)
-        cmap = dict(zip(classes, color_values))
+        if color_map is None:
+            from pandas.tools.plotting import _get_standard_colors
+            classes = class_col.drop_duplicates()
+            color_values = _get_standard_colors(num_colors=len(classes),
+                                            colormap=colormap, color_type='random',
+                                            color=color)
+            cmap = dict(zip(classes, color_values))
+        else:
+            cmap = color_map
 
     for i in range(n):
         y = df.iloc[i].values
