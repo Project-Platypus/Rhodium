@@ -33,7 +33,7 @@ from matplotlib.legend_handler import HandlerPatch
 from mpl_toolkits.mplot3d import Axes3D
 from .config import RhodiumConfig
 from .model import Response
-from .brush import Brush, BrushSet, apply_brush, color_brush, brush_color_map
+from .brush import Brush, BrushSet, apply_brush, color_brush, brush_color_map, color_indices
 
 def _combine_keys(*args):
     result = []
@@ -134,8 +134,10 @@ def scatter3d(model, data,
     used_keys = set([x_label, y_label, z_label, c_label, s_label, None])
     used_keys.remove(None)
     
-    remaining_keys = set(model.responses.keys())
-    remaining_keys -= used_keys
+    remaining_keys = list(model.responses.keys())
+
+    for key in used_keys:
+        remaining_keys.remove(key)
 
     for key in remaining_keys:
         if x is None:
@@ -189,10 +191,12 @@ def scatter3d(model, data,
             cb = fig.colorbar(handle, shrink=0.5, aspect=5)
             cb.set_label(c_label)
         else:
-            handle.set_array(np.arange(0, len(color_map)+1))
+            handle.set_array(np.asarray(color_indices(c, color_map)))
             handle.cmap = mpl.colors.ListedColormap(list(six.itervalues(color_map)))
-            cb = fig.colorbar(handle, shrink=0.5, aspect=5,
-                              ticks=[(i+0.5) for i in range(len(color_map))])
+            off = (len(color_map)-1)/(len(color_map))/2
+            height = (len(color_map)-1)-2*off
+            ticks = [(i/(len(color_map)-1) * height + off) for i in range(len(color_map))]
+            cb = fig.colorbar(handle, shrink=0.5, aspect=5, ticks=ticks)
             cb.set_label("")
             cb.ax.set_xticklabels(color_map.keys())
             cb.ax.set_yticklabels(color_map.keys())
@@ -215,7 +219,7 @@ def scatter3d(model, data,
             
             return label
             
-        mpldatacursor.datacursor(formatter=formatter, hover=True, **kwargs)
+        mpldatacursor.datacursor(artists=handle, formatter=formatter, hover=True, **kwargs)
         
     if pick_handler:
         def handle_click(event):
@@ -277,8 +281,10 @@ def scatter2d(model, data,
     used_keys = set([x_label, y_label, c_label, s_label, None])
     used_keys.remove(None)
     
-    remaining_keys = set(model.responses.keys())
-    remaining_keys -= used_keys
+    remaining_keys = list(model.responses.keys())
+
+    for key in used_keys:
+        remaining_keys.remove(key)
 
     for key in remaining_keys:
         if x is None:
@@ -323,10 +329,12 @@ def scatter2d(model, data,
             cb = fig.colorbar(handle, shrink=0.5, aspect=5)
             cb.set_label(c_label)
         else:
-            handle.set_array(np.arange(0, len(color_map)+1))
+            handle.set_array(np.asarray(color_indices(c, color_map)))
             handle.cmap = mpl.colors.ListedColormap(list(six.itervalues(color_map)))
-            cb = fig.colorbar(handle, shrink=0.5, aspect=5,
-                              ticks=[(i+0.5) for i in range(len(color_map))])
+            off = (len(color_map)-1)/(len(color_map))/2
+            height = (len(color_map)-1)-2*off
+            ticks = [(i/(len(color_map)-1) * height + off) for i in range(len(color_map))]
+            cb = fig.colorbar(handle, shrink=0.5, aspect=5, ticks=ticks)
             cb.set_label("")
             cb.ax.set_xticklabels(color_map.keys())
             cb.ax.set_yticklabels(color_map.keys())
@@ -349,7 +357,7 @@ def scatter2d(model, data,
             
             return label
             
-        mpldatacursor.datacursor(formatter=formatter, hover=True)
+        mpldatacursor.datacursor(artists=handle, formatter=formatter, hover=True)
         
     return fig
 
@@ -461,8 +469,10 @@ def contour2d(model, data, x=None, y=None, z=None, levels=15, size=100, xlim=Non
     used_keys = set([x_label, y_label, z_label, None])
     used_keys.remove(None)
     
-    remaining_keys = set(model.responses.keys())
-    remaining_keys -= used_keys
+    remaining_keys = list(model.responses.keys())
+
+    for key in used_keys:
+        remaining_keys.remove(key)
 
     for key in remaining_keys:
         if x is None:
@@ -561,8 +571,10 @@ def contour3d(model, data, x=None, y=None, z=None, xlim=None, ylim=None, levels=
     used_keys = set([x_label, y_label, z_label, None])
     used_keys.remove(None)
     
-    remaining_keys = set(model.responses.keys())
-    remaining_keys -= used_keys
+    remaining_keys = list(model.responses.keys())
+
+    for key in used_keys:
+        remaining_keys.remove(key)
 
     for key in remaining_keys:
         if x is None:
@@ -657,18 +669,18 @@ def animate3d(prefix, dir="images/", steps=36, transform=(10, 0, 0), **kwargs):
     
 def parallel_coordinates(model, data, c=None, cols=None, ax=None, color=None,
                      use_columns=False, xticks=None, colormap=None,
-                     target="top", brush=None, brush_label="class", **kwds):
+                     target="top", brush=None, **kwds):
     if "axes.facecolor" in mpl.rcParams:
         orig_facecolor = mpl.rcParams["axes.facecolor"]
         mpl.rcParams["axes.facecolor"] = "white"
     
-    df = data.as_dataframe(_combine_keys(model.responses.keys(), c))
+    df = data.as_dataframe(_combine_keys(model.responses.keys(), c), exclude_dtypes=["object"])
         
     if brush is not None:
         brush_set = BrushSet(brush)
         assignment = apply_brush(brush_set, df)
         color_map = brush_color_map(brush_set, assignment)
-        class_col = pd.DataFrame({brush_label : apply_brush(brush_set, df)})[brush_label]
+        class_col = pd.DataFrame({"class" : assignment})["class"]
         is_class = True
     else:
         if c is None:
@@ -689,6 +701,7 @@ def parallel_coordinates(model, data, c=None, cols=None, ax=None, color=None,
     
     df_min = df.min()
     df_max = df.max()
+    
     df = (df - df_min) / (df_max - df_min)
     n = len(df)
 
@@ -751,28 +764,36 @@ def parallel_coordinates(model, data, c=None, cols=None, ax=None, color=None,
 
     for i in x:
         ax.axvline(i, linewidth=2, color='black')
+        format = "%.2f"
         
         if target == "top":
             value = df_min[i] if model.responses[df.columns.values[i]].type == Response.MINIMIZE else df_max[i]
-            format = "%.2f*"
+            
+            if model.responses[df.columns.values[i]].type != Response.INFO:
+                format = format + "*"
         elif target == "bottom":
             value = df_max[i] if model.responses[df.columns.values[i]].type == Response.MINIMIZE else df_min[i]
-            format = "%.2f"
         else:
             value = df_max[i]
-            format = "%.2f*" if model.responses[df.columns.values[i]].type == Response.MAXIMIZE else "%.2f"
+            
+            if model.responses[df.columns.values[i]].type == Response.MAXIMIZE:
+                format = format + "*"
             
         ax.text(i, 1.001, format % value, ha="center", fontsize=10)
+        format = "%.2f"
             
         if target == "top":
             value = df_max[i] if model.responses[df.columns.values[i]].type == Response.MINIMIZE else df_min[i]
-            format = "%.2f"
         elif target == "bottom":
             value = df_min[i] if model.responses[df.columns.values[i]].type == Response.MINIMIZE else df_max[i]
-            format = "%.2f*"
+            
+            if model.responses[df.columns.values[i]].type != Response.INFO:
+                format = format + "*"
         else:
             value = df_min[i]
-            format = "%.2f" if model.responses[df.columns.values[i]].type == Response.MAXIMIZE else "%.2f*"
+            
+            if model.responses[df.columns.values[i]].type == Response.MINIMIZE:
+                format = format + "*"
             
         ax.text(i, -0.001, format % value, ha="center", va="top", fontsize=10)
 

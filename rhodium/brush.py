@@ -89,7 +89,7 @@ def _apply_brush_dataframe(brush_set, df):
         for i in bin.index:
             if assignment[i] is None:
                 assignment[i] = brush.name
-                
+                  
     for i, a in enumerate(assignment):
         if a is None:
             assignment[i] = RhodiumConfig.default_unassigned_label
@@ -102,17 +102,16 @@ def brush_color_map(brush, assignment):
 
     if RhodiumConfig.default_unassigned_label in assignment:
         color_map[RhodiumConfig.default_unassigned_label] = RhodiumConfig.default_unassigned_brush_color
+        
+    # we want to retain the original ordering of the brushes, so first determine
+    # which brushes are applicable to a data set
+    classes = set([a for a in assignment])
     
-    for a in assignment:
-        if a not in color_map:
-            if a in brush:
-                if brush[a].color is None:
-                    color_map[a] = None
-                else:
-                    color_map[a] = cc.to_rgb(brush[a].color)
-            else:
-                color_map[a] = None
-                
+    for b in brush:
+        if b.name in classes:
+            color_map[b.name] = cc.to_rgb(b.color) if b.color is not None else None
+             
+    # determine if any brushes have no assigned color and pick one   
     unassigned_count = sum([1 if x is None else 0 for x in six.itervalues(color_map)])
     
     if unassigned_count > 0:
@@ -130,3 +129,7 @@ def color_brush(brush, data, **kwargs):
     assignment = apply_brush(brush, data)
     color_map = brush_color_map(brush, assignment)                
     return ([color_map[a] for a in assignment], color_map)
+
+def color_indices(c, color_map):
+    values = list(six.itervalues(color_map))
+    return [values.index(v) for v in c]

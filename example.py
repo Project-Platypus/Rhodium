@@ -60,7 +60,7 @@ model.parameters = [Parameter("pollution_limit"),
 # define the model outputs
 model.responses = [Response("max_P", Response.MINIMIZE),
                    Response("utility", Response.MAXIMIZE),
-                   Response("inertia", Response.MAXIMIZE),
+                   Response("inertia", Response.INFO),
                    Response("reliability", Response.MAXIMIZE)]
 
 # define any constraints (can reference any parameter or response by name)
@@ -87,6 +87,10 @@ else:
  
     with open("data.txt", "w") as f:
         json.dump(output, f)
+        
+output.save("test.csv")
+        
+(model, output) = load("test.csv", parameters="pollution_limit")
    
 # ----------------------------------------------------------------------------
 # Plotting
@@ -101,13 +105,12 @@ else:
 # 
 # # The optional interactive flag will show additional details of each point when
 # # hovering the mouse
-# scatter2d(model, output, interactive=True)
-# plt.show()
+scatter2d(model, output, interactive=True)
+plt.show()
 # 
 # # Most of Rhodiums's plotting functions accept an optional expr argument for
 # # classifying or highlighting points meeting some condition
-# scatter2d(model, output,
-#           brush=[Brush("reliability >= 0.2"), Brush("reliability < 0.2")])
+# scatter2d(model, output, x="reliability", brush=Brush("reliability >= 0.2"))
 # plt.show()
 #
 # # Plot the points in 3D space
@@ -150,8 +153,8 @@ else:
 # sns.plt.show()
 
 # # A parallel coordinates plot to view interactions among responses
-# parallel_coordinates(model, output, colormap="rainbow")     
-# plt.show()
+parallel_coordinates(model, output, colormap="rainbow", brush=Brush("reliability > 0.2"))     
+plt.show()
 
 # ----------------------------------------------------------------------------
 # Identifying Key Uncertainties

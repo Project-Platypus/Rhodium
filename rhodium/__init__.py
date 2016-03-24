@@ -33,5 +33,6 @@ from .cache import *
 from .optimization import *
 from .sampling import *
 from .robustness import *
+from .io import *
 
 from platypus.evaluator import *

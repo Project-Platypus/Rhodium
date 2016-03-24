@@ -586,7 +586,7 @@ class DataSet(list):
                 
         return result
     
-    def as_dataframe(self, keys=None, index=None):
+    def as_dataframe(self, keys=None, index=None, include_dtypes=None, exclude_dtypes=None):
         dict = OrderedDict()
         
         if keys is None:
@@ -598,7 +598,12 @@ class DataSet(list):
         for key in keys:
             dict[key] = [self._trim(d[key], index) for d in self]
             
-        return pd.DataFrame(dict)
+        df = pd.DataFrame(dict)
+        
+        if include_dtypes is not None or exclude_dtypes is not None:
+            df = df.select_dtypes(include_dtypes, exclude_dtypes)
+            
+        return df
     
     def as_array(self, keys=None, index=None):
         import numpy
@@ -694,8 +699,14 @@ class DataSet(list):
                 format = format[1:]
                 
         if format == "xls" or format == "xlsx":
+            if "index" not in kwargs:
+                kwargs["index"] = False
+                
             self.as_dataframe().to_excel(file, **kwargs)
         elif format == "csv":
+            if "index" not in kwargs:
+                kwargs["index"] = False
+                
             self.as_dataframe().to_csv(file, **kwargs)
         elif format == "json":
             self.as_dataframe().to_json(file, **kwargs)
