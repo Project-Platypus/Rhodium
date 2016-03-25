@@ -196,7 +196,7 @@ def scatter3d(model, data,
             handle.cmap = mpl.colors.ListedColormap(list(six.itervalues(color_map)))
             off = (len(color_map)-1)/(len(color_map))/2
             height = (len(color_map)-1)-2*off
-            ticks = [(i/(len(color_map)-1) * height + off) for i in range(len(color_map))]
+            ticks = [0] if len(color_map) <= 1 else [(i/(len(color_map)-1) * height + off) for i in range(len(color_map))]
             cb = fig.colorbar(handle, shrink=0.5, aspect=5, ticks=ticks)
             cb.set_label("")
             cb.ax.set_xticklabels(color_map.keys())
@@ -335,7 +335,7 @@ def scatter2d(model, data,
             handle.cmap = mpl.colors.ListedColormap(list(six.itervalues(color_map)))
             off = (len(color_map)-1)/(len(color_map))/2
             height = (len(color_map)-1)-2*off
-            ticks = [(i/(len(color_map)-1) * height + off) for i in range(len(color_map))]
+            ticks = [0] if len(color_map) <= 1 else [(i/(len(color_map)-1) * height + off) for i in range(len(color_map))]
             cb = fig.colorbar(handle, shrink=0.5, aspect=5, ticks=ticks)
             cb.set_label("")
             cb.ax.set_xticklabels(color_map.keys())
