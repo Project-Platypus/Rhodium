@@ -137,7 +137,8 @@ def scatter3d(model, data,
     remaining_keys = list(model.responses.keys())
 
     for key in used_keys:
-        remaining_keys.remove(key)
+        if key in remaining_keys:
+            remaining_keys.remove(key)
 
     for key in remaining_keys:
         if x is None:
@@ -201,11 +202,11 @@ def scatter3d(model, data,
             cb.ax.set_xticklabels(color_map.keys())
             cb.ax.set_yticklabels(color_map.keys())
     
-#     if show_legend:
-#         proxy = mpatches.Circle((0.5, 0.5), 0.25, fc="b")
-#         ax.legend([proxy],
-#                   [s_label + " (" + str(s_min) + " - " + str(s_max) + ")"],
-#                   handler_map={proxy: HandlerSizeLegend()})
+    if show_legend:
+        proxy = mpatches.Circle((0.5, 0.5), 0.25, fc="b")
+        ax.legend([proxy],
+                  [s_label + " (" + str(s_min) + " - " + str(s_max) + ")"],
+                  handler_map={proxy: HandlerSizeLegend()})
         
     if interactive:
         def formatter(**kwargs):
@@ -219,7 +220,7 @@ def scatter3d(model, data,
             
             return label
             
-        mpldatacursor.datacursor(artists=handle, formatter=formatter, hover=True, **kwargs)
+        mpldatacursor.datacursor(artists=handle, formatter=formatter, hover=True)
         
     if pick_handler:
         def handle_click(event):
@@ -284,7 +285,8 @@ def scatter2d(model, data,
     remaining_keys = list(model.responses.keys())
 
     for key in used_keys:
-        remaining_keys.remove(key)
+        if key in remaining_keys:
+            remaining_keys.remove(key)
 
     for key in remaining_keys:
         if x is None:
@@ -311,7 +313,7 @@ def scatter2d(model, data,
         s_min = min(s)
         s_max = max(s)
         s = (s_range[1]-s_range[0]) * ((s-s_min) / (s_max-s_min)) + s_range[0]
-
+        
     if "cmap" not in kwargs:
         kwargs["cmap"] = RhodiumConfig.default_cmap
 
@@ -472,7 +474,8 @@ def contour2d(model, data, x=None, y=None, z=None, levels=15, size=100, xlim=Non
     remaining_keys = list(model.responses.keys())
 
     for key in used_keys:
-        remaining_keys.remove(key)
+        if key in remaining_keys:
+            remaining_keys.remove(key)
 
     for key in remaining_keys:
         if x is None:
@@ -574,7 +577,8 @@ def contour3d(model, data, x=None, y=None, z=None, xlim=None, ylim=None, levels=
     remaining_keys = list(model.responses.keys())
 
     for key in used_keys:
-        remaining_keys.remove(key)
+        if key in remaining_keys:
+            remaining_keys.remove(key)
 
     for key in remaining_keys:
         if x is None:
