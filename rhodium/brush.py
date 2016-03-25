@@ -23,7 +23,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from collections import OrderedDict
 from pandas.core.frame import DataFrame
-from rhodium.config import RhodiumConfig
+from .config import RhodiumConfig
+from .model import DataSet
+from .expr import _evaluate
 
 class Brush(object):
     
@@ -74,13 +76,40 @@ class BrushSet(object):
     def colors(self):
         return [brush.color for brush in self]
     
-def apply_brush(brush, data):
-    if isinstance(data, DataFrame):
-        return _apply_brush_dataframe(brush, data)
+def _as_brush_set(input):
+    if isinstance(input, BrushSet):
+        return input
     else:
-        raise ValueError("unsupported type, data must be a DataFrame")
+        return BrushSet(input)
+    
+def apply_brush(brush_set, data):
+    if isinstance(data, DataFrame):
+        return _apply_brush_dataframe(brush_set, data)
+    elif isinstance(data, DataSet):
+        return _apply_brush_dataset(brush_set, data)
+    else:
+        raise ValueError("unsupported type, data must be a DataFrame or DataSet")
+    
+def _apply_brush_dataset(brush_set, ds):
+    brush_set = _as_brush_set(brush_set)
+    n = len(ds)
+    assignment = [None]*n;
+        
+    for brush in brush_set:
+        bin = ds.apply(brush.expr)
+        
+        for i in range(n):
+            if bin[i]:
+                assignment[i] = brush.name
+                  
+    for i, a in enumerate(assignment):
+        if a is None:
+            assignment[i] = RhodiumConfig.default_unassigned_label
+            
+    return assignment
         
 def _apply_brush_dataframe(brush_set, df):
+    brush_set = _as_brush_set(brush_set)
     assignment = [None]*df.shape[0];
         
     for brush in brush_set:
@@ -96,7 +125,8 @@ def _apply_brush_dataframe(brush_set, df):
             
     return assignment
 
-def brush_color_map(brush, assignment):
+def brush_color_map(brush_set, assignment):
+    brush_set = _as_brush_set(brush_set)
     cc = mpl.colors.colorConverter
     color_map = OrderedDict()
 
@@ -107,7 +137,7 @@ def brush_color_map(brush, assignment):
     # which brushes are applicable to a data set
     classes = set([a for a in assignment])
     
-    for b in brush:
+    for b in brush_set:
         if b.name in classes:
             color_map[b.name] = cc.to_rgb(b.color) if b.color is not None else None
              
@@ -125,9 +155,9 @@ def brush_color_map(brush, assignment):
                         
     return color_map
 
-def color_brush(brush, data, **kwargs):
-    assignment = apply_brush(brush, data)
-    color_map = brush_color_map(brush, assignment)                
+def color_brush(brush_set, data, **kwargs):
+    assignment = apply_brush(brush_set, data)
+    color_map = brush_color_map(brush_set, assignment)                
     return ([color_map[a] for a in assignment], color_map)
 
 def color_indices(c, color_map):

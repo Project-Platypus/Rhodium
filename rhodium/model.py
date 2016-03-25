@@ -29,6 +29,7 @@ import scipy.stats as stats
 from collections import OrderedDict
 from abc import ABCMeta, abstractmethod
 from platypus import Real, Integer
+from .expr import _evaluate_all
 
 class RhodiumError(Exception):
     pass
@@ -635,7 +636,7 @@ class DataSet(list):
         
         return result
     
-    def find(self, expr):
+    def find(self, expr, inverse=False):
         result = DataSet()
         
         for entry, cond in zip(self, self.apply(expr)):
@@ -644,44 +645,8 @@ class DataSet(list):
                     
         return result
                 
-    def apply(self, expr):
-        result = []
-        result_keys = []
-        
-        # parse the expression to determine any simple result names
-        if isinstance(expr, str):
-            root = ast.parse(expr, mode="exec")
-            
-            if isinstance(root.body[0], ast.Assign):
-                target = root.body[0].targets[0]
-                
-                if isinstance(target, ast.Tuple):
-                    result_keys.extend([t.id for t in target.elts if isinstance(t, ast.Name)])
-                elif isinstance(target, ast.Name):
-                    result_keys.append(target.id)
-                    
-        for entry in self:
-            tmp_env = {}
-            tmp_env.update(_eval_env)
-            tmp_env.update(entry)
-            
-            if isinstance(expr, str):
-                if len(result_keys) > 0:
-                    six.exec_(expr, {}, tmp_env)
-                    
-                    for key in result_keys:
-                        entry[key] = tmp_env[key]
-                
-                    if len(result_keys) == 1:
-                        result.append(tmp_env[key])
-                    else:
-                        result.append([tmp_env[key] for key in result_keys])
-                else:
-                    result.append(eval(expr, {}, tmp_env))
-            else:
-                result.append(expr(tmp_env))
-                
-        return result
+    def apply(self, expr, update=True):
+        return _evaluate_all(expr, self, update)
           
     def find_min(self, key):
         index, _ = min(enumerate([d[key] for d in self]), key=operator.itemgetter(1))
@@ -692,54 +657,81 @@ class DataSet(list):
         return self[index]
     
     def save(self, file, format=None, **kwargs):
-        if format is None:
-            _, format = os.path.splitext(file)
-            
-            if len(format) > 0 and format[0] == ".":
-                format = format[1:]
-                
-        if format == "xls" or format == "xlsx":
-            if "index" not in kwargs:
-                kwargs["index"] = False
-                
-            self.as_dataframe().to_excel(file, **kwargs)
-        elif format == "csv":
-            if "index" not in kwargs:
-                kwargs["index"] = False
-                
-            self.as_dataframe().to_csv(file, **kwargs)
-        elif format == "json":
-            self.as_dataframe().to_json(file, **kwargs)
-        elif format == "pkl":
-            self.as_dataframe().to_pickle(file, **kwargs)
-        else:
-            raise ValueError("unsupported file format '%s'" % str(format))
+        save(self, file, format, **kwargs)
+    
+def save(data, file, format=None, **kwargs):
+    if isinstance(data, DataSet):
+        data = data.as_dataframe()
+    
+    if format is None:
+        _, format = os.path.splitext(file)
         
-    def load(self, file, format=None, **kwargs):
-        if format is None:
-            _, format = os.path.splitext(file)
+        if len(format) > 0 and format[0] == ".":
+            format = format[1:]
             
-            if len(format) > 0 and format[0] == ".":
-                format = format[1:]
+    if format == "xls" or format == "xlsx":
+        if "index" not in kwargs:
+            kwargs["index"] = False
             
-        if format == "xls" or format == "xlsx":
-            df = pd.read_excel(file, **kwargs)
-        elif format == "csv":
-            df = pd.read_csv(file, **kwargs)
-        elif format == "json":
-            df = pd.read_json(file, **kwargs)
-        elif format == "pkl":
-            df = pd.read_pickle(file, **kwargs)
-        else:
-            raise ValueError("unsupported file format '%s'" % str(format))
+        data.to_excel(file, **kwargs)
+    elif format == "csv":
+        if "index" not in kwargs:
+            kwargs["index"] = False
+            
+        data.to_csv(file, **kwargs)
+    elif format == "json":
+        data.to_json(file, **kwargs)
+    elif format == "pkl":
+        data.to_pickle(file, **kwargs)
+    else:
+        raise ValueError("unsupported file format '%s'" % str(format))
+    
+class _FileModel(Model):
+
+    def __init__(self):
+        super(_FileModel, self).__init__(self._evaluate)
         
-        for i, row in df.iterrows():
-            entry = OrderedDict()
+    def _evaluate(self, **kwargs):
+        raise NotImplementedError("models loaded from files do not support evaluation")
+
+def load(file, format=None, parameters=[], **kwargs):
+    
+    if format is None:
+        _, format = os.path.splitext(file)
+            
+        if len(format) > 0 and format[0] == ".":
+            format = format[1:]
                 
-            for key in df.columns.values:
-                entry[key] = row[key]
-                
-            self.append(entry)
+    if format == "xls" or format == "xlsx":
+        df = pd.read_excel(file, **kwargs)
+    elif format == "csv":
+        df = pd.read_csv(file, **kwargs)
+    elif format == "json":
+        df = pd.read_json(file, **kwargs)
+    elif format == "pkl":
+        df = pd.read_pickle(file, **kwargs)
+    else:
+        raise ValueError("unsupported file format '%s'" % str(format))
+    
+    names = list(df.columns.values)
+    data = DataSet()
+    
+    if isinstance(parameters, six.string_types):
+        parameters = [parameters]
+    
+    for i in range(df.shape[0]):
+        entry = {}
+        
+        for j in range(df.shape[1]):
+            entry[names[j]] = df.iloc[i,j]
+            
+        data.append(entry)
+        
+    model = _FileModel()
+    model.parameters = [Parameter(names[j] if isinstance(j, six.integer_types) else j) for j in parameters]
+    model.responses = [Response(names[j]) for j in range(df.shape[1]) if j not in parameters and names[j] not in parameters]
+        
+    return (model, data)
 
 def _overwrite_generator(samples, fixed_parameters):
     if inspect.isgenerator(samples) or (hasattr(samples, '__iter__') and not isinstance(samples, dict)):
