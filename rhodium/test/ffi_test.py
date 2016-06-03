@@ -46,7 +46,7 @@ class TestNativeModel(unittest.TestCase):
 #         cls.sopath = os.path.join(rel_dir, libname)
 
     def testNormalReturn(self):
-        model = NativeModel("test", "norm_return")
+        model = NativeModel("test.dll", "norm_return")
         model.parameters = [Parameter("x", type="double"),
                             Parameter("y", type="double")]
         model.responses = [Response("z", type="double")]

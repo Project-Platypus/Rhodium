@@ -60,11 +60,11 @@ model.parameters = [Parameter("pollution_limit"),
 # define the model outputs
 model.responses = [Response("max_P", Response.MINIMIZE),
                    Response("utility", Response.MAXIMIZE),
-                   Response("inertia", Response.INFO),
+                   Response("inertia", Response.MAXIMIZE),
                    Response("reliability", Response.MAXIMIZE)]
 
 # define any constraints (can reference any parameter or response by name)
-model.constraints = [Constraint("reliability >= 0.95 and utility >= 0.25")]
+model.constraints = [Constraint("reliability >= 0.95")]
 
 # some parameters are levers that we control via our policy
 model.levers = [RealLever("pollution_limit", 0.0, 0.1, length=100)]
@@ -105,8 +105,8 @@ output.save("test.csv")
 # 
 # # The optional interactive flag will show additional details of each point when
 # # hovering the mouse
-scatter2d(model, output, interactive=True)
-plt.show()
+# scatter2d(model, output, brush="reliability >= 0.5 and utility > 0.5")
+# plt.show()
 # 
 # # Most of Rhodiums's plotting functions accept an optional expr argument for
 # # classifying or highlighting points meeting some condition
@@ -114,7 +114,7 @@ plt.show()
 # plt.show()
 #
 # # Plot the points in 3D space
-# scatter3d(model, output, s="reliability", interactive=True)
+# scatter3d(model, output, s="reliability", show_legend=True)
 # plt.show()
 #     
 # # Kernel density estimation plots show density contours for samples.  By
@@ -153,7 +153,7 @@ plt.show()
 # sns.plt.show()
 
 # # A parallel coordinates plot to view interactions among responses
-parallel_coordinates(model, output, colormap="rainbow", brush=Brush("reliability > 0.2"))     
+parallel_coordinates(model, output, colormap="rainbow", zorder="reliability", brush=Brush("reliability > 0.2"))     
 plt.show()
 
 # ----------------------------------------------------------------------------

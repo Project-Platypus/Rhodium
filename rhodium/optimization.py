@@ -75,7 +75,7 @@ def evaluate(model, samples, evaluator=None, log_frequency=None):
         from .config import RhodiumConfig
         log_frequency = RhodiumConfig.default_log_frequency
     
-    if inspect.isgenerator(samples) or (hasattr(samples, '__iter__') and not isinstance(samples, dict)):
+    if (inspect.isgenerator(samples) or (hasattr(samples, '__iter__')) and not isinstance(samples, dict)):
         results = evaluator.evaluate_all(generate_jobs(model, samples), job_name="Evaluate", log_frequency=log_frequency)
         return DataSet([result.output for result in results])
     else:

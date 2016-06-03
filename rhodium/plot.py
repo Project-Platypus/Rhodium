@@ -88,6 +88,7 @@ def scatter3d(model, data,
            brush = None,
            pick_handler = None,
            **kwargs):
+    
     df = data.as_dataframe(_combine_keys(model.responses.keys(), x, y, z, c, s))
     
     if "axes.facecolor" in mpl.rcParams:
@@ -163,7 +164,7 @@ def scatter3d(model, data,
     if c is None:
         c = 'b'
         show_colorbar = False
-        
+
     if s is None:
         s = 20
         show_legend = False
@@ -247,7 +248,7 @@ def scatter2d(model, data,
            interactive = False,
            brush = None,
            **kwargs):
-    df = data.as_dataframe(_combine_keys(model.responses.keys(), x, y, c, s))
+    df = data.as_dataframe() #_combine_keys(model.responses.keys(), x, y, c, s))
     fig = plt.figure(facecolor='white')
     ax = plt.gca()
     
@@ -673,7 +674,7 @@ def animate3d(prefix, dir="images/", steps=36, transform=(10, 0, 0), **kwargs):
     
 def parallel_coordinates(model, data, c=None, cols=None, ax=None, color=None,
                      use_columns=False, xticks=None, colormap=None,
-                     target="top", brush=None, **kwds):
+                     target="top", brush=None, zorder=None, **kwds):
     if "axes.facecolor" in mpl.rcParams:
         orig_facecolor = mpl.rcParams["axes.facecolor"]
         mpl.rcParams["axes.facecolor"] = "white"
@@ -750,8 +751,13 @@ def parallel_coordinates(model, data, c=None, cols=None, ax=None, color=None,
             cmap = dict(zip(classes, color_values))
         else:
             cmap = color_map
+            
+    if zorder is None:
+        indices = range(n)
+    else:
+        indices = [i[0] for i in sorted(enumerate(df[zorder]), key=lambda x : x[1])]
 
-    for i in range(n):
+    for i in indices:
         y = df.iloc[i].values
         kls = class_col.iat[i]
         

@@ -249,7 +249,7 @@ class Uncertainty(NamedObject):
         
 class UniformUncertainty(Uncertainty):
     
-    def __init__(self, name, min_value, max_value):
+    def __init__(self, name, min_value, max_value, **kwargs):
         super(UniformUncertainty, self).__init__(name)
         self.min_value = float(min_value)
         self.max_value = float(max_value)
@@ -268,7 +268,7 @@ class UniformUncertainty(Uncertainty):
     
 class NormalUncertainty(Uncertainty):
     
-    def __init__(self, name, mean, stdev):
+    def __init__(self, name, mean, stdev, **kwargs):
         super(NormalUncertainty, self).__init__(name)
         self.mean = float(mean)
         self.stdev = float(stdev)
@@ -282,7 +282,7 @@ class NormalUncertainty(Uncertainty):
     
 class LogNormalUncertainty(Uncertainty):
     
-    def __init__(self, name, mu, sigma):
+    def __init__(self, name, mu, sigma, **kwargs):
         super(LogNormalUncertainty, self).__init__(name)
         self.mu = float(mu)
         self.sigma = float(sigma)
@@ -296,7 +296,7 @@ class LogNormalUncertainty(Uncertainty):
 
 class IntegerUncertainty(Uncertainty):
     
-    def __init__(self, name, min_value, max_value):
+    def __init__(self, name, min_value, max_value, **kwargs):
         super(IntegerUncertainty, self).__init__(name)
         self.min_value = int(min_value)
         self.max_value = int(max_value)
@@ -310,7 +310,7 @@ class IntegerUncertainty(Uncertainty):
 
 class CategoricalUncertainty(Uncertainty):
     
-    def __init__(self, name, categories):
+    def __init__(self, name, categories, **kwargs):
         super(CategoricalUncertainty, self).__init__(name)
         self.categories = categories
         
@@ -591,7 +591,10 @@ class DataSet(list):
         dict = OrderedDict()
         
         if keys is None:
-            keys = self[0].keys()
+            if len(self) == 0:
+                raise ValueError("dataset is empty")
+            else:
+                keys = self[0].keys()
             
         if isinstance(keys, str):
             keys = [keys]
