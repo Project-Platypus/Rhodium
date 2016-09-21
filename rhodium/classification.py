@@ -18,7 +18,7 @@
 from __future__ import division, print_function, absolute_import
 
 import six
-import pydot
+import pydotplus as pydot
 import operator
 import functools
 import itertools
@@ -31,8 +31,9 @@ import matplotlib.image as mpimg
 import sklearn
 from sklearn import tree
 from sklearn.externals.six import StringIO
-
+from distutils.version import StrictVersion
 from prim import Prim
+from io import BytesIO
 
 class Cart(object):
     
@@ -174,7 +175,7 @@ class Cart(object):
         dot_data = StringIO()
         feature_names, class_names = self._get_names(**kwargs)
     
-        if sklearn.__version__ >= 0.17:
+        if StrictVersion(sklearn.__version__) >= StrictVersion('0.17'):
             tree.export_graphviz(clf,
                                  out_file=dot_data,  
                                  feature_names=feature_names,
@@ -291,7 +292,7 @@ class Cart(object):
             return Image(graph.create_png())
         else:
             # otherwise show within matplotlib
-            img_data = StringIO(graph.create_png())
+            img_data = BytesIO(graph.create_png())
             img = mpimg.imread(img_data)
             fig = plt.imshow(img)
             fig.axes.get_xaxis().set_visible(False)

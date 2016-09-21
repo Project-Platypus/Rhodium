@@ -26,7 +26,6 @@ import matplotlib.patches as mpatches
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from sets import Set
 from scipy.interpolate import griddata
 from matplotlib.colors import ColorConverter, Normalize
 from matplotlib.legend_handler import HandlerPatch
@@ -35,9 +34,14 @@ from .config import RhodiumConfig
 from .model import Response
 from .brush import Brush, BrushSet, apply_brush, color_brush, brush_color_map, color_indices
 
+try:
+    set
+except NameError:
+    from sets import Set as set
+
 def _combine_keys(*args):
     result = []
-    result_set = Set()
+    result_set = set()
     
     for arg in args:
         if arg is None:
