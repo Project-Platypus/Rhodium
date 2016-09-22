@@ -1,0 +1,9 @@
+.project
+.pydevproject
+*.pyc
+.settings/
+.eggs/
+Rhodium.egg-info/
+build/
+dist/
+.ipynb_checkpoints/
