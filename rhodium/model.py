@@ -616,7 +616,7 @@ class DataSet(list):
             return numpy.empty([0])
         
         if keys is None:
-            keys = self[0].keys()
+            keys = list(self[0].keys())
             
         if isinstance(keys, str):
             keys = [keys]

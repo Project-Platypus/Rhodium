@@ -47,7 +47,7 @@ def _cleanup_kwargs(function, kwargs):
 
 def _S2_to_dict(matrix, problem):
     result = {}
-    names = problem["names"]
+    names = list(problem["names"])
     
     for i in range(problem["num_vars"]):
         for j in range(i+1, problem["num_vars"]):
@@ -259,7 +259,7 @@ class SAResult(dict):
         
         # initialize parameters and colors
         if groups is None:
-            parameters = self.parameters
+            parameters = list(self.parameters)
             
             if colors is None:
                 colors = ["k"]
@@ -284,9 +284,11 @@ class SAResult(dict):
         y = radSc*np.sin(angles)
         
         # plot second-order indices
+        print(parameters)
+        
         for i, j in itertools.combinations(range(n), 2):
-            key1 = self.parameters[i]
-            key2 = self.parameters[j]
+            key1 = parameters[i]
+            key2 = parameters[j]
             
             if self._is_significant(self["S2"][key1][key2], self["S2_conf"][key1][key2], threshold):
                 angle = math.atan((y[j]-y[i])/(x[j]-x[i]))

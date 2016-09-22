@@ -8,7 +8,7 @@ libraries [Platypus](https://github.com/Project-Platypus/Platypus) and
 for a demonstration of the current capabilities.
 
 
-## Rhodium Installation Instructions ##
+## Installation Instructions ##
 
 ### Prerequisite Software ###
 
