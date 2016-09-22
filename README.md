@@ -7,6 +7,7 @@ libraries [Platypus](https://github.com/Project-Platypus/Platypus) and
 [IPython Notebook](https://gist.github.com/dhadka/a8d7095c98130d8f73bc)
 for a demonstration of the current capabilities.
 
+---------------------------------------------------------------------------------
 
 ## Installation Instructions ##
 
@@ -15,9 +16,7 @@ for a demonstration of the current capabilities.
 Please install all software listed below.
 
   * [Python 2.7 or 3.5](https://www.continuum.io/downloads) (we strongly recommend using Anaconda Python, especially on Windows)
-
   * [Git](https://git-scm.com/downloads)
-
   * [GraphViz](http://www.graphviz.org/Download.php) (for generating CART's tree views)
 
 
