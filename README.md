@@ -13,7 +13,7 @@ for a demonstration of the current capabilities.
 
 ### Prerequisite Software ###
 
-Please install all software listed below.
+Please install all software listed below.  You should allow all three programs to update your PATH environment variable.
 
   * [Python 2.7 or 3.5](https://www.continuum.io/downloads) (we strongly recommend using Anaconda Python, especially on Windows)
   * [Git](https://git-scm.com/downloads)
