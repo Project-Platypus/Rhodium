@@ -86,5 +86,5 @@ Please install all software listed below.
 
   7. Test
 
-    * Back in Eclipse, run some of the examples
+    * Within Eclipse, run some of the examples
     * E.g., Find PRIM > example.py.  Right-click and select Run As > Python Run.
