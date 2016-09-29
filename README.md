@@ -7,8 +7,6 @@ libraries [Platypus](https://github.com/Project-Platypus/Platypus) and
 [IPython Notebook](https://gist.github.com/dhadka/a8d7095c98130d8f73bc)
 for a demonstration of the current capabilities.
 
----------------------------------------------------------------------------------
-
 ## Installation Instructions ##
 
 ### Prerequisite Software ###
@@ -19,6 +17,7 @@ Please install all software listed below.  You should allow all three programs t
   * [Git](https://git-scm.com/downloads)
   * [GraphViz](http://www.graphviz.org/Download.php) (for generating CART's tree views)
 
+Attention Mac users: See the troubleshooting section for information on installing GraphViz.
 
 ### Setting up Rhodium ###
 
@@ -88,3 +87,9 @@ Please install all software listed below.  You should allow all three programs t
 
     * Within Eclipse, run some of the examples
     * E.g., Find PRIM > example.py.  Right-click and select Run As > Python Run.
+
+### Troubleshooting ###
+
+  1. MacOS users may have trouble installing GraphVis on new versions of the operating system.  If using Anaconda, you can run the following command to install GraphViz:
+  
+     `conda install -c rmg graphviz=2.38.0`
