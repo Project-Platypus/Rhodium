@@ -54,7 +54,7 @@ class TestNativeModel(unittest.TestCase):
         self.assertEquals(15, result["z"])
         
     def testArgumentReturn(self):
-        model = NativeModel("test", "arg_return")
+        model = NativeModel("test.dll", "arg_return")
         model.parameters = [Parameter("x", type="double"),
                             Parameter("y", type="double")]
         model.responses = [Response("z", type="double", asarg=True)]
@@ -62,14 +62,14 @@ class TestNativeModel(unittest.TestCase):
         self.assertEquals(15, result["z"])
 
     def testSum(self):
-        model = NativeModel("test", "sum")
+        model = NativeModel("test.dll", "sum")
         model.parameters = [Parameter("x", type="double*10")]
         model.responses = [Response("sum", type="double")]
         result = evaluate(model, {"x" : [1, 2, 3, 4, 5]})
         self.assertEquals(15, result["sum"])
         
     def testArrayAdd(self):
-        model = NativeModel("test", "array_add")
+        model = NativeModel("test.dll", "array_add")
         model.parameters = [Parameter("x", type="double*", len_arg="n"),
                             Parameter("y", type="double*", len_arg="n"),
                             Parameter("n", type="int")]

@@ -146,12 +146,11 @@ def optimize(model, algorithm="NSGAII", NFE=10000, **kwargs):
         env = OrderedDict()
         offset = 0
         
+        # decode from Platypus' internal representation (this should be fixed in Platypus instead)
+        vars = [solution.problem.types[i].decode(solution.variables[i]) for i in range(solution.problem.nvars)]
+        
         for lever in model.levers:
-            if lever.length == 1:
-                env[lever.name] = solution.variables[offset]
-            else:
-                env[lever.name] = solution.variables[offset:offset+lever.length]
-
+            env[lever.name] = lever.from_variables(vars[offset:(offset+lever.length)])
             offset += lever.length
         
         if any([r.type not in [Response.MINIMIZE, Response.MAXIMIZE] for r in model.responses]):
@@ -265,21 +264,21 @@ def robust_optimize(model, SOWs, algorithm="NSGAII", NFE=10000, obj_aggregate=No
         env = OrderedDict()
         offset = 0
         
+        # decode from Platypus' internal representation (this should be fixed in Platypus instead)
+        vars = [solution.problem.types[i].decode(solution.variables[i]) for i in range(solution.problem.nvars)]
+        
         for lever in model.levers:
-            if lever.length == 1:
-                env[lever.name] = solution.variables[offset]
-            else:
-                env[lever.name] = solution.variables[offset:offset+lever.length]
-
+            env[lever.name] = lever.from_variables(vars[offset:(offset+lever.length)])
             offset += lever.length
         
         if any([r.type not in [Response.MINIMIZE, Response.MAXIMIZE] for r in model.responses]):
             # if there are any responses not included in the optimization, we must
             # re-evaluate the model to get all responses
             env = evaluate(model, env)
-        else:
-            for i, response in enumerate(model.responses):
-                env[response.name] = solution.objectives[i]
+            
+        # here we copy over the objectives from the evaluated solution, which has been aggregated over all SOWs
+        for i, response in enumerate([r for r in model.responses if r.type in [Response.MINIMIZE, Response.MAXIMIZE]]):
+            env[response.name] = solution.objectives[i]
             
         result.append(env)
         
