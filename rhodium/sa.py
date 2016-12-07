@@ -40,7 +40,7 @@ def _cleanup_kwargs(function, kwargs):
     
     if not argspec.keywords:
         for key in kwargs.keys():
-            if key in argspec.args or argspec.kwargs is not None:
+            if key in argspec.args or hasattr(argspec, "kwargs"):
                 result[key] = kwargs[key]
                 
     return result
