@@ -251,6 +251,8 @@ def scatter2d(model, data,
            show_legend = False,
            interactive = False,
            brush = None,
+           is_class = False,
+           colors = None,
            **kwargs):
     df = data.as_dataframe() #_combine_keys(model.responses.keys(), x, y, c, s))
     fig = plt.figure(facecolor='white')
@@ -319,8 +321,23 @@ def scatter2d(model, data,
         s_max = max(s)
         s = (s_range[1]-s_range[0]) * ((s-s_min) / (s_max-s_min)) + s_range[0]
         
-    if "cmap" not in kwargs:
-        kwargs["cmap"] = RhodiumConfig.default_cmap
+
+    if is_class:
+        if isinstance(colors, dict):
+            cmap = colors
+        else:
+            from pandas.tools.plotting import _get_standard_colors
+            classes = c.drop_duplicates()
+            color_values = _get_standard_colors(num_colors=len(classes),
+                                                colormap=kwargs["cmap"] if "cmap" in kwargs else None,
+                                                color_type='random',
+                                                color=colors)
+            cmap = dict(zip(classes, color_values))
+        c = [cmap[c_i] for c_i in c]
+        show_colorbar = False
+    elif "cmap" not in kwargs:
+        kwargs["cmap"] = RhodiumConfig.default_cmap  
+    
 
     handle = plt.scatter(x = x,
                          y = y,
@@ -676,7 +693,7 @@ def animate3d(prefix, dir="images/", steps=36, transform=(10, 0, 0), **kwargs):
     file_path_name = os.path.join(dir, prefix + '.gif')
     writeGif(file_path_name, images, **kwargs)
     
-def parallel_coordinates(model, data, c=None, cols=None, ax=None, color=None,
+def parallel_coordinates(model, data, c=None, cols=None, ax=None, colors=None,
                      use_columns=False, xticks=None, colormap=None,
                      target="top", brush=None, zorder=None, **kwds):
     if "axes.facecolor" in mpl.rcParams:
@@ -747,12 +764,15 @@ def parallel_coordinates(model, data, c=None, cols=None, ax=None, color=None,
     
     if is_class:
         if color_map is None:
-            from pandas.tools.plotting import _get_standard_colors
-            classes = class_col.drop_duplicates()
-            color_values = _get_standard_colors(num_colors=len(classes),
-                                            colormap=colormap, color_type='random',
-                                            color=color)
-            cmap = dict(zip(classes, color_values))
+            if isinstance(colors, dict):
+                cmap = colors
+            else:
+                from pandas.tools.plotting import _get_standard_colors
+                classes = class_col.drop_duplicates()
+                color_values = _get_standard_colors(num_colors=len(classes),
+                                                colormap=colormap, color_type='random',
+                                                color=colors)
+                cmap = dict(zip(classes, color_values))
         else:
             cmap = color_map
             
