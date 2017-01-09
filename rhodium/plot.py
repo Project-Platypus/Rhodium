@@ -683,7 +683,7 @@ def parallel_coordinates(model, data, c=None, cols=None, ax=None, color=None,
         orig_facecolor = mpl.rcParams["axes.facecolor"]
         mpl.rcParams["axes.facecolor"] = "white"
     
-    df = data.as_dataframe(_combine_keys(model.responses.keys(), c), exclude_dtypes=["object"])
+    df = data.as_dataframe(_combine_keys(model.responses.keys(), c)) #, exclude_dtypes=["object"])
         
     if brush is not None:
         brush_set = BrushSet(brush)
