@@ -28,7 +28,7 @@ import pandas as pd
 import scipy.stats as stats
 from collections import OrderedDict
 from abc import ABCMeta, abstractmethod
-from platypus import Real, Integer
+from platypus import Real, Integer, Permutation, Subset
 from .expr import _evaluate_all
 
 class RhodiumError(Exception):
@@ -171,6 +171,9 @@ class Lever(NamedObject):
     Model parameters can either be constant, controlled by a lever, or
     subject to uncertainty.  The lever defines the available options for
     a given design factor.
+    
+    All levers must define a length attribute, which specifies the number of
+    decision variables required to represent this lever in Platypus.
     """
     
     __metaclass__ = ABCMeta
@@ -224,13 +227,41 @@ class CategoricalLever(Lever):
     
     def __init__(self, name, categories):
         super(CategoricalLever, self).__init__(name)
-        self.categories = categories
+        self.categories = list(categories)
+        self.length = 1
         
     def to_variables(self):
         return [Integer(0, len(self.categories)-1)]
     
     def from_variables(self, variables):
         return self.categories[variables[0]]
+    
+class PermutationLever(Lever):
+    
+    def __init__(self, name, options):
+        super(PermutationLever, self).__init__(name)
+        self.options = list(options)
+        self.length = 1
+        
+    def to_variables(self):
+        return [Permutation(self.options)]
+    
+    def from_variables(self, variables):
+        return variables[0]
+    
+class SubsetLever(Lever):
+    
+    def __init__(self, name, options, size):
+        super(SubsetLever, self).__init__(name)
+        self.options = list(options)
+        self.size = size
+        self.length = 1
+        
+    def to_variables(self):
+        return [Subset(self.options, self.size)]
+    
+    def from_variables(self, variables):
+        return variables[0]
         
 class Uncertainty(NamedObject):
     
@@ -521,7 +552,7 @@ class DataSet(list):
             indices,keys = pos
             
             if isinstance(indices, slice):
-                indices = xrange(*indices.indices(len(self)))
+                indices = list(range(*indices.indices(len(self))))
             elif isinstance(indices, int):
                 indices = [indices]
                 
@@ -542,7 +573,7 @@ class DataSet(list):
         elif isinstance(pos, str):
             return self.as_list(pos)
         elif isinstance(pos, slice):
-            indices = xrange(*pos.indices(len(self)))
+            indices = list(range(*pos.indices(len(self))))
             result = DataSet()
             
             for i in indices:
