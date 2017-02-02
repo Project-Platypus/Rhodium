@@ -22,7 +22,6 @@ import scipy.spatial as sp
 from .model import *
 from .sampling import *
 from .optimization import *
-from boto.cloudformation.stack import Output
 
 def _is_feasible(model, result):
     for constraint in model.constraints:
