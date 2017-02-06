@@ -700,7 +700,7 @@ def parallel_coordinates(model, data, c=None, cols=None, ax=None, colors=None,
         orig_facecolor = mpl.rcParams["axes.facecolor"]
         mpl.rcParams["axes.facecolor"] = "white"
     
-    df = data.as_dataframe(_combine_keys(model.responses.keys(), c)) #, exclude_dtypes=["object"])
+    df = data.as_dataframe(_combine_keys(model.responses.keys(), cols, c)) #, exclude_dtypes=["object"])
         
     if brush is not None:
         brush_set = BrushSet(brush)
@@ -718,6 +718,9 @@ def parallel_coordinates(model, data, c=None, cols=None, ax=None, colors=None,
     
         if is_class:
             df = df.drop(c, axis=1)
+            
+            if c in cols:
+                cols.remove(c)
         else:
             class_min = class_col.min()
             class_max = class_col.max()
@@ -757,8 +760,11 @@ def parallel_coordinates(model, data, c=None, cols=None, ax=None, colors=None,
     else:
         x = range(ncols)
 
-    fig = plt.figure()
-    ax = plt.gca()
+    if ax is None:
+        fig = plt.figure()
+        ax = plt.gca()
+    else:
+        fig = ax.get_figure()
 
     cmap = plt.get_cmap(colormap)
     
@@ -831,8 +837,8 @@ def parallel_coordinates(model, data, c=None, cols=None, ax=None, colors=None,
             
         ax.text(i, -0.001, format % value, ha="center", va="top", fontsize=10)
 
-    plt.yticks([])
-    plt.xticks(x, rotation=0)
+    ax.set_yticks([])
+    ax.set_xticks(x)
     ax.set_xticklabels(df.columns, {"weight" : "bold", "size" : 12})
     ax.set_xlim(x[0]-0.1, x[-1]+0.1)
     ax.tick_params(direction="out", pad=10)
