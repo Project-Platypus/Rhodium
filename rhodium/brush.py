@@ -139,7 +139,7 @@ def brush_color_map(brush_set, assignment):
     
     for b in brush_set:
         if b.name in classes:
-            color_map[b.name] = cc.to_rgb(b.color) if b.color is not None else None
+            color_map[b.name] = cc.to_rgba(b.color) if b.color is not None else None
              
     # determine if any brushes have no assigned color and pick one   
     unassigned_count = sum([1 if x is None else 0 for x in six.itervalues(color_map)])
