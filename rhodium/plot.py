@@ -93,7 +93,7 @@ def scatter3d(model, data,
            pick_handler = None,
            **kwargs):
     
-    df = data.as_dataframe(_combine_keys(model.responses.keys(), x, y, z, c, s))
+    df = data.as_dataframe()
     
     if "axes.facecolor" in mpl.rcParams:
         orig_facecolor = mpl.rcParams["axes.facecolor"]
@@ -254,7 +254,7 @@ def scatter2d(model, data,
            is_class = False,
            colors = None,
            **kwargs):
-    df = data.as_dataframe() #_combine_keys(model.responses.keys(), x, y, c, s))
+    df = data.as_dataframe()
     fig = plt.figure(facecolor='white')
     ax = plt.gca()
     
@@ -704,7 +704,7 @@ def parallel_coordinates(model, data, c=None, cols=None, ax=None, colors=None,
         
     if brush is not None:
         brush_set = BrushSet(brush)
-        assignment = apply_brush(brush_set, df)
+        assignment = apply_brush(brush_set, data)
         color_map = brush_color_map(brush_set, assignment)
         class_col = pd.DataFrame({"class" : assignment})["class"]
         is_class = True
