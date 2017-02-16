@@ -92,9 +92,13 @@ Attention Mac users: See the troubleshooting section for information on installi
 
   1. MacOS users may have trouble installing GraphVis on new versions of the operating system.  If using Anaconda, you can run the following command to install GraphViz:
   
-     `conda install -c rmg graphviz=2.38.0`
+       ```
+       conda install -c rmg graphviz=2.38.0
+       ```
      
   2. Older versions of scikit-learn do not support colors in graphs (e.g., CART trees).  To enable colors, upgrade the scikit-learn version >= 0.17.  For example:
   
-     `conda update conda`
-     `conda install scikit-learn=0.18.1`
+       ```
+       conda update conda
+       conda install scikit-learn=0.18.1
+       ```
