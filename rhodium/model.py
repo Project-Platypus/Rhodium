@@ -406,10 +406,10 @@ class NamedObjectMap(object):
                 
             for item in value:
                 self._data[item.name] = item
-        elif isinstance(value, Parameter):
+        elif isinstance(value, self.type):
             self._data[value.name] = value
         else:
-            raise TypeError("can only add " + str(type) + " objects")
+            raise TypeError("can only add " + str(self.type) + " objects")
             
     def __add__(self, value):
         self.extend(value)
