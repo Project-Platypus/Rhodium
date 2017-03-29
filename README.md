@@ -23,21 +23,21 @@ Attention Mac users: See the troubleshooting section for information on installi
 
   1. Clone the Git repositories
 
-    * In the command prompt, create a folder where the code repositories will be stored
-    * Run the following commands
-    * git clone https://github.com/Project-Platypus/PRIM.git
-    * git clone https://github.com/Project-Platypus/Platypus.git
-    * git clone https://github.com/Project-Platypus/Rhodium.git
+     * In the command prompt, create a folder where the code repositories will be stored
+     * Run the following commands
+     * git clone https://github.com/Project-Platypus/PRIM.git
+     * git clone https://github.com/Project-Platypus/Platypus.git
+     * git clone https://github.com/Project-Platypus/Rhodium.git
 
   2. Build the Git repositories (which will also install all Python dependencies)
 
-    * In a command prompt window, navigate to the PRIM folder
-    * Run: python setup.py develop
-    * Repeat for Platypus and Rhodium (in order)
+     * In a command prompt window, navigate to the PRIM folder
+     * Run: python setup.py develop
+     * Repeat for Platypus and Rhodium (in order)
 
   3. Run Examples
 
-    * E.g., navigate to PRIM folder and run: python example.py
+     * E.g., navigate to PRIM folder and run: python example.py
 
 
 ### Running IPython Example ###
@@ -59,34 +59,34 @@ Attention Mac users: See the troubleshooting section for information on installi
 
   4. Install PyDev
 
-    * Open Help > Eclipse Marketplace
-    * Search for PyDev
-    * Click Install and follow the instructions to complete the installation
+     * Open Help > Eclipse Marketplace
+     * Search for PyDev
+     * Click Install and follow the instructions to complete the installation
 
   5. Configure PyDev
 
-    * Open Window > Preferences
-    * Selected PyDev > Interpreters > Python Interpreters
-    * Click New
-    * Click Browse, go to the Python/Anaconda installation folder, and select python.exe
-    * Click Ok/Next until you return to the Preferences window, click Ok to close the Preferences window
+     * Open Window > Preferences
+     * Selected PyDev > Interpreters > Python Interpreters
+     * Click New
+     * Click Browse, go to the Python/Anaconda installation folder, and select python.exe
+     * Click Ok/Next until you return to the Preferences window, click Ok to close the Preferences window
 
   6. Create PyDev projects for the Git repositories
 
-    * Within Eclipse, select File > New > Other
-    * Select PyDev > PyDev Project
-    * Uncheck "Use Default"
-    * Enter the project name (e.g., PRIM)
-    * Click Browse and select one of the Git folders (e.g., PRIM)
-    * Change Grammar Version to 3.0-3.5
-    * Click Finish
-    * If it asks you to change to the PyDev perspective, click Yes
-    * Repeat this process for the other repositories
+     * Within Eclipse, select File > New > Other
+     * Select PyDev > PyDev Project
+     * Uncheck "Use Default"
+     * Enter the project name (e.g., PRIM)
+     * Click Browse and select one of the Git folders (e.g., PRIM)
+     * Change Grammar Version to 3.0-3.5
+     * Click Finish
+     * If it asks you to change to the PyDev perspective, click Yes
+     * Repeat this process for the other repositories
 
   7. Test
 
-    * Within Eclipse, run some of the examples
-    * E.g., Find PRIM > example.py.  Right-click and select Run As > Python Run.
+     * Within Eclipse, run some of the examples
+     * E.g., Find PRIM > example.py.  Right-click and select Run As > Python Run.
 
 ### Troubleshooting ###
 
