@@ -23,13 +23,6 @@ model.responses = [Response("max_P", Response.MINIMIZE),
 # Specify the levers
 model.levers = [RealLever("pollution_limit", 0.0, 0.1, length=100)]
 
-# Specify the uncertainties
-model.uncertainties = [UniformUncertainty("b", 0.1, 0.45),
-                       UniformUncertainty("q", 2.0, 4.5),
-                       UniformUncertainty("mean", 0.01, 0.05),
-                       UniformUncertainty("stdev", 0.001, 0.005),
-                       UniformUncertainty("delta", 0.93, 0.99)]
-
 # Optimize the model using Rhodium
 output = optimize(model, "NSGAII", 1000)
 print(output)
