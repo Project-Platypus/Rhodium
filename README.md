@@ -5,7 +5,9 @@ modeling.  We are currently actively developing Rhodium, along with its sister
 libraries [Platypus](https://github.com/Project-Platypus/Platypus) and
 [PRIM](https://github.com/Project-Platypus/PRIM).  See our
 [IPython Notebook](https://gist.github.com/dhadka/a8d7095c98130d8f73bc)
-for a demonstration of the current capabilities.
+for a demonstration of the current capabilities.  Also see the
+[Wiki](https://github.com/Project-Platypus/Rhodium/wiki) for more documentation.
+
 
 ## Installation Instructions ##
 
