@@ -35,11 +35,14 @@ class RModel(Model):
         
     def _evaluate(self, **kwargs):
         prefix = "...rhodium."
+        assigned_parameters = []
         
         for parameter in self.parameters:
-            self.r.assign(prefix + parameter.name, kwargs[parameter.name])
+            if parameter.name in kwargs:
+                self.r.assign(prefix + parameter.name, kwargs[parameter.name])
+                assigned_parameters.append(parameter)
         
-        self.r(prefix + "..result = " + self.r_function + "(" + ",".join([prefix + p.name for p in self.parameters]) + ")")
+        self.r(prefix + "..result = " + self.r_function + "(" + ",".join([prefix + p.name for p in assigned_parameters]) + ")")
         r_result = self.r[prefix + "..result"]
         
         result = {}

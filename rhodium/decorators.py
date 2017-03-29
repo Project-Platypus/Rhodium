@@ -44,6 +44,26 @@ class Real(UnnamedObject):
     
     def __init__(self, *args, **kwargs):
         super(Real, self).__init__(RealLever, *args, **kwargs)
+        
+class Integer(UnnamedObject):
+    
+    def __init__(self, *args, **kwargs):
+        super(Integer, self).__init__(IntegerLever, *args, **kwargs)
+        
+class Categorical(UnnamedObject):
+    
+    def __init__(self, *args, **kwargs):
+        super(Categorical, self).__init__(CategoricalLever, *args, **kwargs)
+        
+class Permutation(UnnamedObject):
+    
+    def __init__(self, *args, **kwargs):
+        super(Permutation, self).__init__(PermutationLever, *args, **kwargs)
+        
+class Subset(UnnamedObject):
+    
+    def __init__(self, *args, **kwargs):
+        super(Subset, self).__init__(SubsetLever, *args, **kwargs)
 
 class Uniform(float, UnnamedObject):
     
