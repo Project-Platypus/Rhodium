@@ -1,14 +1,9 @@
-import os
 import math
-import json
 import numpy as np
-import pandas as pd
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from scipy.optimize import brentq as root
 from rhodium import *
-from rhodium.config import RhodiumConfig
-from platypus import MapEvaluator
 
 # Construct the lake problem
 def lake_problem(pollution_limit,
