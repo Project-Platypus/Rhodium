@@ -10,4 +10,4 @@ build/
 dist/
 Rhodium.egg-info/
 .ipynb_checkpoints/
-examples/C/src/boost_1_56_0/
+examples/Languages/C/src/boost_1_56_0/

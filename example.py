@@ -13,7 +13,7 @@ def lake_problem(pollution_limit,
          stdev = 0.001,   # standard deviation of natural inflows
          alpha = 0.4,     # utility from pollution
          delta = 0.98,    # future utility discount rate
-         nsamples = 100): # monte carlo sampling of natural inflows)
+         nsamples = 100): # monte carlo sampling of natural inflows
     Pcrit = root(lambda x: x**q/(1+x**q) - b*x, 0.01, 1.5)
     nvars = len(pollution_limit)
     X = np.zeros((nvars,))
