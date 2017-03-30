@@ -284,8 +284,6 @@ class SAResult(dict):
         y = radSc*np.sin(angles)
         
         # plot second-order indices
-        print(parameters)
-        
         for i, j in itertools.combinations(range(n), 2):
             key1 = parameters[i]
             key2 = parameters[j]
@@ -400,7 +398,7 @@ def sa(model, response, policy={}, method="sobol", nsamples=1000, **kwargs):
          
     # convert the SALib results into a form allowing pretty printing and
     # lookups using the parameter name
-    pretty_result = SAResult(result["names"] if "names" in result else problem["names"])
+    pretty_result = SAResult(list(result["names"] if "names" in result else problem["names"]))
     
     if "S1" in result:
         pretty_result["S1"] = {k : float(v) for k, v in zip(problem["names"], result["S1"])}
