@@ -51,6 +51,14 @@ probability.  The second figure shows what happens if we add uncertainty.  Each 
 shows the failure probability of one state-of-the-world (SOW).  Many of these SOWs exceed the
 acceptable threshold (the dashed red line).
 
+## MORDM Analysis
+
+The file `eijgenraam_mordm.py` extends this to include a detailed multiobjective robust
+decision making (MORDM) analysis.  This example demonstrates the core capabilities of Rhodium.
+Run the example with `python eijgenraam_mordm.py`.  It will takes several minutes for
+the initial data to be generated.  Afterwards, it will prompt you which plots/analyses to
+display.  Press 'y' to view the plot/analysis or 'n' to skip.
+
 ## References
 
 > Eijgenraam, C., R. Brekelmans, D. den Hertog, and K. Roos (2012),

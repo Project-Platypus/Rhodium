@@ -34,5 +34,6 @@ from .optimization import *
 from .sampling import *
 from .robustness import *
 from .brush import *
+from .utils import *
 
 from platypus.evaluator import *

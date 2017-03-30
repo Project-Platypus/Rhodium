@@ -16,7 +16,7 @@ for a demonstration of the current capabilities.  Also see the
 
 Please install all software listed below.  You should allow all three programs to update your PATH environment variable.
 
-  * [Python 2.7 or 3.5](https://www.continuum.io/downloads) (we strongly recommend using Anaconda Python, especially on Windows)
+  * [Python 3.5](https://www.continuum.io/downloads) (we strongly recommend using Anaconda Python, especially on Windows)
   * [Git](https://git-scm.com/downloads)
   * [GraphViz](http://www.graphviz.org/Download.php) (for generating CART's tree views)
 
@@ -105,3 +105,8 @@ Attention Mac users: See the troubleshooting section for information on installi
        conda update conda
        conda install scikit-learn=0.18.1
        ```
+
+
+### Optional Python Modules ###
+
+  * images2gif

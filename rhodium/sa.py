@@ -516,7 +516,7 @@ def regional_sa(model, expr, policy={}, nsamples=1000):
         axarr[i].set_title(u.name)
         
     plt.figlegend(lines[:len(classes)] + [lines[-1]],
-                  map(str, classes) + ["Unconditioned"],
+                  list(map(str, classes)) + ["Unconditioned"],
                   loc='lower center',
                   ncol=3,
                   labelspacing=0. )

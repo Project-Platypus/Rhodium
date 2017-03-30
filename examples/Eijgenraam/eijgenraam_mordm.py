@@ -7,7 +7,6 @@ import numbers
 import operator
 import functools
 import numpy as np
-import scipy.stats as stats
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 from rhodium import * 
@@ -210,6 +209,16 @@ model.responses = [Response("TotalInvestment", Response.INFO),
                    Response("AvgFailureProb", Response.MINIMIZE),
                    Response("MaxFailureProb", Response.MINIMIZE)]
 
+# Include constraints to keep costs within a reasonable range
+model.constraints = [Constraint("TotalInvestment <= 1000.0"),
+                     Constraint("TotalLoss <= 50000.0"),
+                     Constraint("MaxFailureProb <= " + str(data[ring]["max_Pf"]))]
+
+# Set uncertainties
+model.uncertainties = [LogNormalUncertainty("P0", 0.00137, 0.25),
+                       NormalUncertainty("alpha", 0.0502, 0.01),
+                       LogNormalUncertainty("eta", 0.76, 0.1)]
+
 # Each height/time pair defines the dike height increase, Xs[i], after waiting
 # some number of years, Ts[i], from the previous dike heightening.  If
 # sum(Ts[0..i]) exceeds the planning horizon, T, then any remaining heightenings
@@ -226,161 +235,129 @@ setup_cache(file="eijgenraam_ring%d.cache" % ring)
 ##==============================================================================
 ## Optimize the model (caching result to avoid recomputing each time)
 ##------------------------------------------------------------------------------
-policies = cache("policies_mordm", lambda: optimize(model, "NSGAII", 100000))
+policies = cache("policies_mordm", lambda: optimize(model, "NSGAII", 10000))
 
 ##==============================================================================
 ## Export the data (Excel, CSV, JSON, pickle)
 ##------------------------------------------------------------------------------
-#policies.save("test.xls")
+if promptToRun("Save policies to Excel (eijgenraam_mordm.xls)?"):
+    policies.save("eijgenraam_mordm.xls")
 
 ##==============================================================================
-## Basic data manipulation
+## Display all the data in a pretty format
 ##------------------------------------------------------------------------------
-# print(policies)                              # pretty print all data
-# subset = policies[:5]                        # get first five entries in data
-# values = policies["MaxFailureProb"]          # pull out a single key (returned as a list
-# result = policies.find("TotalCost <= 600.0") # search for data matching a query
-# policy = policies.find_min("MaxFailureProb") # find min/max policy
-# df = policies.as_dataframe()                 # convert to Pandas data frame
-# arr = policies.as_array()                    # convert to Numpy array
-# 
-# # apply a function to each record in the dataset
-# matches = policies.apply("MaxFailureProb < 0.0005")
-# 
-# # apply a function and save the result to a new field in the dataset
-# policies.apply("PercentageInvestment = TotalInvestment / TotalCost")
+if promptToRun("Print all policies?"):
+    print(policies)
+
+##==============================================================================
+## Query and manipulate the data
+##------------------------------------------------------------------------------
+subset = policies[:5]                        # get first five entries in data
+values = policies["MaxFailureProb"]          # pull out a single key (returned as a list
+result = policies.find("TotalCost <= 600.0") # search for data matching a query
+policy = policies.find_min("TotalCost")      # find min/max policy
+df = policies.as_dataframe()                 # convert to Pandas data frame
+arr = policies.as_array()                    # convert to Numpy array
+  
+# apply a function; if we include an assignment, a new field in the dataset
+# will be created
+policies.apply("PercentageInvestment = TotalInvestment / TotalCost")
 
 ##==============================================================================
 ## Show 3d scatter plot
 ##------------------------------------------------------------------------------
-# scatter3d(model, policies)
-# plt.show()
+if promptToRun("Display 3D scatter plot?"):
+    scatter3d(model, policies)
+    plt.show()
 
-# print(policies)
-# 
-# scatter3d(model, policies, x="TotalInvestment", y="TotalLoss", z="MaxFailureProb",
-#           depthshade=False, interactive=False,
-#           pick_handler=lambda i : plot_details(policies[i]["Xs"], policies[i]["Ts"]))
-# plt.show()
+##==============================================================================
+## Show 3d scatter plot that can be clicked to show details
+##------------------------------------------------------------------------------
+if promptToRun("Display 3D scatter plot with interactive points?"):
+    scatter3d(model, policies, x="TotalInvestment", y="TotalLoss", z="MaxFailureProb",
+              depthshade=False, interactive=False,
+              pick_handler=lambda i : plot_details(policies[i]["Xs"], policies[i]["Ts"]))
+    plt.show()
 
 ##==============================================================================
 ## Create rotating animation of 3D scatter plot
 ##------------------------------------------------------------------------------
-# scatter3d(model, policies, x="TotalInvestment", y="TotalLoss", z="MaxFailureProb",
-#           depthshade=False)
-# animate3d("eijgenraam", steps=360, transform=(1, 0, 0), duration=0.02)
-
-##==============================================================================
-## Plot Eijgenraam's optimal solution
-##------------------------------------------------------------------------------
-#print(eijgenraam([54.72, 54.72, 54.72, 54.72, 54.72, 54.72], [0, 50, 53, 53, 53, 53]))
-# plot_details([54.72, 54.72, 54.72, 54.72, 54.72, 54.72], [0, 50, 53, 53, 53, 53])
-# print(eijgenraam([54.72, 54.72, 54.72, 50.16, 50.16, 45.60], [4, 60-4, 116-60, 171-116, 223-171, 274-223]))
-# print(eijgenraam([26.887], [0]))
+if promptToRun("Create animated GIF showing the 3D scatter plot?"):
+    scatter3d(model, policies, x="TotalInvestment", y="TotalLoss", z="MaxFailureProb",
+              depthshade=False)
+    animate3d("eijgenraam", steps=360, transform=(1, 0, 0), duration=0.02)
 
 ##==============================================================================
 ## Plot minimum cost, minimum failure probability policies
 ##------------------------------------------------------------------------------
-# policy = policies.find_min("TotalCost")
-# plot_details(policy["Xs"], policy["Ts"])
-#  
-# policy = policies.find_min("MaxFailureProb")
-# plot_details(policy["Xs"], policy["Ts"])
-
-policy = policies[0]
-plot_details(policy["Xs"], policy["Ts"])
+if promptToRun("Display details for the policy minimizing total cost?"):
+    policy = policies.find_min("TotalCost")
+    plot_details(policy["Xs"], policy["Ts"])
 
 ##==============================================================================
 ## Test a policy against uncertainties
-##------------------------------------------------------------------------------
-model.uncertainties = [LogNormalUncertainty("P0", 0.00137, 0.25),
-                       NormalUncertainty("alpha", 0.0502, 0.01),
-                       LogNormalUncertainty("eta", 0.76, 0.1)]
-     
+##------------------------------------------------------------------------------      
 SOWs = sample_lhs(model, 1000)
-
-policy = policies.find_min("TotalCost")
-plot_details(policy["Xs"], policy["Ts"], P0=SOWs["P0"], alpha=SOWs["alpha"], eta=SOWs["eta"], plot_args={"alpha" : 0.02})
-
-policy = policies.find_min("MaxFailureProb")
-plot_details(policy["Xs"], policy["Ts"], P0=SOWs["P0"], alpha=SOWs["alpha"], eta=SOWs["eta"], plot_args={"alpha" : 0.02})
+     
+if promptToRun("Display uncertainty SOWs for the policy minimizing total cost?"):
+    policy = policies.find_min("TotalCost")
+    plot_details(policy["Xs"], policy["Ts"], P0=SOWs["P0"], alpha=SOWs["alpha"], eta=SOWs["eta"], plot_args={"alpha" : 0.02})
 
 ##==============================================================================
 ## Identify the key uncertainties
 ##------------------------------------------------------------------------------
 policy = policies.find_min("TotalCost")
 SOW_output = cache("SOW_output", lambda : evaluate(model, overwrite(SOWs, policy)))
-
+ 
 threshold = lambda x : "Succeeds" if x["MaxFailureProb"] < max_failure_probability else "Fails"
 metric = SOW_output.apply(threshold)
+  
+if promptToRun("Show PRIM analysis of key uncertainties?"):
+    p = Prim(SOW_output, metric, include=model.uncertainties.keys(), coi="Fails")
+    box = p.find_box()
+    box.show_tradeoff()
+    plt.show()
  
-p = Prim(SOW_output, metric, include=model.uncertainties.keys(), coi="Fails")
-box = p.find_box()
-box.show_tradeoff()
-plt.show()
-
-c = Cart(SOW_output, metric, include=model.uncertainties.keys(), min_samples_leaf=50)
-c.print_tree(coi="Fails")
-c.show_tree()
-plt.show()
+if promptToRun("Show CART analysis of key uncertainties?"):
+    c = Cart(SOW_output, metric, include=model.uncertainties.keys(), min_samples_leaf=50)
+    c.print_tree(coi="Fails")
+    c.show_tree()
+    plt.show()
 
 ##==============================================================================
 ## Sensitivity analysis of uncertainties
 ##------------------------------------------------------------------------------
-model.uncertainties = [LogNormalUncertainty("P0", 0.00137, 0.25),
-                       NormalUncertainty("alpha", 0.0502, 0.01),
-                       LogNormalUncertainty("eta", 0.76, 0.1)]
-policy = policies.find_min("TotalCost")
-result = cache("sa", lambda : sa(model, "MaxFailureProb", policy=policy, method="sobol", nsamples=10000))
-# print result
-#   
-# result.plot()
-# plt.show()
-  
-result.plot_sobol(threshold=0.0)
-plt.show()
+if promptToRun("Show sensitivity analysis of max failure prop w.r.t. uncertainties"):
+    policy = policies.find_min("TotalCost")
+    result = cache("sa", lambda : sa(model, "MaxFailureProb", policy=policy, method="sobol", nsamples=100000))
+    
+    print(result)
+    
+    result.plot_sobol(threshold=0.0)
+    plt.show()
 
 ##==============================================================================
 ## One-at-a-time sensitivity analysis of uncertainties
 ##------------------------------------------------------------------------------
-# model.uncertainties = [LogNormalUncertainty("P0", 0.00137, 0.25),
-#                        NormalUncertainty("alpha", 0.0502, 0.01),
-#                        LogNormalUncertainty("eta", 0.76, 0.1)]
-# policy = policies.find_min("TotalCost")
-# oat(model, "MaxFailureProb", policy=policy, nsamples=100)
-# plt.show()
-# 
-# threshold = lambda x : "Succeeds" if x["MaxFailureProb"] < max_failure_probability else "Fails"
-# regional_sa(model, threshold, policy=policy, nsamples=1000)
-# plt.show()
+
+policy = policies.find_min("TotalCost")
+
+if promptToRun("Show one-at-a-time sensitivity analysis of uncertainties?"):
+    oat(model, "MaxFailureProb", policy=policy, nsamples=100)
+    plt.show()
+     
+if promptToRun("Show regional sensitivity analysis of uncertainties?"):
+    threshold = lambda x : "Succeeds" if x["MaxFailureProb"] < max_failure_probability else "Fails"
+    regional_sa(model, threshold, policy=policy, nsamples=1000)
+    plt.show()
 
 ##==============================================================================
 ## Compute robustness measures
 ##------------------------------------------------------------------------------
-model.uncertainties = [LogNormalUncertainty("P0", 0.00137, 0.25),
-                       NormalUncertainty("alpha", 0.0502, 0.01),
-                       LogNormalUncertainty("eta", 0.76, 0.1)]
-model.constraints = [Constraint("MaxFailureProb <= " + str(data[ring]["max_Pf"]))]
-SOWs = sample_lhs(model, 100)
-results = cache("robustness", lambda : evaluate_robustness(model, policies, SOWs))
-scatter3d(model, results, x="TotalInvestment", y="TotalLoss", z="MaxFailureProb", c="Satisficing Type 1", depthshade=False, interactive=False)
-plt.show()
-
-##==============================================================================
-## Parallelization (Python 3.2+ only)
-##------------------------------------------------------------------------------
-# model.uncertainties = [LogNormalUncertainty("P0", 0.00137, 0.25),
-#                        NormalUncertainty("alpha", 0.0502, 0.01),
-#                        LogNormalUncertainty("eta", 0.76, 0.1)]
-# 
-# with ProcessPoolEvaluator() as evaluator:
-#     samples = sample_lhs(model, 10000)
-#     output = evaluate(model, samples, evaluator=evaluator)
-#     
-
-##==============================================================================
-## Global settings
-##------------------------------------------------------------------------------
-# # RhodiumConfig.default_evaluator = evaluator
-# # RhodiumConfig.default_cmap = plt.get_cmap("jet")
+if promptToRun("Show 3D scatter plot with robustness color code?"):
+    model.constraints = [Constraint("MaxFailureProb <= " + str(data[ring]["max_Pf"]))]
     
+    SOWs = sample_lhs(model, 100)
+    results = cache("robustness", lambda : evaluate_robustness(model, policies, SOWs))
+    scatter3d(model, results, x="TotalInvestment", y="TotalLoss", z="MaxFailureProb", c="Satisficing Type 1", depthshade=False, interactive=False)
+    plt.show()
