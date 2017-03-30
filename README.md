@@ -6,7 +6,8 @@ libraries [Platypus](https://github.com/Project-Platypus/Platypus) and
 [PRIM](https://github.com/Project-Platypus/PRIM).  See our
 [IPython Notebook](https://gist.github.com/dhadka/a8d7095c98130d8f73bc)
 for a demonstration of the current capabilities.  Also see the
-[Wiki](https://github.com/Project-Platypus/Rhodium/wiki) for more documentation.
+[Wiki](https://github.com/Project-Platypus/Rhodium/wiki) for more documentation and
+[Examples](https://github.com/Project-Platypus/Rhodium/tree/master/examples) for example code.
 
 
 ## Installation Instructions ##
