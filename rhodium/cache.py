@@ -55,12 +55,8 @@ def _do_open():
     
     if not _CACHE_FILE:
         _CACHE_FILE = "rhodium.cache"
-    
-    if _CACHE_CLEAR:
-        if os.path.exists(_CACHE_FILE):
-            os.remove(_CACHE_FILE)
 
-    _CACHE = shelve.open(_CACHE_FILE)
+    _CACHE = shelve.open(_CACHE_FILE, flag='n' if _CACHE_CLEAR else 'c')
     
     atexit.register(lambda: _do_close())
     
