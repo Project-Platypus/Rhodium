@@ -72,7 +72,7 @@ model.uncertainties = [UniformUncertainty("b", 0.1, 0.45),
 
 A Rhodium model consists of 6 parts:
 
-1. The underlyign model (in this case, the Python function `lake_problem`).
+1. The underlying model (in this case, the Python function `lake_problem`).
 2. `model.parameters` - the parameters of interest.
 3. `model.responses` - the model responses or outputs.
 4. `model.constraints` - any hard constraints that must be satisfied.
