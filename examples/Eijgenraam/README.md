@@ -44,6 +44,13 @@ ignored.  For example, the following heightenings:
 
 would result in 3 heightenings during our 300 year planning horizon, at years 50, 150, and 250.
 
+Run `python eijgenraam.py` to view this example.  It will take a few minutes to run, 
+after which two figures will appear.  The first figure shows the failure probability over the
+planning horizon, with each dike heightening appearing as a vertical drop in the failure
+probability.  The second figure shows what happens if we add uncertainty.  Each light blue line
+shows the failure probability of one state-of-the-world (SOW).  Many of these SOWs exceed the
+acceptable threshold (the dashed red line).
+
 ## References
 
 > Eijgenraam, C., R. Brekelmans, D. den Hertog, and K. Roos (2012),

@@ -6,6 +6,8 @@ Patrick Reed, available at https://github.com/MOEAFramework/RealWorldBenchmarks.
 
 ## Compiling
 
+A C++ compiler is required.  We suggest using MinGW on Windows.
+
 #### Windows
 
 Download [boost_1_56_0.zip](http://sourceforge.net/projects/boost/files/boost/1.56.0/boost_1_56_0.zip)

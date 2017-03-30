@@ -218,7 +218,7 @@ model.levers = [RealLever("Xs", 0, 500, length=6),
 ##==============================================================================
 ## Setup cache
 ##------------------------------------------------------------------------------
-setup_cache(file="eijgenraam_ring%d" % ring)
+setup_cache(file="eijgenraam_ring%d.cache" % ring)
 
 ##==============================================================================
 ## Optimize the model (caching result to avoid recomputing each time)
