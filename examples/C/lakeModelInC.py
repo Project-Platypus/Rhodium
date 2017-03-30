@@ -13,7 +13,8 @@ model.parameters = [Parameter("pollution_limit", type="double*"),
                     Parameter("stdev", default_value=0.0017783, type="double"),
                     Parameter("delta", default_value=0.98, type="double")]
 
-# List all outputs.  The order matters!
+# List all outputs.  We use asarg=True to handle the outputs as arguments to the C
+# function.
 model.responses = [Response("max_P", Response.MINIMIZE, type="double", asarg=True),
                    Response("utility", Response.MAXIMIZE, type="double", asarg=True),
                    Response("inertia", Response.MAXIMIZE, type="double", asarg=True),
