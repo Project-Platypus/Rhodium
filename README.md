@@ -2,7 +2,7 @@
 
 # Rhodium #
 
-Rhodium is a Python library for robust decision making (RDM).  It also includes support for
+**Rhodium is a Python library for robust decision making (RDM).**  It also includes support for
 multiobjective robust decision making (MORDM) and exploratory modelling.  Rhodium is still
 under active development, but it is ready for use.
 
@@ -34,6 +34,6 @@ to gain insight into these methods.
   Robust Decision Making. Environmental Modelling & Software, 74:114-129, 2015.
   DOI:10.1016/j.envsoft.2015.07.014. [(View Online)](http://www.sciencedirect.com/science/article/pii/S1364815215300190)
 
-# References
+## References
 
 1. Rhodium logo by Tyler Glaude, Creative Commons License, https://thenounproject.com/term/knight/30912/
