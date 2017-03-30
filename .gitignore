@@ -1,9 +1,13 @@
 .project
 .pydevproject
 *.pyc
+*.cache.bak
+*.cache.dat
+*.cache.dir
 .settings/
 .eggs/
-Rhodium.egg-info/
 build/
 dist/
+Rhodium.egg-info/
 .ipynb_checkpoints/
+examples/C/src/boost_1_56_0/

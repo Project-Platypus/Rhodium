@@ -740,10 +740,10 @@ def parallel_coordinates(model, data, c=None, cols=None, ax=None, colors=None,
     
     for i in range(ncols):
         if target == "top":
-            if model.responses[df.columns.values[i]].type == Response.MINIMIZE:
+            if model.responses[df.columns.values[i]].dir == Response.MINIMIZE:
                 df.ix[:,i] = 1-df.ix[:,i]
         elif target == "bottom":
-            if model.responses[df.columns.values[i]].type == Response.MAXIMIZE:
+            if model.responses[df.columns.values[i]].dir == Response.MAXIMIZE:
                 df.ix[:,i] = 1-df.ix[:,i]
 
     # determine values to use for xticks
@@ -807,32 +807,32 @@ def parallel_coordinates(model, data, c=None, cols=None, ax=None, colors=None,
         format = "%.2f"
         
         if target == "top":
-            value = df_min[i] if model.responses[df.columns.values[i]].type == Response.MINIMIZE else df_max[i]
+            value = df_min[i] if model.responses[df.columns.values[i]].dir == Response.MINIMIZE else df_max[i]
             
-            if model.responses[df.columns.values[i]].type != Response.INFO:
+            if model.responses[df.columns.values[i]].dir != Response.INFO:
                 format = format + "*"
         elif target == "bottom":
-            value = df_max[i] if model.responses[df.columns.values[i]].type == Response.MINIMIZE else df_min[i]
+            value = df_max[i] if model.responses[df.columns.values[i]].dir == Response.MINIMIZE else df_min[i]
         else:
             value = df_max[i]
             
-            if model.responses[df.columns.values[i]].type == Response.MAXIMIZE:
+            if model.responses[df.columns.values[i]].dir == Response.MAXIMIZE:
                 format = format + "*"
             
         ax.text(i, 1.001, format % value, ha="center", fontsize=10)
         format = "%.2f"
             
         if target == "top":
-            value = df_max[i] if model.responses[df.columns.values[i]].type == Response.MINIMIZE else df_min[i]
+            value = df_max[i] if model.responses[df.columns.values[i]].dir == Response.MINIMIZE else df_min[i]
         elif target == "bottom":
-            value = df_min[i] if model.responses[df.columns.values[i]].type == Response.MINIMIZE else df_max[i]
+            value = df_min[i] if model.responses[df.columns.values[i]].dir == Response.MINIMIZE else df_max[i]
             
-            if model.responses[df.columns.values[i]].type != Response.INFO:
+            if model.responses[df.columns.values[i]].dir != Response.INFO:
                 format = format + "*"
         else:
             value = df_min[i]
             
-            if model.responses[df.columns.values[i]].type == Response.MINIMIZE:
+            if model.responses[df.columns.values[i]].dir == Response.MINIMIZE:
                 format = format + "*"
             
         ax.text(i, -0.001, format % value, ha="center", va="top", fontsize=10)

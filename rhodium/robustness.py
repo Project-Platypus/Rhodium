@@ -47,7 +47,7 @@ def regret_type1(model, results, baseline, percentile=90):
     quantiles = []
     
     for response in model.responses:
-        if response.type == Response.MINIMIZE or response.type == Response.MAXIMIZE:
+        if response.dir == Response.MINIMIZE or response.dir == Response.MAXIMIZE:
             values = [abs((result[response.name] - baseline[response.name]) / baseline[response.name]) for result in results]
             quantiles.append(np.percentile(values, percentile))
             
@@ -61,9 +61,9 @@ def regret_type2(model, all_results, baseline_results, percentile=90):
         entry = {}
         
         for response in model.responses:
-            if response.type == Response.MINIMIZE:
+            if response.dir == Response.MINIMIZE:
                 entry[response.name] = min([result[i][response.name] for result in all_results])
-            elif response.type == Response.MAXIMIZE:
+            elif response.dir == Response.MAXIMIZE:
                 entry[response.name] = max([result[i][response.name] for result in all_results])
                 
         best.append(entry)
@@ -72,7 +72,7 @@ def regret_type2(model, all_results, baseline_results, percentile=90):
     quantiles = []
     
     for response in model.responses:
-        if response.type == Response.MINIMIZE or response.type == Response.MAXIMIZE:
+        if response.dir == Response.MINIMIZE or response.dir == Response.MAXIMIZE:
             values = []
             
             for i in range(len(all_results[0])):

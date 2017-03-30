@@ -71,9 +71,9 @@ class Response(NamedObject):
     INFO = 2
     IGNORE = 0
     
-    def __init__(self, name, type = INFO, **kwargs):
+    def __init__(self, name, dir = INFO, **kwargs):
         super(Response, self).__init__(name)
-        self.type = type
+        self.dir = dir
         
         for k, v in six.iteritems(kwargs):
             setattr(self, k, v)
