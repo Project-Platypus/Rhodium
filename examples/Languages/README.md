@@ -8,8 +8,7 @@ also see a speed comparison by running `python speedComparison.py`:
 ```
 
     Lake Model in Python: 39.6709668636322
-
-    Lake Model in C: 7.519751787185669
-
-    Lake Model in R: 59.15491485595703
+    Lake Model in C:       7.51975178718566
+    Lake Model in R:      59.15491485595703
+    Lake Model in Excel:  61.70848202705383
 ```
