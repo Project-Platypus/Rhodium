@@ -1,5 +1,9 @@
 # Rhodium #
 
+<div style="text-align:center" markdown="1">
+![Rhodium Logo](images/logo.png "Caption")
+</div>
+
 Rhodium is a Python library for robust decision making and exploratory
 modeling.  We are currently actively developing Rhodium, along with its sister
 libraries [Platypus](https://github.com/Project-Platypus/Platypus) and
@@ -110,3 +114,7 @@ Attention Mac users: See the troubleshooting section for information on installi
 ### Optional Python Modules ###
 
   * images2gif
+  
+# References
+
+1. Rhodium logo by Tyler Glaude, Creative Commons License, https://thenounproject.com/term/knight/30912/
