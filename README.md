@@ -1,7 +1,9 @@
 # Rhodium #
 
-<div style="text-align:center" markdown="1">
-![Rhodium Logo](images/logo.png "Caption")
+<div style="float:left" markdown="1">
+
+![Rhodium Logo](/images/logo.png "Caption")
+
 </div>
 
 Rhodium is a Python library for robust decision making and exploratory
