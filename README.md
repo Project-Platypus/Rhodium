@@ -2,117 +2,38 @@
 
 # Rhodium #
 
-Rhodium is a Python library for robust decision making and exploratory
-modeling.  We are currently actively developing Rhodium, along with its sister
-libraries [Platypus](https://github.com/Project-Platypus/Platypus) and
-[PRIM](https://github.com/Project-Platypus/PRIM).  See our
-[IPython Notebook](https://gist.github.com/dhadka/a8d7095c98130d8f73bc)
-for a demonstration of the current capabilities.  Also see the
-[Wiki](https://github.com/Project-Platypus/Rhodium/wiki) for more documentation and
-[Examples](https://github.com/Project-Platypus/Rhodium/tree/master/examples) for example code.
+Rhodium is a Python library for robust decision making (RDM).  It also includes support for
+multiobjective robust decision making (MORDM) and exploratory modelling.  Rhodium is still
+under active development, but it is ready for use.
 
+#### Resources
 
-## Installation Instructions ##
+* [Demo IPython Notebook](https://gist.github.com/dhadka/a8d7095c98130d8f73bc)
+* [Installation Instructions](INSTALL.md)
+* [Examples](https://github.com/Project-Platypus/Rhodium/tree/master/examples)
 
-### Prerequisite Software ###
+#### What is Robust Decision Making?
 
-Please install all software listed below.  You should allow all three programs to update your PATH environment variable.
+Robust Decision Making (RDM) is an analytic framework developed by Robert Lempert and his
+collaborators at RAND Corporation that helps identify potential robust strategies for a
+particular problem, characterize the vulnerabilities of such strategies, and evaluate
+trade-offs among them [Lempert et al. (2006)].  Multiobjective Robust Decision Making (MORDM)
+is an extension of RDM to account for problems with multiple competing performance objectives,
+enabling the exploration of performance tradeoffs with respect to robustness
+[Kasprzyk et al. (2013), Hadka et al. (2015)].  We encourage users to read these articles
+to gain insight into these methods.
 
-  * [Python 3.5](https://www.continuum.io/downloads) (we strongly recommend using Anaconda Python, especially on Windows)
-  * [Git](https://git-scm.com/downloads)
-  * [GraphViz](http://www.graphviz.org/Download.php) (for generating CART's tree views)
+> Lempert, R. J., D. G. Groves, S. W. Popper, and S. C. Bankes (2006).  A General, Analytic
+  Method for Generating Robust Strategies and Narrative Scenarios.  Management Science, 52(4):514-528.
 
-Attention Mac users: See the troubleshooting section for information on installing GraphViz.
+> Kasprzyk, J. R., S. Nataraj, P. M. Reed, and R. J. Lempert (2013).  Many objective robust
+  decision making for complex environmental systems undergoing change. Environmental
+  Modelling & Software, 42:55-71.
 
-### Setting up Rhodium ###
+> Hadka, D., Herman, J., Reed, P.M., Keller, K. An Open Source Framework for Many-Objective
+  Robust Decision Making. Environmental Modelling & Software, 74:114-129, 2015.
+  DOI:10.1016/j.envsoft.2015.07.014. [(View Online)](http://www.sciencedirect.com/science/article/pii/S1364815215300190)
 
-  1. Clone the Git repositories
-
-     * In the command prompt, create a folder where the code repositories will be stored
-     * Run the following commands
-     * git clone https://github.com/Project-Platypus/PRIM.git
-     * git clone https://github.com/Project-Platypus/Platypus.git
-     * git clone https://github.com/Project-Platypus/Rhodium.git
-
-  2. Build the Git repositories (which will also install all Python dependencies)
-
-     * In a command prompt window, navigate to the PRIM folder
-     * Run: python setup.py develop
-     * Repeat for Platypus and Rhodium (in order)
-
-  3. Run Examples
-
-     * E.g., navigate to PRIM folder and run: python example.py
-
-
-### Running IPython Example ###
-
-  1. In the command prompt, navigate to the Rhodium folder
-
-  2. Run: ipython notebook
-
-  3. Open Rhodium.ipynb and evaluate the cells
-
-
-### Setting up a Development Environment in Eclipse ###
-
-  1. Install the latest version of Java (http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
-
-  2. Download the latest version of the Eclipse IDE for Java Developers (https://www.eclipse.org/downloads/eclipse-packages/)
-
-  3. Run Eclipse
-
-  4. Install PyDev
-
-     * Open Help > Eclipse Marketplace
-     * Search for PyDev
-     * Click Install and follow the instructions to complete the installation
-
-  5. Configure PyDev
-
-     * Open Window > Preferences
-     * Selected PyDev > Interpreters > Python Interpreters
-     * Click New
-     * Click Browse, go to the Python/Anaconda installation folder, and select python.exe
-     * Click Ok/Next until you return to the Preferences window, click Ok to close the Preferences window
-
-  6. Create PyDev projects for the Git repositories
-
-     * Within Eclipse, select File > New > Other
-     * Select PyDev > PyDev Project
-     * Uncheck "Use Default"
-     * Enter the project name (e.g., PRIM)
-     * Click Browse and select one of the Git folders (e.g., PRIM)
-     * Change Grammar Version to 3.0-3.5
-     * Click Finish
-     * If it asks you to change to the PyDev perspective, click Yes
-     * Repeat this process for the other repositories
-
-  7. Test
-
-     * Within Eclipse, run some of the examples
-     * E.g., Find PRIM > example.py.  Right-click and select Run As > Python Run.
-
-### Troubleshooting ###
-
-  1. MacOS users may have trouble installing GraphVis on new versions of the operating system.  If using Anaconda, you can run the following command to install GraphViz:
-  
-       ```
-       conda install -c rmg graphviz=2.38.0
-       ```
-     
-  2. Older versions of scikit-learn do not support colors in graphs (e.g., CART trees).  To enable colors, upgrade the scikit-learn version >= 0.17.  For example:
-  
-       ```
-       conda update conda
-       conda install scikit-learn=0.18.1
-       ```
-
-
-### Optional Python Modules ###
-
-  * images2gif
-  
 # References
 
 1. Rhodium logo by Tyler Glaude, Creative Commons License, https://thenounproject.com/term/knight/30912/
