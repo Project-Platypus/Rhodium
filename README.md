@@ -1,10 +1,6 @@
+<img align="left" src="images/logo.png" />
+
 # Rhodium #
-
-<div style="float:left" markdown="1">
-
-![Rhodium Logo](/images/logo.png "Caption")
-
-</div>
 
 Rhodium is a Python library for robust decision making and exploratory
 modeling.  We are currently actively developing Rhodium, along with its sister
