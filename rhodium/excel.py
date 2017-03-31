@@ -17,6 +17,7 @@
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import division, print_function, absolute_import
 
+import time
 import six
 import win32com.client
 from win32com.universal import com_error
@@ -29,6 +30,13 @@ class ExcelHelper(object):
         self.xl = win32com.client.Dispatch("Excel.Application")
         self.wb = self.xl.Workbooks.Open(filename)
         
+        # ensure auto-calculations is enabled
+        sheets = self.xl.Worksheets
+        
+        for i in range(sheets.Count):
+            sheets.Item(i+1).EnableCalculation = True
+        
+        # set the default sheet
         self.set_sheet(sheet)
         
         if visible:
@@ -92,7 +100,6 @@ class ExcelModel(Model):
         
     def _evaluate(self, **kwargs):
         result = {}
-        current_sheet = self.excel_helper.sheet_index
         
         for parameter in self.parameters:
             if hasattr(parameter, "cell"):
@@ -100,21 +107,22 @@ class ExcelModel(Model):
             else:
                 key = parameter.name
                 
-            if hasattr(parameter, "sheet") and current_sheet != getattr(parameter, "sheet"):
+            if hasattr(parameter, "sheet") and self.excel_helper.sheet_index != getattr(parameter, "sheet"):
                 self.excel_helper.set_sheet(getattr(parameter, "sheet"))
                 
             value = kwargs.get(parameter.name, parameter.default_value)
 
-            self.excel_helper[key] = value
-            
+            if value is not None:
+                self.excel_helper[key] = value
+                  
         for response in self.responses:
             if hasattr(response, "cell"):
                 key = getattr(response, "cell")
             else:
                 key = response.name
                 
-            if hasattr(parameter, "sheet") and current_sheet != getattr(parameter, "sheet"):
-                self.excel_helper.set_sheet(getattr(parameter, "sheet"))
+            if hasattr(response, "sheet") and self.excel_helper.sheet_index != getattr(response, "sheet"):
+                self.excel_helper.set_sheet(getattr(response, "sheet"))
                 
             result[response.name] = self.excel_helper[key]
             

@@ -25,5 +25,5 @@ with ExcelModel(file) as model:
     model.levers = [RealLever("pollution_limit", 0.0, 0.1, length=100)]
     
     # Optimize the model using Rhodium
-    output = optimize(model, "NSGAII", 1000)
+    output = optimize(model, "NSGAII", 10000)
     print(output)
