@@ -84,7 +84,9 @@ model.uncertainties = [UniformUncertainty("b", 0.1, 0.45),
 #
 # Several of these methods are demonstrated below.
 #
-# In addition to the text output, all methods 
+# In addition to the text output, you can call plot() on the results object to visualize
+# the data in a plot.  Sobol's method supports a special radial plot accessible by calling
+# plot_sobol().
 
 policy = { "pollution_limit" : [0.075]*100 }
 
