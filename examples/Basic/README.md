@@ -11,3 +11,8 @@ analysis, and scenario discovery.
 ## example_dectorators.py
 
 Demonstrates a shorthand notation for creating models in Python.
+
+## sensitivity_analysis.py
+
+Demonstrates the various global sensitivity analysis methods available in
+Rhodium (using the SALib library).

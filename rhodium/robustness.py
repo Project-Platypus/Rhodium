@@ -107,7 +107,7 @@ def evaluate_robustness(model, policies, SOWs=1000, in_place=True, return_all=Fa
     if isinstance(SOWs, six.integer_types):
         SOWs = sample_lhs(model, SOWs)
     
-    # evaluate the polocies
+    # evaluate the policies
     n = len(policies)
     all_results = [evaluate(model, update(SOWs, policy)) for policy in policies]
     
