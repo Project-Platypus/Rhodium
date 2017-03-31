@@ -10,7 +10,7 @@ model.parameters = [Parameter("pollution_limit", type="double*"),
                     Parameter("b", default_value=0.42, type="double"),
                     Parameter("q", default_value=2, type="double"),
                     Parameter("mean", default_value=0.02, type="double"),
-                    Parameter("stdev", default_value=0.0017783, type="double"),
+                    Parameter("stdev", default_value=0.001, type="double"),
                     Parameter("delta", default_value=0.98, type="double")]
 
 # List all outputs.  We use asarg=True to handle the outputs as arguments to the C
@@ -26,6 +26,3 @@ model.levers = [RealLever("pollution_limit", 0.0, 0.1, length=100)]
 # Optimize the model using Rhodium
 output = optimize(model, "NSGAII", 10000)
 print(output)
-
-scatter3d(model, output)
-plt.show()
