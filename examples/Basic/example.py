@@ -37,9 +37,9 @@ def lake_problem(pollution_limit,
       
     max_P = np.max(average_daily_P)
     utility = np.sum(alpha*decisions*np.power(delta,np.arange(nvars)))
-    intertia = np.sum(np.diff(decisions) > -0.02)/float(nvars-1)
+    inertia = np.sum(np.diff(decisions) > -0.02)/float(nvars-1)
     
-    return (max_P, utility, intertia, reliability)
+    return (max_P, utility, inertia, reliability)
 
 model = Model(lake_problem)
 
