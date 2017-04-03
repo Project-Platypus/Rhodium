@@ -37,7 +37,7 @@ from .brush import Brush, BrushSet, apply_brush, color_brush, brush_color_map, c
 try:
     set
 except NameError:
-    from sets import Set as set
+    from sets import Set as set  # @UnresolvedImport
 
 def _combine_keys(*args):
     result = []

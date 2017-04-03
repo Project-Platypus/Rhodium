@@ -71,7 +71,7 @@ def evaluateCubicDPS(policy, current_value):
     return value    
 
 # Construct the lake problem
-def lake_problem(policy,
+def lake_problem(policy,  # the DPS policy
          b = 0.42,        # decay rate for P in lake (0.42 = irreversible)
          q = 2.0,         # recycling exponent
          mean = 0.02,     # mean of natural inflows
@@ -114,7 +114,6 @@ def lake_problem(policy,
 
 model = Model(lake_problem)
 
-# Define all parameters to the model that we will be studying
 model.parameters = [Parameter("policy"),
                     Parameter("b"),
                     Parameter("q"),
@@ -122,7 +121,6 @@ model.parameters = [Parameter("policy"),
                     Parameter("stdev"),
                     Parameter("delta")]
 
-# Define the model outputs
 model.responses = [Response("max_P", Response.MINIMIZE),
                    Response("utility", Response.MAXIMIZE),
                    Response("inertia", Response.MAXIMIZE),
@@ -131,14 +129,9 @@ model.responses = [Response("max_P", Response.MINIMIZE),
 # Use our new DPS lever
 model.levers = [CubicDPSLever("policy", length=3)]
 
-# Set the uncertainties
-model.uncertainties = [UniformUncertainty("b", 0.1, 0.45),
-                       UniformUncertainty("q", 2.0, 4.5),
-                       UniformUncertainty("mean", 0.01, 0.05),
-                       UniformUncertainty("stdev", 0.001, 0.005),
-                       UniformUncertainty("delta", 0.93, 0.99)]
+setup_cache(file="example.cache")
+output = cache("dps_output", lambda: optimize(model, "NSGAII", 10000))
 
-output = optimize(model, "NSGAII", 10000)
 print(output)
 
 scatter3d(model, output)

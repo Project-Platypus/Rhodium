@@ -96,12 +96,6 @@ print("------------------------------------------------------------")
 print(fast_results)
 print()
  
-morris_results = sa(model, "reliability", policy=policy, method="morris", nsamples=1000, num_levels=4, grid_jump=2)
-print("Method of Morris")
-print("------------------------------------------------------------")
-print(morris_results)
-print()
- 
 delta_results = sa(model, "reliability", policy=policy, method="delta", nsamples=1000)
 print("Borgonovo's Delta Moment-Independent Measure")
 print("------------------------------------------------------------")
@@ -112,4 +106,10 @@ sobol_results = sa(model, "reliability", policy=policy, method="sobol", nsamples
 print("Sobol Sensitivity Analysis")
 print("------------------------------------------------------------")
 print(sobol_results)
+print()
+
+morris_results = sa(model, "reliability", policy=policy, method="morris", nsamples=1000, num_levels=4, grid_jump=2)
+print("Method of Morris")
+print("------------------------------------------------------------")
+print(morris_results)
 print()

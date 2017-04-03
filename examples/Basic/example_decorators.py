@@ -52,8 +52,8 @@ policy = { "pollution_limit" : [0.01]*100 }
 inputs = update(SOWs, policy)
 
 # Evaluate each SOW
-setup_cache(file="example_decorators.cache")
-output = cache("output", lambda: evaluate(lake_problem, inputs))
+setup_cache(file="example.cache")
+output = cache("decorators_output", lambda: evaluate(lake_problem, inputs))
 
 # Classify each SOW into two groups: Reliable and Unreliable
 output.apply("classification = 'Reliable' if reliability > 0.5 else 'Unreliable'")

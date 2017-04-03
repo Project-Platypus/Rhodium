@@ -98,3 +98,4 @@ Attention Mac users: See the troubleshooting section for information on installi
 ### Optional Python Modules ###
 
   * images2gif
+  * J3Py
