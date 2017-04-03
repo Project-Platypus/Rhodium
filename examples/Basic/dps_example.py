@@ -133,6 +133,6 @@ setup_cache(file="example.cache")
 output = cache("dps_output", lambda: optimize(model, "NSGAII", 10000))
 
 print(output)
-
+    
 scatter3d(model, output)
 plt.show()

@@ -125,19 +125,21 @@ def _to_problem(model):
     problem.types[:] = variables
     problem.directions[:] = [Problem.MINIMIZE if r.dir == Response.MINIMIZE else Problem.MAXIMIZE for r in model.responses if r.dir == Response.MINIMIZE or r.dir == Response.MAXIMIZE]
     problem.constraints[:] = "==0"
-    return problem
+    return (problem, levers)
 
 def optimize(model, algorithm="NSGAII", NFE=10000, **kwargs):
     module = __import__("platypus", fromlist=[''])
     class_ref = getattr(module, algorithm)
     
     args = kwargs.copy()
-    args["problem"] = _to_problem(model)
+    args["problem"], levers = _to_problem(model)
     
     instance = class_ref(**args)
     instance.run(NFE)
     
     result = DataSet()
+    
+    print("here")
     
     for solution in unique(nondominated(instance.result)):
         if not solution.feasible:
@@ -149,13 +151,14 @@ def optimize(model, algorithm="NSGAII", NFE=10000, **kwargs):
         # decode from Platypus' internal representation (this should be fixed in Platypus instead)
         vars = [solution.problem.types[i].decode(solution.variables[i]) for i in range(solution.problem.nvars)]
         
-        for lever in model.levers:
-            env[lever.name] = lever.from_variables(vars[offset:(offset+lever.length)])
-            offset += lever.length
+        for lever, length in levers:
+            env[lever.name] = lever.from_variables(vars[offset:(offset+length)])
+            offset += length
         
         if any([r.dir not in [Response.MINIMIZE, Response.MAXIMIZE] for r in model.responses]):
             # if there are any responses not included in the optimization, we must
             # re-evaluate the model to get all responses
+            print("reeval")
             env = evaluate(model, env)
         else:
             for i, response in enumerate(model.responses):
@@ -236,7 +239,7 @@ def _to_robust_problem(model, SOWs, obj_aggregate, constr_aggregate):
     problem.types[:] = variables
     problem.directions[:] = [Problem.MINIMIZE if r.dir == Response.MINIMIZE else Problem.MAXIMIZE for r in model.responses if r.dir == Response.MINIMIZE or r.dir == Response.MAXIMIZE]
     problem.constraints[:] = "==0"
-    return problem
+    return (problem, levers)
 
 def robust_optimize(model, SOWs, algorithm="NSGAII", NFE=10000, obj_aggregate=None, constr_aggregate=None, **kwargs):
     module = __import__("platypus", fromlist=[''])
@@ -250,7 +253,7 @@ def robust_optimize(model, SOWs, algorithm="NSGAII", NFE=10000, obj_aggregate=No
         constr_aggregate = max
     
     args = kwargs.copy()
-    args["problem"] = _to_robust_problem(model, SOWs, obj_aggregate, constr_aggregate)
+    args["problem"], levers = _to_robust_problem(model, SOWs, obj_aggregate, constr_aggregate)
     
     instance = class_ref(**args)
     instance.run(NFE)
@@ -267,9 +270,9 @@ def robust_optimize(model, SOWs, algorithm="NSGAII", NFE=10000, obj_aggregate=No
         # decode from Platypus' internal representation (this should be fixed in Platypus instead)
         vars = [solution.problem.types[i].decode(solution.variables[i]) for i in range(solution.problem.nvars)]
         
-        for lever in model.levers:
-            env[lever.name] = lever.from_variables(vars[offset:(offset+lever.length)])
-            offset += lever.length
+        for lever, length in levers:
+            env[lever.name] = lever.from_variables(vars[offset:(offset+length)])
+            offset += length
         
         if any([r.dir not in [Response.MINIMIZE, Response.MAXIMIZE] for r in model.responses]):
             # if there are any responses not included in the optimization, we must
