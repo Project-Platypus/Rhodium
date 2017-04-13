@@ -11,3 +11,4 @@ dist/
 Rhodium.egg-info/
 .ipynb_checkpoints/
 examples/Languages/C/src/boost_1_56_0/
+.DS_Store
