@@ -127,8 +127,8 @@ def _to_problem(model):
     problem.constraints[:] = "==0"
     return (problem, levers)
 
-def optimize(model, algorithm="NSGAII", NFE=10000, **kwargs):
-    module = __import__("platypus", fromlist=[''])
+def optimize(model, algorithm="NSGAII", NFE=10000, module="platypus", **kwargs):
+    module = __import__(module, fromlist=[''])
     class_ref = getattr(module, algorithm)
     
     args = kwargs.copy()
