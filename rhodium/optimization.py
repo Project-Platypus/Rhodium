@@ -45,7 +45,7 @@ class EvaluateJob(Job):
         for parameter in self.model.parameters:
             if parameter.name in self.sample:
                 args[parameter.name] = self.sample[parameter.name]
-            elif parameter.default_value:
+            elif parameter.default_value is not None:
                 args[parameter.name] = parameter.default_value
                 
         # evaluate the model
