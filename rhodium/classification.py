@@ -77,6 +77,9 @@ class Cart(object):
         else:
             x = pd.DataFrame(x).to_records(index=False)
             
+        # Convert names to str since numpy chokes on unicode field names
+        x.dtype.names = map(str, x.dtype.names)
+
         # if y is a string or function, compute the actual response value
         # otherwise, ensure y is a numpy matrix/array
         if isinstance(y, six.string_types):
