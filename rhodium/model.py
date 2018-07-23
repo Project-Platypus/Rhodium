@@ -296,7 +296,34 @@ class UniformUncertainty(Uncertainty):
     
     def ppf(self, x):
         return self.min_value + x*(self.max_value - self.min_value)
-    
+
+
+class TriangularUncertainty(Uncertainty):
+    """An uncertainty with a triangular distribution."""
+
+    def __init__(self, name, min_value, max_value, mode_value, **kwargs):
+        super(TriangularUncertainty, self).__init__(name)
+        self.min_value = float(min_value)
+        self.max_value = float(max_value)
+        self.mode_value = float(mode_value)
+
+        if not (self.min_value < self.max_value):
+            raise ValueError('Min cannot be less than max.')
+        if not ((self.min_value <= self.mode_value) and (self.mode_value <= self.max_value)):
+            raise ValueError('Mode must be between min and max.')
+
+        # Paramters used by scipy.stats
+        self.scale = self.max_value - self.min_value
+        self.c = (self.mode_value - self.min_value) / self.scale
+
+    def levels(self, nlevels):
+        ulevels = UniformUncertainty(self.name, 0.0, 1.0).levels(nlevels)
+        return stats.triang.ppf(ulevels, c=self.c, loc=self.min_value, scale=self.scale)
+
+    def ppf(self, x):
+        return stats.triang.ppf(x, c=self.c, loc=self.min_value, scale=self.scale)
+
+
 class NormalUncertainty(Uncertainty):
     
     def __init__(self, name, mean, stdev, **kwargs):

@@ -20,6 +20,7 @@ from __future__ import division, print_function, absolute_import
 import six
 import unittest
 from rhodium.model import IntegerUncertainty
+from rhodium.model import TriangularUncertainty
 
 class TestIntegerUncertainty(unittest.TestCase):
     
@@ -33,3 +34,43 @@ class TestIntegerUncertainty(unittest.TestCase):
         levels = iu.levels(3)
         self.assertTrue(all(i >= 0 and i <= 10 for i in levels))
         self.assertTrue(all(isinstance(i, six.integer_types) for i in levels))
+
+
+class TestTriangularUncertainty(unittest.TestCase):
+
+    def test_ppf_0_1_symmetric(self):
+        """Check the PPF on a symmetric triangular distribution on (0, 1)."""
+        tu = TriangularUncertainty('x', 0, 1, 0.5)
+
+        self.assertEqual(tu.ppf(0), 0)
+        self.assertEqual(tu.ppf(1), 1)
+        self.assertEqual(tu.ppf(0.5), 0.5)
+
+    def test_ppf_0_1_skew(self):
+        """Check the PPF on a skewed triangular distribution on (0, 1)."""
+        tu = TriangularUncertainty('x', 0, 1, 0.25)
+
+        self.assertEqual(tu.ppf(0), 0)
+        self.assertEqual(tu.ppf(1), 1)
+        self.assertEqual(tu.ppf(0.25), 0.25)
+
+    def test_ppf_10_20_skew(self):
+        """Check the PPF on a skewed triangular distribution on (10, 20)."""
+        tu = TriangularUncertainty('x', 10, 20, 12.5)
+
+        self.assertEqual(tu.ppf(0), 10)
+        self.assertEqual(tu.ppf(1), 20)
+        self.assertEqual(tu.ppf(0.25), 12.5)
+
+    def test_out_of_order(self):
+        """Check that an error is raised if the min, max and mode are not properly ordered."""
+        with self.assertRaises(ValueError):
+            tu = TriangularUncertainty('x', 2, 1, 0)
+        with self.assertRaises(ValueError):
+            tu = TriangularUncertainty('x', 0, 1, 2)
+        with self.assertRaises(ValueError):
+            tu = TriangularUncertainty('x', 2, 0, 1)
+
+
+if __name__ == '__main__':
+    unittest.main()
