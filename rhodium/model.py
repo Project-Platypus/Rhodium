@@ -324,6 +324,20 @@ class TriangularUncertainty(Uncertainty):
         return stats.triang.ppf(x, c=self.c, loc=self.min_value, scale=self.scale)
 
 
+class PointUncertainty(Uncertainty):
+    """An uncertainty distribution with all its probability mass at one point on the real line."""
+
+    def __init__(self, name, value):
+        super(PointUncertainty, self).__init__(name)
+        self.value = value
+
+    def levels(self, nlevels):
+        return [self.value] * nlevels
+
+    def ppf(self, x):
+        return self.value
+
+
 class NormalUncertainty(Uncertainty):
     
     def __init__(self, name, mean, stdev, **kwargs):

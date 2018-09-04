@@ -19,8 +19,11 @@ from __future__ import division, print_function, absolute_import
 
 import six
 import unittest
+import numpy as np
 from rhodium.model import IntegerUncertainty
 from rhodium.model import TriangularUncertainty
+from rhodium.model import PointUncertainty
+
 
 class TestIntegerUncertainty(unittest.TestCase):
     
@@ -70,6 +73,17 @@ class TestTriangularUncertainty(unittest.TestCase):
             tu = TriangularUncertainty('x', 0, 1, 2)
         with self.assertRaises(ValueError):
             tu = TriangularUncertainty('x', 2, 0, 1)
+
+
+class TestPointUncertainty(unittest.TestCase):
+    """Unit tests for PointUncertainty"""
+
+    def test_ppf(self):
+        """Check that the ppf returns the point value for any quantile."""
+        value = 1
+        pu = PointUncertainty('x', value)
+        for quantile in np.linspace(0, 1):
+            self.assertEqual(pu.ppf(quantile), value)
 
 
 if __name__ == '__main__':
