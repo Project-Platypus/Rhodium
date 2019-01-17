@@ -18,7 +18,7 @@
 from __future__ import division, print_function, absolute_import
 
 import six
-import pydotplus as pydot
+import pydot
 import operator
 import functools
 import itertools
