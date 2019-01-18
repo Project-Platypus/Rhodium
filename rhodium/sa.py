@@ -333,7 +333,7 @@ class SAResult(dict):
                     rotation=group_angle*360/(2*math.pi) - 90,
                     color=colors[i % len(colors)])
                 
-        ax.set_axis_bgcolor('white')
+        ax.set_facecolor('white')
         ax.set_xticks([])
         ax.set_yticks([])
         plt.axis('equal')
