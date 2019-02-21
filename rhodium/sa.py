@@ -450,7 +450,7 @@ def oat(model, response, policy={}, nsamples=100, **kwargs):
 
     minv = np.nanmin(responses, axis=0)
     maxv = np.nanmax(responses, axis=0)
-    midv = responses[nsamples/2]
+    midv = responses[nsamples//2]
     
     total_range = maxv-minv
     negative_percentage = abs(midv - minv) / total_range
