@@ -18,7 +18,7 @@
 from __future__ import division, print_function, absolute_import
 
 import six
-import pydotplus as pydot
+import pydot
 import operator
 import functools
 import itertools
@@ -190,7 +190,7 @@ class Cart(object):
                                  feature_names=feature_names,
                                  **kwargs)
     
-        return pydot.graph_from_dot_data(dot_data.getvalue())
+        return pydot.graph_from_dot_data(dot_data.getvalue())[0]
     
     def __str__(self):
         return self._to_string()
