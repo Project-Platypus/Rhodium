@@ -78,6 +78,10 @@ setup_cache(file="example.cache")
 # Optimize the model or get cached results if they exist.  Note that the
 # call to optimize is wrapped in a lambda function to enable lazy evaluation.
 output = cache("output", lambda: optimize(model, "NSGAII", 10000))
+
+# save the Pareto approximate set as a .csv file
+output.save('optimization_results.csv')
+
    
 # ----------------------------------------------------------------------------
 # Plotting
@@ -130,11 +134,6 @@ plt.show()
 joint(model, output, x="max_P", y="utility")
 plt.show()
 
-# Interaction plots show the interaction between two parameters (x and y) with
-# respect to a response (z)
-interact(model, output, x="max_P", y="utility", z="reliability", filled=True)
-plt.show()
-
 # A histogram of the distribution of points along each parameter
 hist(model, output)
 plt.show()
@@ -157,9 +156,14 @@ policy = {"pollution_limit" : [0.02]*100}
 # Or select one of our optimization results
 policy = output[3]
 
-# Construct a specific policy and evaluate it against 1000 states-of-the-world
+# Construct a spexcific policy and evaluate it against 1000 states-of-the-world
 SOWs = sample_lhs(model, 100)
 results = evaluate(model, update(SOWs, policy))
+
+# save the results as a .csv file
+results.save('reevaluation_results.csv')
+
+# define performance criteria
 metric = ["Reliable" if v["reliability"] > 0.9 else "Unreliable" for v in results]
  
 # Use PRIM to identify the key uncertainties if we require reliability > 0.9
