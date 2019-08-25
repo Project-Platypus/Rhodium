@@ -156,7 +156,7 @@ policy = {"pollution_limit" : [0.02]*100}
 # Or select one of our optimization results
 policy = output[3]
 
-# Construct a spexcific policy and evaluate it against 1000 states-of-the-world
+# Construct a specific policy and evaluate it against 1000 states-of-the-world
 SOWs = sample_lhs(model, 100)
 results = evaluate(model, update(SOWs, policy))
 
