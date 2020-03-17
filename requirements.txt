@@ -8,3 +8,4 @@ pydot
 SALib
 platypus-opt
 sklearn
+win32com
