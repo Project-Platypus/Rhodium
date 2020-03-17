@@ -46,7 +46,7 @@ class TestNativeModel(unittest.TestCase):
         cls.sopath = os.path.join(rel_dir, libname)
 
     def testNormalReturn(self):
-        model = NativeModel(TestNativeModel.sopath, "norm_return")
+        model = NativeModel("libtest", "norm_return")
         model.parameters = [Parameter("x", type="double"),
                             Parameter("y", type="double")]
         model.responses = [Response("z", type="double")]
@@ -54,7 +54,7 @@ class TestNativeModel(unittest.TestCase):
         self.assertEquals(15, result["z"])
         
     def testArgumentReturn(self):
-        model = NativeModel(TestNativeModel.sopath, "arg_return")
+        model = NativeModel("libtest", "arg_return")
         model.parameters = [Parameter("x", type="double"),
                             Parameter("y", type="double")]
         model.responses = [Response("z", type="double", asarg=True)]
@@ -62,14 +62,14 @@ class TestNativeModel(unittest.TestCase):
         self.assertEquals(15, result["z"])
 
     def testSum(self):
-        model = NativeModel(TestNativeModel.sopath, "sum")
+        model = NativeModel("libtest", "sum")
         model.parameters = [Parameter("x", type="double*10")]
         model.responses = [Response("sum", type="double")]
         result = evaluate(model, {"x" : [1, 2, 3, 4, 5]})
         self.assertEquals(15, result["sum"])
        
     def testArrayAdd(self):
-        model = NativeModel(TestNativeModel.sopath, "array_add")
+        model = NativeModel("libtest", "array_add")
         model.parameters = [Parameter("x", type="double*", len_arg="n"),
                             Parameter("y", type="double*", len_arg="n"),
                             Parameter("n", type="int")]
