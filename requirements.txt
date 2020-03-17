@@ -7,3 +7,4 @@ mpldatacursor
 pydot
 SALib
 platypus-opt
+sklearn
