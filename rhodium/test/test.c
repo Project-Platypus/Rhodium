@@ -21,7 +21,6 @@ double sum(double* x) {
 
 void array_add(double* x, double* y, long n, double* z) {
 	int i;
-	printf("%d\n", n);
 
 	for (i = 0; i < n; i++) {
 		z[i] = x[i] + y[i];
