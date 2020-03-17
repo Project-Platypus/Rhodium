@@ -6,3 +6,4 @@ seaborn
 mpldatacursor
 pydot
 SALib
+platypus-opt
