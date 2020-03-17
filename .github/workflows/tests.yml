@@ -10,6 +10,7 @@ jobs:
     strategy:
       matrix:
         python-version: [ '2.x', '3.x', 'pypy2', 'pypy3' ]
+      fail-fast: true
 
     steps:
     - uses: actions/checkout@v1
