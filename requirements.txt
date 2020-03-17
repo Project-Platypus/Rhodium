@@ -1,0 +1,11 @@
+numpy
+nose
+mock
+prim
+seaborn
+mpldatacursor
+pydot
+SALib
+platypus-opt
+sklearn
+openmdao
