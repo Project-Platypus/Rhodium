@@ -9,7 +9,7 @@ jobs:
     
     strategy:
       matrix:
-        python-version: [ '3.x', 'pypy3' ]
+        python-version: [ '3.x' ]
       fail-fast: false
 
     steps:
