@@ -43,7 +43,7 @@ class TestNativeModel(unittest.TestCase):
         compiler.link_shared_lib([obj], "test")
          
         libname = compiler.library_filename("test", lib_type="shared")
-        cls.sopath = os.path.abspath(os.path.join(rel_dir, libname))
+        cls.sopath = os.path.join(os.getcwd(), libname)
 
     def testNormalReturn(self):
         print(os.listdir("."))
