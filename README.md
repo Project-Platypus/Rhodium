@@ -2,6 +2,8 @@
 
 # Rhodium #
 
+<a href="https://github.com/Project-Platypus/Rhodium"><img alt="GitHub Actions status" src="https://github.com/Project-Platypus/Rhodium/workflows/Tests/badge.svg?branch=master&event=push"></a>
+
 Rhodium is an open source Python library for robust decision making (RDM) and multiobjective robust decision
 making (MORDM), and exploratory modelling (EM).  Rhodium is still under active development, but it is ready for use.
 
