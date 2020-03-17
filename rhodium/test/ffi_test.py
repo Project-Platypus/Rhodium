@@ -27,23 +27,23 @@ from ..ffi import *
 
 class TestNativeModel(unittest.TestCase):
     
-     @classmethod
-     def setUpClass(cls):
-         from distutils.ccompiler import new_compiler, show_compilers
+    @classmethod
+    def setUpClass(cls):
+        from distutils.ccompiler import new_compiler, show_compilers
          
-         # determine the relative path to the source file
-         dir = os.path.dirname(__file__)
-         cwd = os.getcwd()
-         common_prefix = os.path.commonprefix([dir, cwd])
-         rel_dir = os.path.relpath(dir, cwd)
-         src = os.path.join(rel_dir, "test.c")
+        # determine the relative path to the source file
+        dir = os.path.dirname(__file__)
+        cwd = os.getcwd()
+        common_prefix = os.path.commonprefix([dir, cwd])
+        rel_dir = os.path.relpath(dir, cwd)
+        src = os.path.join(rel_dir, "test.c")
          
-         compiler = new_compiler("gcc")
-         (obj,) = compiler.compile([src]) #, extra_preargs=["-m64"])
-         compiler.link_shared_lib([obj], "test")
+        compiler = new_compiler("gcc")
+        (obj,) = compiler.compile([src]) #, extra_preargs=["-m64"])
+        compiler.link_shared_lib([obj], "test")
          
-         libname = compiler.library_filename("test", lib_type="shared")
-         cls.sopath = os.path.join(rel_dir, libname)
+        libname = compiler.library_filename("test", lib_type="shared")
+        cls.sopath = os.path.join(rel_dir, libname)
 
     def testNormalReturn(self):
         model = NativeModel("test.so", "norm_return")
