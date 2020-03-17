@@ -23,12 +23,12 @@ import unittest
 from ..model import *
 from ..optimization import *
 from ..sampling import *
-from ..excel import *
 
 class TestExcelHelper(unittest.TestCase):
 
     @unittest.skipUnless(sys.platform.startswith("win"), "requires Windows")
     def testGetItem(self):
+        from ..excel import *
         file = os.path.join(os.path.dirname(__file__), "TestGetItem.xlsx")
         
         with ExcelHelper(file) as helper:
@@ -44,6 +44,7 @@ class TestExcelHelper(unittest.TestCase):
             
     @unittest.skipUnless(sys.platform.startswith("win"), "requires Windows")
     def testSetItem(self):
+        from ..excel import *
         file = os.path.join(os.path.dirname(__file__), "TestSetItem.xlsx")
         
         with ExcelHelper(file) as helper:
@@ -67,6 +68,7 @@ class TestExcelModel(unittest.TestCase):
     
     @unittest.skipUnless(sys.platform.startswith("win"), "requires Windows")
     def testEvaluate(self):
+        from ..excel import *
         file = os.path.join(os.path.dirname(__file__), "TestModel.xlsx")
         
         with ExcelModel(file) as model:
@@ -79,6 +81,7 @@ class TestExcelModel(unittest.TestCase):
         
     @unittest.skipUnless(sys.platform.startswith("win"), "requires Windows")    
     def testSample(self):
+        from ..excel import *
         file = os.path.join(os.path.dirname(__file__), "TestModel.xlsx")
         
         with ExcelModel(file) as model:
