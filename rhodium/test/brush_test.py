@@ -52,11 +52,3 @@ class TestBrush(unittest.TestCase):
         self.assertEquals(assignment[1], RhodiumConfig.default_unassigned_label)
         self.assertEquals(assignment[2], brush2.name)
         
-    def testBrushColorMap(self):
-        d = {'col1': [1, 2], 'col2': [3, 4]}
-        df = pd.DataFrame(data=d)
-        brush = Brush("col1 < 2")
-        colors = brush_color_map(brush, df)
-        print(colors.items())
-        self.assertNotEquals(colors.items()[0], RhodiumConfig.default_unassigned_brush_color )
-        self.assertEquals(colors.items()[1], RhodiumConfig.default_unassigned_brush_color )
