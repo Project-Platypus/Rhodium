@@ -30,13 +30,13 @@ class TestCache(unittest.TestCase):
         self.assertEquals(5, value)
         
     def testFunction(self):
-        called=False
+        testFunction_called=False
         def fun():
-            called=True
+            global testFunction_called=True
             return 5
         cache("testFun", fun)
-        self.assertEquals(True, called)
+        self.assertEquals(True, testFunction_called)
         called=False
         cache("testFun", fun)
-        self.assertEquals(False, called)
+        self.assertEquals(False, testFunction_called)
         self.assertEquals(5, value)
