@@ -31,12 +31,34 @@ class TestCache(unittest.TestCase):
         
     def testFunction(self):
         self.testFunction_called=False
+        
         def fun():
             self.testFunction_called=True
             return 5
-        cache("testFun", fun)
+        
+        value=cache("testFun", fun)
         self.assertEquals(True, self.testFunction_called)
+        self.assertEquals(5, value)
         self.testFunction_called=False
-        cache("testFun", fun)
+        
+        value=cache("testFun", fun)
         self.assertEquals(False, self.testFunction_called)
         self.assertEquals(5, value)
+        
+    def testCachedFunction(self):
+        self.testCachedFunction_called=False
+        
+        @cached
+        def fun():
+            self.testCachedFunction_called=True
+            return 5
+        
+        value=fun()
+        self.assertEquals(True, self.testCachedFunction_called)
+        self.assertEquals(5, value)
+        self.testCachedFunction_called=False
+        
+        value=fun()
+        self.assertEquals(False, self.testCachedFunction_called)
+        self.assertEquals(5, value)
+            
