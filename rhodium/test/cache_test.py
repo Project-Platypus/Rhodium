@@ -28,3 +28,8 @@ class TestCache(unittest.TestCase):
         value = cache("test", 5)
         self.assertEquals(5, value)
         
+    def testFunction(self):
+        def fun():
+            return 5
+        value = cache(fun)
+        self.assertEquals(5, value)
