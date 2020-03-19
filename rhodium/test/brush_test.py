@@ -57,5 +57,5 @@ class TestBrush(unittest.TestCase):
         df = pd.DataFrame(data=d)
         brush = Brush("col1 < 2")
         colors = brush_color_map(brush, df)
-        self.assertNotEquals(assignment[0], RhodiumConfig.default_unassigned_brush_color )
-        self.assertEquals(assignment[1], RhodiumConfig.default_unassigned_brush_color )
+        self.assertNotEquals(colors[0], RhodiumConfig.default_unassigned_brush_color )
+        self.assertEquals(colors[1], RhodiumConfig.default_unassigned_brush_color )
