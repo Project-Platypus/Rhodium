@@ -25,10 +25,29 @@ from ..brush import *
 
 class TestBrush(unittest.TestCase):
     
-    def testDataFrame(self):
+    def testSimpleBrush(self):
         d = {'col1': [1, 2], 'col2': [3, 4]}
         df = pd.DataFrame(data=d)
         brush = Brush("col1 < 2")
         assignment = apply_brush(brush, df)
         self.assertEquals(assignment[0], brush.name)
         self.assertEquals(assignment[1], RhodiumConfig.default_unassigned_label)
+        
+    def testComplexBrush(self):
+        d = {'col1': [1, 2, 3], 'col2': [3, 4, 5]}
+        df = pd.DataFrame(data=d)
+        brush = Brush("col1 <= 2 and col2 >= 4")
+        assignment = apply_brush(brush, df)
+        self.assertEquals(assignment[0], RhodiumConfig.default_unassigned_label)
+        self.assertEquals(assignment[1], brush.name)
+        self.assertEquals(assignment[2], RhodiumConfig.default_unassigned_label)
+        
+     def testMultipleBrush(self):
+        d = {'col1': [1, 2, 3], 'col2': [3, 4, 5]}
+        df = pd.DataFrame(data=d)
+        brush1 = Brush("col1 < 2")
+        brush2 = Brush("col2 > 4")
+        assignment = apply_brush(BrushSet(brush1, brush2), df)
+        self.assertEquals(assignment[0], brush1.name)
+        self.assertEquals(assignment[1], RhodiumConfig.default_unassigned_label)
+        self.assertEquals(assignment[2], brush2.name)
