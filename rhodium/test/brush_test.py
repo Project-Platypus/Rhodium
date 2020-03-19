@@ -29,4 +29,6 @@ class TestBrush(unittest.TestCase):
         d = {'col1': [1, 2], 'col2': [3, 4]}
         df = pd.DataFrame(data=d)
         brush = Brush("col1 < 2")
-        print(apply_brush(brush, df))
+        assignment = apply_brush(brush, df)
+        self.assertEquals(assignment[0], brush.name)
+        self.assertEquals(assignment[1], RhodiumConfig.default_unassigned_label)
