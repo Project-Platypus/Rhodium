@@ -25,11 +25,18 @@ from ..cache import *
 class TestCache(unittest.TestCase):
     
     def testSimpleCache(self):
-        value = cache("test", 5)
+        cache("testValue", 5)
+        value=cache("testValue", 10) # Should return the cached value of 5
         self.assertEquals(5, value)
         
     def testFunction(self):
+        called=False
         def fun():
+            called=True
             return 5
-        value = cache(fun)
+        cache("testFun", fun)
+        self.assertEquals(True, called)
+        called=False
+        cache("testFun", fun)
+        self.assertEquals(False, called)
         self.assertEquals(5, value)
