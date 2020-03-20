@@ -130,6 +130,7 @@ class Constraint(object):
             self._distance = compile(distance_expr, "<AST>", "eval")
 
     def is_feasible(self, env):
+        """Returns True if the constraint is feasible / satisfied, otherwise False."""
         tmp_env = {}
         tmp_env.update(_eval_env)
         tmp_env.update(env)
@@ -190,6 +191,7 @@ class Lever(NamedObject):
         raise NotImplementedError("method not implemented")
     
 class RealLever(Lever):
+    """Defines a lever for real values."""
     
     def __init__(self, name, min_value, max_value, length = 1):
         super(RealLever, self).__init__(name)
@@ -207,6 +209,7 @@ class RealLever(Lever):
             return variables
     
 class IntegerLever(Lever):
+    """Defines a lever for integer values."""
     
     def __init__(self, name, min_value, max_value, length = 1):
         super(IntegerLever, self).__init__(name)
@@ -224,6 +227,7 @@ class IntegerLever(Lever):
             return variables
     
 class CategoricalLever(Lever):
+    """Defines a lever for categorical values (i.e., an enumeration of distinct values)."""
     
     def __init__(self, name, categories):
         super(CategoricalLever, self).__init__(name)
@@ -237,6 +241,7 @@ class CategoricalLever(Lever):
         return self.categories[variables[0]]
     
 class PermutationLever(Lever):
+    """Defines a lever for a permutation of values."""
     
     def __init__(self, name, options):
         super(PermutationLever, self).__init__(name)
@@ -250,6 +255,7 @@ class PermutationLever(Lever):
         return variables[0]
     
 class SubsetLever(Lever):
+    """Defines a lever for a fixed-size subset of a set of values."""
     
     def __init__(self, name, options, size):
         super(SubsetLever, self).__init__(name)
@@ -264,6 +270,11 @@ class SubsetLever(Lever):
         return variables[0]
         
 class Uncertainty(NamedObject):
+    """Defines an uncertainty for a model parameter.
+    
+    An uncertainty indicates a model parameter falls within a given
+    distribution.  The specific subclass defines the distribution.
+    """
     
     __metaclass__ = ABCMeta
     
@@ -272,13 +283,22 @@ class Uncertainty(NamedObject):
         
     @abstractmethod    
     def levels(self, nlevels):
+        """Returns a random sampling from the uncertainty distribution in n levels.
+        
+        Used by Latin hypercube sampling, where a sample is taken from n levels
+        across the distribution.  For example, a uniform distribution with 3 levels
+        would result in three random values in the range [0-1/3], [1/3-2/3], [2/3-1].
+        For non-uniform distributions, the levels are proportional to the PPF of the
+        distribution."""
         raise NotImplementedError("method not implemented")
     
     @abstractmethod    
     def ppf(self, x):
+        """The Percent Point Function, or inverse of the Cumulative Distribution Function."""
         raise NotImplementedError("method not implemented")
         
 class UniformUncertainty(Uncertainty):
+    """An uncertainty for real-valued parameters following a uniform distribution."""
     
     def __init__(self, name, min_value, max_value, **kwargs):
         super(UniformUncertainty, self).__init__(name)
@@ -298,6 +318,7 @@ class UniformUncertainty(Uncertainty):
         return self.min_value + x*(self.max_value - self.min_value)
     
 class NormalUncertainty(Uncertainty):
+    """An uncertainty for real-valued parameters following a normal (Gaussian) distribution."""
     
     def __init__(self, name, mean, stdev, **kwargs):
         super(NormalUncertainty, self).__init__(name)
@@ -312,6 +333,7 @@ class NormalUncertainty(Uncertainty):
         return stats.norm.ppf(x, self.mean, self.stdev)
     
 class LogNormalUncertainty(Uncertainty):
+    """An uncertainty for real-valued parameters following a log normal distribution."""
     
     def __init__(self, name, mu, sigma, **kwargs):
         super(LogNormalUncertainty, self).__init__(name)
@@ -326,6 +348,7 @@ class LogNormalUncertainty(Uncertainty):
         return self.mu*stats.lognorm.ppf(x, self.sigma)
 
 class IntegerUncertainty(Uncertainty):
+    """An uncertainty for integer parameters that follows a uniform distribution."""
     
     def __init__(self, name, min_value, max_value, **kwargs):
         super(IntegerUncertainty, self).__init__(name)
@@ -340,6 +363,7 @@ class IntegerUncertainty(Uncertainty):
         return int(math.floor(self.min_value + x*(self.max_value + 0.9999 - self.min_value)))
 
 class CategoricalUncertainty(Uncertainty):
+    """An uncertainty for categorial parameters that follows a uniform distribution."""
     
     def __init__(self, name, categories, **kwargs):
         super(CategoricalUncertainty, self).__init__(name)
