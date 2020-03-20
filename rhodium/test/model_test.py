@@ -46,10 +46,10 @@ class TestUniformUncertainty(unittest.TestCase):
     def testLevels(self):
         uu = UniformUncertainty("x", 0.0, 1.0)
         
-        levels = iu.levels(50)
+        levels = uu.levels(50)
         self.assertTrue(all(i >= 0.0 and i <= 1.0 for i in levels))
         
-        levels = iu.levels(3)
+        levels = uu.levels(3)
         self.assertTrue(all(i >= 0.0 and i <= 1.0 for i in levels))
         
     def testPpf(self):
