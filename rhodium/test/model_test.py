@@ -41,6 +41,16 @@ class TestConstraint(unittest.TestCase):
         self.assertNotEquals(0, c.distance({ "x" : 0, "y" : 1 }))
         self.assertNotEquals(0, c.distance({ "x" : 1, "y" : 1 }))
 
+class TestNamedObjectMap(unittest.TestCase):
+    
+    def testAdd(self):
+        m = NamedObjectMap(Parameter)
+        p = Parameter("x")
+        
+        m = [p]
+        self.assertTrue("x" in m)
+        self.assertEquals(p, m["x"])
+        
 class TestUniformUncertainty(unittest.TestCase):
     
     def testLevels(self):
