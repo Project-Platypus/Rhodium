@@ -21,6 +21,17 @@ import six
 import unittest
 from rhodium.model import IntegerUncertainty
 
+class TestUniformUncertainty(unittest.TestCase):
+    
+    def testLevels(self):
+        uu = UniformUncertainty("x", 0.0, 1.0)
+        
+        levels = iu.levels(50)
+        self.assertTrue(all(i >= 0.0 and i <= 1.0 for i in levels))
+        
+        levels = iu.levels(3)
+        self.assertTrue(all(i >= 0.0 and i <= 1.0 for i in levels))
+
 class TestIntegerUncertainty(unittest.TestCase):
     
     def testLevels(self):
@@ -33,3 +44,15 @@ class TestIntegerUncertainty(unittest.TestCase):
         levels = iu.levels(3)
         self.assertTrue(all(i >= 0 and i <= 10 for i in levels))
         self.assertTrue(all(isinstance(i, six.integer_types) for i in levels))
+        
+class TestCategoricalUncertainty(unittest.TestCase):
+    
+    def testLevels(self):
+        categories = ["a", "b", "c"]
+        cu = CategoricalUncertainty("x", categories)
+        
+        levels = cu.levels(50)
+        self.assertTrue(all(i in categories for i in levels))
+        
+        levels = cu.levels(3)
+        self.assertTrue(all(i in categories for i in levels))
