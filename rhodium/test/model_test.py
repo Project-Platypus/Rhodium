@@ -19,7 +19,7 @@ from __future__ import division, print_function, absolute_import
 
 import six
 import unittest
-from rhodium.model import IntegerUncertainty
+from rhodium.model import *
 
 class TestUniformUncertainty(unittest.TestCase):
     
@@ -31,6 +31,13 @@ class TestUniformUncertainty(unittest.TestCase):
         
         levels = iu.levels(3)
         self.assertTrue(all(i >= 0.0 and i <= 1.0 for i in levels))
+        
+    def testPpf(self):
+        uu = UniformUncertainty("x", 0.0, 1.0)
+        
+        self.assertEquals(0.0, uu.ppf(0.0))
+        self.assertEquals(0.5, uu.ppf(0.5))
+        self.assertEquals(1.0, uu.ppf(1.0))
 
 class TestIntegerUncertainty(unittest.TestCase):
     
@@ -45,6 +52,13 @@ class TestIntegerUncertainty(unittest.TestCase):
         self.assertTrue(all(i >= 0 and i <= 10 for i in levels))
         self.assertTrue(all(isinstance(i, six.integer_types) for i in levels))
         
+    def testPpf(self):
+        iu = IntegerUncertainty("x", 0, 10)
+        
+        self.assertEquals(0, iu.ppf(0.0))
+        self.assertEquals(5, iu.ppf(0.5))
+        self.assertEquals(10, iu.ppf(1.0))
+        
 class TestCategoricalUncertainty(unittest.TestCase):
     
     def testLevels(self):
@@ -56,3 +70,11 @@ class TestCategoricalUncertainty(unittest.TestCase):
         
         levels = cu.levels(3)
         self.assertTrue(all(i in categories for i in levels))
+        
+    def testPpf(self):
+        categories = ["a", "b", "c"]
+        cu = CategoricalUncertainty("x", categories)
+        
+        self.assertEquals("a", cu.ppf(0.0))
+        self.assertEquals("b", cu.ppf(0.5))
+        self.assertEquals("c", cu.ppf(1.0))
