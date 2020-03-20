@@ -28,6 +28,17 @@ from .model import DataSet
 from .expr import _evaluate
 
 class Brush(object):
+    """Defines a brush to color data points matching an expression.
+    
+    A brush is a mechanism to highlight, or color, data that matches a given
+    expression.  The expression is a string that contains one or more boolean
+    or comparison operators.  Any parameter in the data set can be referenced.
+    For example, if the data set contains parameters "x" and "y", valid 
+    expressions include:
+        x < 5
+        y > 10
+        x <= 5 and y > 10
+    """
     
     def __init__(self, name, expr=None, color=None):
         super(Brush, self).__init__()
@@ -40,6 +51,13 @@ class Brush(object):
         self.color = color
         
 class BrushSet(object):
+    """A collection of Brush objects.
+    
+    If two or more brushes overlap, then the first brush, in the order they
+    are defiend in this collection, determines the coloring.  For example, for
+        BrushSet([Brush("x < 5", "blue"), Brush("x > 3", "green")])
+    a point with value x = 4 will be colored "blue".
+    """
     
     def __init__(self, brushes):
         super(BrushSet, self).__init__()
@@ -77,12 +95,18 @@ class BrushSet(object):
         return [brush.color for brush in self]
     
 def _as_brush_set(input):
+    """Converts the input into a BrushSet.
+    
+    The input can be either a single brush or multiple brush, each defined
+    as either a string (e.g., "x < 5") or a brush (e.g., Brush("x < 5")).
+    """
     if isinstance(input, BrushSet):
         return input
     else:
         return BrushSet(input)
     
 def apply_brush(brush_set, data):
+    """Applies the given brush set to the given data, returning the color assignments."""
     if isinstance(data, DataFrame):
         return _apply_brush_dataframe(brush_set, data)
     elif isinstance(data, DataSet):

@@ -23,6 +23,7 @@ from collections import OrderedDict
 from .model import DataSet
         
 def sample_uniform(model, nsamples):
+    """Returns a data set with uncertainty parameters sampled using a uniform distribution."""
     result = DataSet()
         
     for i in range(nsamples):
@@ -34,6 +35,7 @@ def sample_uniform(model, nsamples):
         result.append(entry)
         
 def sample_lhs(model, nsamples):
+    """Returns a data set with uncertainty parameters sampled using Latin hypercube sampling."""
     if len(model.uncertainties) == 0:
         raise ValueError("model has no uncertainties defined")
     
