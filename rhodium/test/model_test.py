@@ -49,7 +49,7 @@ class TestNamedObjectMap(unittest.TestCase):
         
         m = [p]
         
-        self.assertEquals(p, m["x"])
+        self.assertEquals(p, m[0])
         self.assertTrue("x" in m.keys())
         
 class TestUniformUncertainty(unittest.TestCase):
