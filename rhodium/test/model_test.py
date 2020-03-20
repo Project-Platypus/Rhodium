@@ -21,6 +21,26 @@ import six
 import unittest
 from rhodium.model import *
 
+class TestConstraint(unittest.TestCase):
+    
+    def testSimpleConstraint(self):
+        c = Constraint("x < 1")
+        self.assertTrue(c.is_feasible({ "x" : 0 }))
+        self.assertFalse(c.is_feasible({ "x" : 1 }))
+        
+        self.assertEquals(0, c.distance({ "x" : 0 }))
+        self.assertNotEquals(0, c.distance({ "x" : 1 }))
+        
+    def testComplexConstraint(self):
+        c = Constraint("x < 1 and y > 1")
+        self.assertTrue(c.is_feasible({ "x" : 0, "y" : 2 }))
+        self.assertFalse(c.is_feasible({ "x" : 0, "y" : 1 }))
+        self.assertFalse(c.is_feasible({ "x" : 1, "y" : 1 }))
+        
+        self.assertEquals(0, c.distance({ "x" : 0, "y" : 2 }))
+        self.assertNotEquals(0, c.distance({ "x" : 0, "y" : 1 }))
+        self.assertNotEquals(0, c.distance({ "x" : 1, "y" : 1 }))
+
 class TestUniformUncertainty(unittest.TestCase):
     
     def testLevels(self):
