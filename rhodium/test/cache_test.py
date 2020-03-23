@@ -29,6 +29,17 @@ class TestCache(unittest.TestCase):
         value=cache("testValue", 10) # Should return the cached value of 5
         self.assertEquals(5, value)
         
+    def testFileCache(self):
+        setup_cache(file="test.dat")
+        cache("testValue", 5)
+        self.assertTrue(os.path.exists("test.dat"))
+        
+    def testClearCache(self):
+        cache("tempValue", 5)
+        setup_cache(clear=True)
+        value = cache("tempValue", 10)
+        self.assertEquals(10, value)
+        
     def testFunction(self):
         self.testFunction_called=False
         
