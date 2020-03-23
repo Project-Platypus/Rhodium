@@ -43,7 +43,7 @@ class TestConstraint(unittest.TestCase):
 
 class TestNamedObjectMap(unittest.TestCase):
     
-    def testAdd(self):
+    def test(self):
         m = NamedObjectMap(Parameter)
         p = Parameter("x")
         
@@ -52,6 +52,18 @@ class TestNamedObjectMap(unittest.TestCase):
         self.assertEquals(p, m[0])
         self.assertEquals(p, m["x"])
         self.assertTrue(p in m)
+        
+    def testOrder(self):
+        m = NamedObjectMap(Parameter)
+        p1 = Parameter("x")
+        p2 = Parameter("y")
+        p3 = Parameter("z")
+        
+        m = [p1, p2, p3]
+        
+        self.assertEquals(p1, m[0])
+        self.assertEquals(p2, m[1])
+        self.assertEquals(p3, m[2])
         
 class TestUniformUncertainty(unittest.TestCase):
     
