@@ -393,8 +393,6 @@ class NamedObjectMap(object):
         return len(self._data)
 
     def __getitem__(self, key):
-        print("Here")
-        print(key)
         if isinstance(key, six.integer_types):
             for i, (k, v) in enumerate(six.iteritems(self._data)):
                 if i == key:
@@ -404,6 +402,8 @@ class NamedObjectMap(object):
             return self._data[key]
     
     def __setitem__(self, key, value):
+        print(key)
+        print(value)
         if not isinstance(value, self.type):
             raise TypeError("can only add " + self.type.__name__ + " objects")
         
