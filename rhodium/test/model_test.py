@@ -47,7 +47,7 @@ class TestNamedObjectMap(unittest.TestCase):
         m = NamedObjectMap(Parameter)
         p = Parameter("x")
         
-        m = [p]
+        m[:] = [p]
         
         self.assertEquals(p, m[0])
         self.assertEquals(p, m["x"])
@@ -59,7 +59,7 @@ class TestNamedObjectMap(unittest.TestCase):
         p2 = Parameter("y")
         p3 = Parameter("z")
         
-        m = [p1, p2, p3]
+        m[:] = [p1, p2, p3]
         
         self.assertEquals(p1, m[0])
         self.assertEquals(p2, m[1])
