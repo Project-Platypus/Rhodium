@@ -393,6 +393,8 @@ class NamedObjectMap(object):
         return len(self._data)
 
     def __getitem__(self, key):
+        print("Here")
+        print(key)
         if isinstance(key, six.integer_types):
             for i, (k, v) in enumerate(six.iteritems(self._data)):
                 if i == key:
