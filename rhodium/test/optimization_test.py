@@ -21,12 +21,12 @@ import six
 import unittest
 from rhodium import *
 
+def schaffer(x):
+    return [x**2, (x-2)**2]
+
 class TestOptimization(unittest.TestCase):
     
-    def testOptimize(self):
-        def schaffer(x):
-            return [x**2, (x-2)**2]
-            
+    def testReal(self):   
         model = Model(schaffer)
         
         model.parameters = [Parameter("x")]
@@ -36,8 +36,6 @@ class TestOptimization(unittest.TestCase):
 
         output = optimize(model, "NSGAII", 10000)
         
-        print(output)
-        
         self.assertTrue(len(output) > 0)
         
         for i in range(len(output)):
@@ -45,4 +43,20 @@ class TestOptimization(unittest.TestCase):
             self.assertTrue("f1" in output[i])
             self.assertTrue("f2" in output[i])
         
+    def testInteger(self):
+        model = Model(schaffer)
         
+        model.parameters = [Parameter("x")]
+        model.responses = [Response("f1", Response.MINIMIZE),
+                           Response("f2", Response.MINIMIZE)]
+        model.levers = [IntegerLever("x", -10, 10)]
+
+        output = optimize(model, "NSGAII", 10000)
+        
+        self.assertTrue(len(output) > 0)
+        
+        for i in range(len(output)):
+            self.assertTrue("x" in output[i])
+            self.assertTrue(isinstance(output[i]["x"], six.integer_types)
+            self.assertTrue("f1" in output[i])
+            self.assertTrue("f2" in output[i])
