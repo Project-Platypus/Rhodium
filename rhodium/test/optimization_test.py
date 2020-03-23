@@ -37,5 +37,6 @@ class TestOptimization(unittest.TestCase):
         output = optimize(model, "NSGAII", 10000)
         
         print(output)
+        self.assertTrue("f1" in output)
         
         
