@@ -57,6 +57,6 @@ class TestOptimization(unittest.TestCase):
         
         for i in range(len(output)):
             self.assertTrue("x" in output[i])
-            self.assertTrue(isinstance(output[i]["x"], six.integer_types)
+            self.assertTrue(isinstance(output[i]["x"], six.integer_types))
             self.assertTrue("f1" in output[i])
             self.assertTrue("f2" in output[i])
