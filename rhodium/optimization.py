@@ -48,6 +48,10 @@ class EvaluateJob(Job):
             elif parameter.default_value is not None:
                 args[parameter.name] = parameter.default_value
                 
+        print(args)
+        print(self._args)
+        print(self.model.function)
+                
         # evaluate the model
         raw_output = self.model.function(**args)
         
