@@ -37,6 +37,12 @@ class TestOptimization(unittest.TestCase):
         output = optimize(model, "NSGAII", 10000)
         
         print(output)
-        self.assertTrue("f1" in output)
+        
+        self.assertTrue(len(output) > 0)
+        
+        for i in range(len(output)):
+            self.assertTrue("x" in output[i])
+            self.assertTrue("f1" in output[i])
+            self.assertTrue("f2" in output[i])
         
         
