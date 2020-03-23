@@ -21,19 +21,18 @@ import six
 import unittest
 from rhodium import *
 
-def schaffer(x):
-    return [x**2, (x-2)**2]
-
 class TestOptimization(unittest.TestCase):
     
     def testOptimize(self):
+        def schaffer(x):
+            return [x**2, (x-2)**2]
             
         model = Model(schaffer)
         
         model.parameters = [Parameter("x")]
         model.responses = [Response("f1", Response.MINIMIZE),
                            Response("f2", Response.MINIMIZE)]
-        model.levels = [RealLever("x", -10.0, 10.0)]
+        model.levers = [RealLever("x", -10.0, 10.0)]
 
         output = optimize(model, "NSGAII", 10000)
         
