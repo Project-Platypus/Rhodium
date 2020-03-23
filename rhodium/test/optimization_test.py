@@ -21,11 +21,12 @@ import six
 import unittest
 from rhodium import *
 
-class TestOptimize(unittest.TestCase):
+def schaffer(x):
+    return [x**2, (x-2)**2]
+
+class TestOptimization(unittest.TestCase):
     
     def testOptimize(self):
-        def schaffer(x):
-            return [x**2, (x-2)**2]
             
         model = Model(schaffer)
         
