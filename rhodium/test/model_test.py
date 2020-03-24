@@ -41,32 +41,32 @@ class TestConstraint(unittest.TestCase):
         self.assertNotEquals(0, c.distance({ "x" : 0, "y" : 1 }))
         self.assertNotEquals(0, c.distance({ "x" : 1, "y" : 1 }))
 
-class TestNamedObjectMap(unittest.TestCase):
+class TestModel(unittest.TestCase):
     
     def test(self):
-        m = NamedObjectMap(Parameter)
+        m = Model("foo")
         p = Parameter("x")
         
-        m[:] = [p]
-        
-        self.assertEquals(p, m[0])
-        self.assertEquals(p, m["x"])
-        self.assertTrue(p in m)
-        self.assertTrue("x" in m)
-        self.assertEquals(1, len(m))
+        m.parameters = [p]
+
+        self.assertEquals(1, len(m.parameters))
+        self.assertEquals(p, m.parameters[0])
+        self.assertEquals(p, m.parameters["x"])
+        self.assertTrue(p in m.parameters)
+        self.assertTrue("x" in m.parameters)
         
     def testOrder(self):
-        m = NamedObjectMap(Parameter)
+        m = Model("foo")
         p1 = Parameter("x")
         p2 = Parameter("y")
         p3 = Parameter("z")
         
-        m[:] = [p1, p2, p3]
+        m.parameters = [p1, p2, p3]
         
-        self.assertEquals(p1, m[0])
-        self.assertEquals(p2, m[1])
-        self.assertEquals(p3, m[2])
-        self.assertEquals(3, len(m))
+        self.assertEquals(3, len(m.parameters))
+        self.assertEquals(p1, m.parameters[0])
+        self.assertEquals(p2, m.parameters[1])
+        self.assertEquals(p3, m.parameters[2])
         
 class TestUniformUncertainty(unittest.TestCase):
     
