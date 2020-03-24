@@ -70,7 +70,7 @@ class TestModelParameters(unittest.TestCase):
     def testInvalidType(self):
         m = Model("foo")
         with self.assertRaises(TypeError):
-            m.parameters = [Response("x")])
+            m.parameters = [Response("x")]
         
 class TestUniformUncertainty(unittest.TestCase):
     
