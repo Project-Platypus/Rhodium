@@ -34,6 +34,8 @@ def sample_uniform(model, nsamples):
     
         result.append(entry)
         
+    return result
+        
 def sample_lhs(model, nsamples):
     """Returns a data set with uncertainty parameters sampled using Latin hypercube sampling."""
     if len(model.uncertainties) == 0:
