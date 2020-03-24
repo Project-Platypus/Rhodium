@@ -41,7 +41,7 @@ class TestConstraint(unittest.TestCase):
         self.assertNotEquals(0, c.distance({ "x" : 0, "y" : 1 }))
         self.assertNotEquals(0, c.distance({ "x" : 1, "y" : 1 }))
 
-class TestNamedObjectMap(unittest.TestCase):
+class TestModelParameters(unittest.TestCase):
     
     def test(self):
         m = Model("foo")
