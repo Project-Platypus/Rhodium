@@ -52,7 +52,6 @@ class TestModel(unittest.TestCase):
         self.assertEquals(1, len(m.parameters))
         self.assertEquals(p, m.parameters[0])
         self.assertEquals(p, m.parameters["x"])
-        self.assertTrue(p in m.parameters)
         self.assertTrue("x" in m.parameters)
         
     def testOrder(self):
