@@ -402,6 +402,8 @@ class NamedObjectMap(object):
             return self._data[key]
     
     def __setitem__(self, key, value):
+        print(key)
+        print(value)
         if not isinstance(value, self.type):
             raise TypeError("can only add " + self.type.__name__ + " objects")
         

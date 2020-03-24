@@ -41,15 +41,36 @@ class TestConstraint(unittest.TestCase):
         self.assertNotEquals(0, c.distance({ "x" : 0, "y" : 1 }))
         self.assertNotEquals(0, c.distance({ "x" : 1, "y" : 1 }))
 
-class TestNamedObjectMap(unittest.TestCase):
+class TestModelParameters(unittest.TestCase):
     
-    def testAdd(self):
-        m = NamedObjectMap(Parameter)
+    def test(self):
+        m = Model("foo")
         p = Parameter("x")
         
-        m = [p]
+        m.parameters = [p]
+
+        self.assertEquals(1, len(m.parameters))
+        self.assertEquals(p, m.parameters[0])
+        self.assertEquals(p, m.parameters["x"])
+        self.assertTrue("x" in m.parameters)
         
-        self.assertEquals(p, m[0])
+    def testOrder(self):
+        m = Model("foo")
+        p1 = Parameter("x")
+        p2 = Parameter("y")
+        p3 = Parameter("z")
+        
+        m.parameters = [p1, p2, p3]
+        
+        self.assertEquals(3, len(m.parameters))
+        self.assertEquals(p1, m.parameters[0])
+        self.assertEquals(p2, m.parameters[1])
+        self.assertEquals(p3, m.parameters[2])
+        
+    def testInvalidType(self):
+        m = Model("foo")
+        with self.assertRaises(TypeError):
+            m.parameters = [Response("x")]
         
 class TestUniformUncertainty(unittest.TestCase):
     
