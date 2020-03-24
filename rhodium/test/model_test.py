@@ -69,7 +69,8 @@ class TestNamedObjectMap(unittest.TestCase):
         
     def testInvalidType(self):
         m = Model("foo")
-        self.assertRaises(TypeError, lambda : m.parameters = [Response("x")])
+        with self.assertRaises(TypeError):
+            m.parameters = [Response("x")])
         
 class TestUniformUncertainty(unittest.TestCase):
     
