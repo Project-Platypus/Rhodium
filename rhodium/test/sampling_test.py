@@ -33,7 +33,7 @@ class TestSampling(unittest.TestCase):
 
         for i in range(len(samples)):
             self.assertTrue("x" in samples[i])
-            self.assertTrue(samples[i][x] >= 5.0 and samples[i][x] <= 10.0)
+            self.assertTrue(samples[i]["x"] >= 5.0 and samples[i]["x"] <= 10.0)
         
     def testLHS(self):
         model = Model("foo")
@@ -45,4 +45,4 @@ class TestSampling(unittest.TestCase):
 
         for i in range(len(samples)):
             self.assertTrue("x" in samples[i])
-            self.assertTrue(samples[i][x] >= 5.0 and samples[i][x] <= 10.0)
+            self.assertTrue(samples[i]["x"] >= 5.0 and samples[i]["x"] <= 10.0)
