@@ -15,7 +15,7 @@ class NoseTestCommand(TestCommand):
         nose.run_exit(argv=['nosetests'])
 
 setup(name='Rhodium',
-      version='0.1',
+      version='1.0',
       description='Robust decision making and exploratory modelling in Python',
       author='David Hadka',
       author_email='dhadka@users.noreply.github.com',
