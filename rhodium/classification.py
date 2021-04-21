@@ -30,7 +30,7 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import sklearn
 from sklearn import tree
-from sklearn.externals.six import StringIO
+from six import StringIO
 from distutils.version import StrictVersion
 from prim import Prim
 from io import BytesIO
