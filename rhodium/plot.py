@@ -741,10 +741,10 @@ def parallel_coordinates(model, data, c=None, cols=None, ax=None, colors=None,
     for i in range(ncols):
         if target == "top":
             if model.responses[df.columns.values[i]].dir == Response.MINIMIZE:
-                df.ix[:,i] = 1-df.ix[:,i]
+                df.iloc[:,i] = 1-df.iloc[:,i]
         elif target == "bottom":
             if model.responses[df.columns.values[i]].dir == Response.MAXIMIZE:
-                df.ix[:,i] = 1-df.ix[:,i]
+                df.iloc[:,i] = 1-df.iloc[:,i]
 
     # determine values to use for xticks
     if use_columns is True:
