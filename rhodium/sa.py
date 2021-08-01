@@ -35,10 +35,10 @@ from .optimization import *
 from .sampling import *
 
 def _cleanup_kwargs(function, kwargs):
-    argspec = inspect.getargspec(function)
+    argspec = inspect.getfullargspec(function)
     result = {}
     
-    if not argspec.keywords:
+    if not argspec.varkw:
         for key in kwargs.keys():
             if key in argspec.args or hasattr(argspec, "kwargs"):
                 result[key] = kwargs[key]
