@@ -15,11 +15,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import division, print_function, absolute_import
-
 import os
 import ast
-import six
 import math
 import inspect
 import random
@@ -53,7 +50,7 @@ class Parameter(NamedObject):
         super(Parameter, self).__init__(name)
         self.default_value = default_value
 
-        for k, v in six.iteritems(kwargs):
+        for k, v in kwargs.items():
             setattr(self, k, v)
         
 class Response(NamedObject):
@@ -75,7 +72,7 @@ class Response(NamedObject):
         super(Response, self).__init__(name)
         self.dir = dir
         
-        for k, v in six.iteritems(kwargs):
+        for k, v in kwargs.items():
             setattr(self, k, v)
         
 _eval_env = {}
@@ -393,8 +390,8 @@ class NamedObjectMap(object):
         return len(self._data)
 
     def __getitem__(self, key):
-        if isinstance(key, six.integer_types):
-            for i, (k, v) in enumerate(six.iteritems(self._data)):
+        if isinstance(key, int):
+            for i, (k, v) in enumerate(self._data.items()):
                 if i == key:
                     return v
             raise KeyError(key)
@@ -407,8 +404,8 @@ class NamedObjectMap(object):
         if not isinstance(value, self.type):
             raise TypeError("can only add " + self.type.__name__ + " objects")
         
-        if isinstance(key, six.integer_types):
-            self._data = OrderedDict([(value.name, value) if i==key else (k, v) for i, (k, v) in enumerate(six.iteritems(self._data))])
+        if isinstance(key, int):
+            self._data = OrderedDict([(value.name, value) if i==key else (k, v) for i, (k, v) in enumerate(self._data.items())])
         else: 
             if value.name != key:
                 raise ValueError("key does not match name of " + self.type.__name__)
@@ -538,7 +535,7 @@ class DataSet(list):
     def __init__(self, data=[]):
         super(DataSet, self).__init__()
         
-        if isinstance(data, six.string_types):
+        if isinstance(data, str):
             self.load(data)
         else:
             for entry in data:
@@ -776,7 +773,7 @@ def load(file, format=None, parameters=[], **kwargs):
     names = list(df.columns.values)
     data = DataSet()
     
-    if isinstance(parameters, six.string_types):
+    if isinstance(parameters, str):
         parameters = [parameters]
     
     for i in range(df.shape[0]):
@@ -788,7 +785,7 @@ def load(file, format=None, parameters=[], **kwargs):
         data.append(entry)
         
     model = _FileModel()
-    model.parameters = [Parameter(names[j] if isinstance(j, six.integer_types) else j) for j in parameters]
+    model.parameters = [Parameter(names[j] if isinstance(j, int) else j) for j in parameters]
     model.responses = [Response(names[j]) for j in range(df.shape[1]) if j not in parameters and names[j] not in parameters]
         
     return (model, data)

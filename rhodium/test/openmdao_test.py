@@ -15,8 +15,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import division, print_function, absolute_import
-
 import unittest
 from ..model import *
 from ..optimization import *
@@ -31,7 +29,7 @@ class TestOpenMDAOModel(unittest.TestCase):
         except ImportError:
             self.skipTest("OpenMDAO not available")
 
-        # the following example is taken from OpenMDAMO's Paraboloid tutorial
+        # the following example is taken from OpenMDAO's Paraboloid tutorial
         class Paraboloid(Component):
             """ Evaluates the equation f(x,y) = (x-3)^2 + xy + (y+4)^2 - 3 """
         

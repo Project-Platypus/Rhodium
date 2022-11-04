@@ -12,16 +12,14 @@ readme = "README.md"
 license = { file="COPYING" }
 requires-python = ">= 3.6"
 dependencies = [
-  "six",
   "numpy",
   "seaborn",
-  "mpldatacursor",
+  "mplcursors",
   "pydot",
   "prim",
   "SALib",
   "platypus-opt",
-  "sklearn",
-  "openmdao"
+  "sklearn"
 ]
 dynamic = ["version"]  # Version is read from rhodium/__init__.py
 

@@ -15,7 +15,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
-import six
 import win32com.client
 from win32com.universal import com_error
 from .model import *
@@ -70,7 +69,7 @@ class ExcelHelper(object):
             
     def _dereference(self, cell):
         try:
-            if isinstance(cell, six.string_types):
+            if isinstance(cell, str):
                 return self.sheet.Range(cell)
             elif isinstance(cell, (list, tuple)) and len(cell) == 2:
                 return self.sheet.Cells(cell[0], cell[1])

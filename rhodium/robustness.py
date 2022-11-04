@@ -15,8 +15,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import division, print_function, absolute_import
-
 import numpy as np
 import scipy.spatial as sp
 from .model import *
@@ -104,7 +102,7 @@ def satisficing_type2(model, results, baseline, expr=None):
     return 0.0 if len(distances) == 0 else min(distances)
 
 def evaluate_robustness(model, policies, SOWs=1000, in_place=True, return_all=False):
-    if isinstance(SOWs, six.integer_types):
+    if isinstance(SOWs, int):
         SOWs = sample_lhs(model, SOWs)
     
     # evaluate the policies

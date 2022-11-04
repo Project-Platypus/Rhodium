@@ -15,9 +15,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import division, print_function, absolute_import
-
-import six
 import unittest
 from rhodium import *
 
@@ -57,6 +54,6 @@ class TestOptimization(unittest.TestCase):
         
         for i in range(len(output)):
             self.assertTrue("x" in output[i])
-            self.assertTrue(isinstance(output[i]["x"], six.integer_types))
+            self.assertTrue(isinstance(output[i]["x"], int))
             self.assertTrue("f1" in output[i])
             self.assertTrue("f2" in output[i])

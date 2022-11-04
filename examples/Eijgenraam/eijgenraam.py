@@ -1,5 +1,3 @@
-from __future__ import division
-
 import math
 import bisect
 import numbers
@@ -35,7 +33,7 @@ raw_data = {
     51 : ( 15.0000, 0.6000, 0.0071, 0.036173, 0.294, 0.004315,   570.4, 0.00171, 1/1250),
     52 : ( 49.2200, 1.6075, 0.0047, 0.036173, 0.304, 0.001716,  4025.6, 0.00171, 1/1250),
     53 : ( 69.4565, 1.1625, 0.0028, 0.031651, 0.336, 0.002700,  9819.5, 0.00171, 1/1250)}
-data = {i : {k : v for k, v in zip(params, raw_data[i])} for i in six.iterkeys(raw_data)}
+data = {i : {k : v for k, v in zip(params, raw_data[i])} for i in raw_data.keys()}
 
 # Set the ring we are analyzing
 ring = 15
