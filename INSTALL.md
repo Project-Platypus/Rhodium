@@ -16,8 +16,6 @@ Attention Mac users: See the troubleshooting section for information on installi
 
      * In the command prompt, create a folder where the code repositories will be stored
      * Run the following commands
-     * git clone https://github.com/Project-Platypus/PRIM.git
-     * git clone https://github.com/Project-Platypus/Platypus.git
      * git clone https://github.com/Project-Platypus/Rhodium.git
 
   2. Build the Git repositories (which will also install all Python dependencies)

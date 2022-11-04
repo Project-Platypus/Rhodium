@@ -62,7 +62,7 @@ class HandlerSizeLegend(HandlerPatch):
     def __call__(self, legend, orig_handle,
              fontsize,
              handlebox):
-        print("Here")
+        print("here")
     
     def create_artists(self, legend, orig_handle,
                       xdescent, ydescent, width, height, fontsize, trans):
@@ -354,12 +354,13 @@ def scatter2d(model, data,
             cb.set_label(c_label)
         else:
             handle.set_array(np.asarray(color_indices(c, color_map)))
-            handle.cmap = mpl.colors.ListedColormap(list(six.itervalues(color_map)))
+            handle.cmap = mpl.colors.ListedColormap(list(color_map.values()))
             off = (len(color_map)-1)/(len(color_map))/2
             height = (len(color_map)-1)-2*off
             ticks = [0] if len(color_map) <= 1 else [(i/(len(color_map)-1) * height + off) for i in range(len(color_map))]
             cb = fig.colorbar(handle, shrink=0.5, aspect=5, ticks=ticks)
             cb.set_label("")
+            cb.ax.set_xticks(ticks)
             cb.ax.set_xticklabels(color_map.keys())
             cb.ax.set_yticklabels(color_map.keys())
     
@@ -388,8 +389,8 @@ def scatter2d(model, data,
 def joint(model, data, x, y, **kwargs):
     df = data.as_dataframe(_combine_keys(x, y))
     
-    sns.jointplot(df[x],
-                  df[y],
+    sns.jointplot(x=df[x],
+                  y=df[y],
                   **kwargs)
 
 def pairs(model, data,
@@ -418,11 +419,11 @@ def kdeplot(model, data, x, y,
     df = data.as_dataframe()
     
     if brush is None:
-        sns.kdeplot(df[x],
-                    df[y],
+        sns.kdeplot(x=df[x],
+                    y=df[y],
                     cmap=cmap[0],
-                    shade=True,
-                    shade_lowest=False,
+                    fill=True,
+                    thresh=0.05,
                     alpha=alpha,
                     **kwargs)
         
@@ -438,11 +439,11 @@ def kdeplot(model, data, x, y,
             
         for i, brush in reversed(list(enumerate(brush_set))):
             bin = df.query(brush.expr)
-            sns.kdeplot(bin[x],
-                        bin[y],
+            sns.kdeplot(x=bin[x],
+                        y=bin[y],
                         cmap=cmap[i % len(cmap)],
-                        shade=True,
-                        shade_lowest=False,
+                        fill=True,
+                        thresh=0.05,
                         alpha=alpha,
                         **kwargs)
             proxies.append(mpatches.Circle((0.5, 0.5),
@@ -741,10 +742,10 @@ def parallel_coordinates(model, data, c=None, cols=None, ax=None, colors=None,
     for i in range(ncols):
         if target == "top":
             if model.responses[df.columns.values[i]].dir == Response.MINIMIZE:
-                df.ix[:,i] = 1-df.ix[:,i]
+                df.iloc[:,i] = 1-df.iloc[:,i]
         elif target == "bottom":
             if model.responses[df.columns.values[i]].dir == Response.MAXIMIZE:
-                df.ix[:,i] = 1-df.ix[:,i]
+                df.iloc[:,i] = 1-df.iloc[:,i]
 
     # determine values to use for xticks
     if use_columns is True:
@@ -839,7 +840,7 @@ def parallel_coordinates(model, data, c=None, cols=None, ax=None, colors=None,
 
     ax.set_yticks([])
     ax.set_xticks(x)
-    ax.set_xticklabels(df.columns, {"weight" : "bold", "size" : 12})
+    ax.set_xticklabels(df.columns)
     ax.set_xlim(x[0]-0.1, x[-1]+0.1)
     ax.tick_params(direction="out", pad=10)
     
