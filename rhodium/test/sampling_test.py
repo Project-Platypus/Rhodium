@@ -29,7 +29,7 @@ class TestSampling(unittest.TestCase):
         
         samples = sample_uniform(model, 100)
         
-        self.assertEquals(100, len(samples))
+        self.assertEqual(100, len(samples))
 
         for i in range(len(samples)):
             self.assertTrue("x" in samples[i])
@@ -41,7 +41,7 @@ class TestSampling(unittest.TestCase):
         
         samples = sample_lhs(model, 100)
         
-        self.assertEquals(100, len(samples))
+        self.assertEqual(100, len(samples))
 
         for i in range(len(samples)):
             self.assertTrue("x" in samples[i])

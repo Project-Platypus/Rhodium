@@ -1,4 +1,4 @@
-<img align="left" src="images/logo.png" />
+<img align="left" src="logo.png" />
 
 # Rhodium #
 

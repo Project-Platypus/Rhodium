@@ -27,7 +27,7 @@ class TestCache(unittest.TestCase):
     def testSimpleCache(self):
         cache("testValue", 5)
         value=cache("testValue", 10) # Should return the cached value of 5
-        self.assertEquals(5, value)
+        self.assertEqual(5, value)
         
     def testFunction(self):
         self.testFunction_called=False
@@ -37,13 +37,13 @@ class TestCache(unittest.TestCase):
             return 5
         
         value=cache("testFun", fun)
-        self.assertEquals(True, self.testFunction_called)
-        self.assertEquals(5, value)
+        self.assertEqual(True, self.testFunction_called)
+        self.assertEqual(5, value)
         self.testFunction_called=False
         
         value=cache("testFun", fun)
-        self.assertEquals(False, self.testFunction_called)
-        self.assertEquals(5, value)
+        self.assertEqual(False, self.testFunction_called)
+        self.assertEqual(5, value)
         
     def testCachedFunction(self):
         self.testCachedFunction_called=False
@@ -54,11 +54,11 @@ class TestCache(unittest.TestCase):
             return 5
         
         value=fun()
-        self.assertEquals(True, self.testCachedFunction_called)
-        self.assertEquals(5, value)
+        self.assertEqual(True, self.testCachedFunction_called)
+        self.assertEqual(5, value)
         self.testCachedFunction_called=False
         
         value=fun()
-        self.assertEquals(False, self.testCachedFunction_called)
-        self.assertEquals(5, value)
+        self.assertEqual(False, self.testCachedFunction_called)
+        self.assertEqual(5, value)
             

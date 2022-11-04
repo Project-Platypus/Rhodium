@@ -51,7 +51,7 @@ class TestNativeModel(unittest.TestCase):
                             Parameter("y", type="double")]
         model.responses = [Response("z", type="double")]
         result = evaluate(model, {"x" : 3, "y" : 5})
-        self.assertEquals(15, result["z"])
+        self.assertEqual(15, result["z"])
         
     def testArgumentReturn(self):
         model = NativeModel(TestNativeModel.sopath, "arg_return")
@@ -59,14 +59,14 @@ class TestNativeModel(unittest.TestCase):
                             Parameter("y", type="double")]
         model.responses = [Response("z", type="double", asarg=True)]
         result = evaluate(model, {"x" : 3, "y" : 5})
-        self.assertEquals(15, result["z"])
+        self.assertEqual(15, result["z"])
 
     def testSum(self):
         model = NativeModel(TestNativeModel.sopath, "sum")
         model.parameters = [Parameter("x", type="double*10")]
         model.responses = [Response("sum", type="double")]
         result = evaluate(model, {"x" : [1, 2, 3, 4, 5]})
-        self.assertEquals(15, result["sum"])
+        self.assertEqual(15, result["sum"])
        
     def testArrayAdd(self):
         model = NativeModel(TestNativeModel.sopath, "array_add")
@@ -75,5 +75,5 @@ class TestNativeModel(unittest.TestCase):
                             Parameter("n", type="int")]
         model.responses = [Response("z", type="double*", len_arg="n", asarg=True)]
         result = evaluate(model, {"x" : [1, 2, 3, 4, 5], "y" : [5, 4, 3, 2, 1]})
-        self.assertEquals([6, 6, 6, 6, 6], result["z"])
+        self.assertEqual([6, 6, 6, 6, 6], result["z"])
  
