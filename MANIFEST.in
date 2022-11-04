@@ -1,0 +1,4 @@
+include COPYING
+recursive-include examples *.py
+recursive-include rhodium/tests *.py
+prune dist

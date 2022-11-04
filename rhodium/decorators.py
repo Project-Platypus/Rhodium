@@ -128,7 +128,7 @@ class RhodiumModel(object):
         if not hasattr(f, "rhodium_model"):
             f.rhodium_model = CallableModel(f)
             
-        argspec = inspect.getargspec(f)
+        argspec = inspect.getfullargspec(f)
         nargs = len(argspec.args)
         ndefs = len(argspec.defaults)
             

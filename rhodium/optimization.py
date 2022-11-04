@@ -36,7 +36,7 @@ class EvaluateJob(Job):
         super(EvaluateJob, self).__init__()
         self.model = model
         self.sample = sample
-        self._args = inspect.getargspec(model.function).args
+        self._args = inspect.getfullargspec(model.function).args
         
     def run(self):
         # populate model arguments

@@ -68,7 +68,7 @@ class TestExcelModel(unittest.TestCase):
     
     @unittest.skipUnless(sys.platform.startswith("win"), "requires Windows")
     def testEvaluate(self):
-        from ..excel import ExcelHelper
+        from ..excel import ExcelModel
         file = os.path.join(os.path.dirname(__file__), "TestModel.xlsx")
         
         with ExcelModel(file) as model:
@@ -81,7 +81,7 @@ class TestExcelModel(unittest.TestCase):
         
     @unittest.skipUnless(sys.platform.startswith("win"), "requires Windows")    
     def testSample(self):
-        from ..excel import ExcelHelper
+        from ..excel import ExcelModel
         file = os.path.join(os.path.dirname(__file__), "TestModel.xlsx")
         
         with ExcelModel(file) as model:
