@@ -15,13 +15,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import division, print_function, absolute_import
-
-import six
 import random
 import inspect
-import numbers
-import functools
 from rhodium import *
 
 MINIMIZE = Response.MINIMIZE
@@ -161,14 +156,14 @@ class Parameters(object):
             f.rhodium_model = CallableModel(f)
         
         for v in self.args:
-            if isinstance(v, six.string_types):
+            if isinstance(v, str):
                 f.rhodium_model.parameters[v] = Parameter(v)
             elif isinstance(v, Parameter):
                 f.rhodium_model.parameters[v.name] = v
             else:
                 raise ValueError("arg must be a string or Parameter")
         
-        for k, v in six.iteritems(self.kwargs):
+        for k, v in self.kwargs.items():
             if isinstance(v, dict):
                 f.rhodium_model.parameters[k] = Parameter(k, **v)
             elif isinstance(v, (list, tuple)):
@@ -196,7 +191,7 @@ class Responses(object):
 #                 f.rhodiuim_model.responses[v] = Response(v, Response.INFO)
 #         else:
 #             for v in self.args:
-#                 if isinstance(v, six.string_types):
+#                 if isinstance(v, str):
 #                     f.rhodium_model.responses[v] = Response(v, Response.INFO)
 #                 elif isinstance(v, Response):
 #                     f.rhodium_model.responses[v.name] = v
@@ -204,14 +199,14 @@ class Responses(object):
 #                     raise ValueError("arg must be a string or Response")
 
         for v in self.args:
-            if isinstance(v, six.string_types):
+            if isinstance(v, str):
                 f.rhodium_model.responses[v] = Response(v, Response.INFO)
             elif isinstance(v, Response):
                 f.rhodium_model.responses[v.name] = v
             else:
                 raise ValueError("arg must be a string or Response")
         
-        for k, v in six.iteritems(self.kwargs):
+        for k, v in self.kwargs.items():
             if isinstance(v, UnnamedObject):
                 f.rhodium_model.responses[k] = v.convert(k)
             elif isinstance(v, dict):
@@ -235,7 +230,7 @@ class Constraints(object):
         for v in self.args:
             if isinstance(v, Constraint):
                 f.rhodium_model.constraints.append(v)
-            elif isinstance(v, six.string_types) or callable(v):
+            elif isinstance(v, str) or callable(v):
                 f.rhodium_model.constraints.append(Constraint(v))
             else:
                 raise ValueError("arg must be a Constraint, string, or callable")
@@ -258,7 +253,7 @@ class Levers(object):
             else:
                 raise ValueError("arg must be a Lever")
             
-        for k, v in six.iteritems(self.kwargs):
+        for k, v in self.kwargs.items():
             if isinstance(v, UnnamedObject):
                 f.rhodium_model.levers[k] = v.convert(k)
             else:
@@ -282,7 +277,7 @@ class Uncertainties(object):
             else:
                 raise ValueError("arg must be an Uncertainty")
             
-        for k, v in six.iteritems(self.kwargs):
+        for k, v in self.kwargs.items():
             if isinstance(v, UnnamedObject):
                 f.rhodium_model.uncertainties[k] = v.convert(k)
             else:

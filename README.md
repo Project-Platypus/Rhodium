@@ -13,6 +13,32 @@ making (MORDM), and exploratory modelling (EM).
 * [Installation Instructions](INSTALL.md)
 * [Examples](https://github.com/Project-Platypus/Rhodium/tree/master/examples)
 
+#### Installation
+
+To install the latest Rhodium release, run the following command:
+
+```
+pip install rhodium
+```
+
+To install the latest development version of Rhodium, run the following commands:
+
+```
+pip install -U build setuptools
+git clone https://github.com/Project-Platypus/Rhodium.git
+cd Rhodium
+python -m build
+```
+
+Rhodium has several optional dependencies that enable additional graphical and analytical capabilities.
+
+1. [GraphViz](http://www.graphviz.org/Download.php) - Required for CART figures (`Cart#show_tree`)
+2. `pip install pywin32` - Required to connect to Excel models (`ExcelModel`)
+3. `pip install openmdao` - Required to connect to OpenMDAO models (`OpenMDAOModel`)
+4. `pip install pyper` - Required to connect to R models (`RModel`)
+4. `pip install images2gif` - Required to produce 3D animated GIFs (`animate3d`)
+5. [J3Py](https://github.com/Project-Platypus/J3Py) - Interactive 3D visualizations
+
 #### What is Robust Decision Making?
 
 Robust Decision Making (RDM) is an analytic framework developed by Robert Lempert and his

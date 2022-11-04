@@ -15,9 +15,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import division, print_function, absolute_import
-
-import six
 import random
 from collections import OrderedDict
 from .model import DataSet
@@ -53,7 +50,7 @@ def sample_lhs(model, nsamples):
     for i in range(nsamples):
         entry = OrderedDict()
         
-        for key, values in six.iteritems(samples):
+        for key, values in samples.items():
             entry[key] = values[i]
     
         result.append(entry)

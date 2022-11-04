@@ -16,9 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
 import re
-import six
 import ctypes
-import itertools
 from .model import *
 
 TYPE_RE = re.compile(r"([a-zA-Z ]+)\s*(\*?)\s*((?:[0-9]+)?)")
@@ -76,7 +74,7 @@ class NativeModel(Model):
         if hasattr(argument, "type"):
             type = getattr(argument, "type")
                 
-            if isinstance(type, six.string_types):
+            if isinstance(type, str):
                 match = TYPE_RE.match(type)
                 
                 if match:
@@ -130,7 +128,7 @@ class NativeModel(Model):
                 else:
                     length_args[getattr(parameter, "len_arg")] = len(kwargs[parameter.name])
                     
-        for k, v in six.iteritems(length_args):
+        for k, v in length_args.items():
             kwargs[k] = v
     
         # second pass places arguments with the order attribute

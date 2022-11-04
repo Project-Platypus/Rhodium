@@ -15,12 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import division, print_function, absolute_import
-
-import six
 import matplotlib as mpl
-import matplotlib.pyplot as plt
-import seaborn as sns
 from collections import OrderedDict
 from pandas.core.frame import DataFrame
 from .config import RhodiumConfig
@@ -71,7 +66,7 @@ class BrushSet(object):
                 self.map[brush.name] = brush
             elif isinstance(brush, BrushSet):
                 self.map.update(brush.map)
-            elif isinstance(brush, six.string_types):
+            elif isinstance(brush, str):
                 self.map[brush] = Brush(brush, brush)
             else:
                 raise ValueError("only Brush or string expressions can be added to BrushSet")
@@ -80,7 +75,7 @@ class BrushSet(object):
         return len(self.map)
     
     def keys(self):
-        return six.iterkeys(self.map)
+        return self.map.keys()
     
     def __contains__(self, key):
         return key in self.map
@@ -89,7 +84,7 @@ class BrushSet(object):
         return self.map[key]
     
     def __iter__(self):
-        return six.itervalues(self.map)
+        return iter(self.map.values())
     
     def colors(self):
         return [brush.color for brush in self]
@@ -166,13 +161,13 @@ def brush_color_map(brush_set, assignment):
             color_map[b.name] = cc.to_rgba(b.color) if b.color is not None else None
              
     # determine if any brushes have no assigned color and pick one   
-    unassigned_count = sum([1 if x is None else 0 for x in six.itervalues(color_map)])
+    unassigned_count = sum([1 if x is None else 0 for x in color_map.values()])
     
     if unassigned_count > 0:
         brush_colors = RhodiumConfig.default_brush_colors
         count = 0
         
-        for k, v in six.iteritems(color_map):
+        for k, v in color_map.items():
             if v is None:
                 color_map[k] = brush_colors[count]
                 count += 1
@@ -185,5 +180,5 @@ def color_brush(brush_set, data, **kwargs):
     return ([color_map[a] for a in assignment], color_map)
 
 def color_indices(c, color_map):
-    values = list(six.itervalues(color_map))
+    values = list(color_map.values())
     return [values.index(v) for v in c]

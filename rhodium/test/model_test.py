@@ -15,9 +15,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import division, print_function, absolute_import
-
-import six
 import unittest
 from rhodium.model import *
 
@@ -97,11 +94,11 @@ class TestIntegerUncertainty(unittest.TestCase):
         
         levels = iu.levels(50)
         self.assertTrue(all(i >= 0 and i <= 10 for i in levels))
-        self.assertTrue(all(isinstance(i, six.integer_types) for i in levels))
+        self.assertTrue(all(isinstance(i, int) for i in levels))
         
         levels = iu.levels(3)
         self.assertTrue(all(i >= 0 and i <= 10 for i in levels))
-        self.assertTrue(all(isinstance(i, six.integer_types) for i in levels))
+        self.assertTrue(all(isinstance(i, int) for i in levels))
         
     def testPpf(self):
         iu = IntegerUncertainty("x", 0, 10)

@@ -15,10 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import division, print_function, absolute_import
-
 import os
-import sys
 import unittest
 from ..model import *
 from ..optimization import *

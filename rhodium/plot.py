@@ -15,11 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import division, print_function, absolute_import
-
-import six
-import warnings
-import mpldatacursor
+import mplcursors
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
@@ -47,7 +43,7 @@ def _combine_keys(*args):
         if arg is None:
             continue
         
-        if hasattr(arg, "__iter__") and not isinstance(arg, six.string_types):
+        if hasattr(arg, "__iter__") and not isinstance(arg, str):
             for key in arg:
                 if key not in result_set:
                     result.append(key)
@@ -106,31 +102,31 @@ def scatter3d(model, data,
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     
-    if isinstance(x, six.string_types):
+    if isinstance(x, str):
         x_label = x
         x = df[x_label]
     else:
         x_label = None
             
-    if isinstance(y, six.string_types):
+    if isinstance(y, str):
         y_label = y
         y = df[y_label]
     else:
         y_label = None
         
-    if isinstance(z, six.string_types):
+    if isinstance(z, str):
         z_label = z
         z = df[z_label]
     else:
         z_label = None
         
-    if isinstance(c, six.string_types):
+    if isinstance(c, str):
         c_label = c
         c = df[c_label]
     else:
         c_label = None
         
-    if isinstance(s, six.string_types):
+    if isinstance(s, str):
         s_label = s
         s = df[s_label]
     else:
@@ -198,7 +194,7 @@ def scatter3d(model, data,
             cb.set_label(c_label)
         else:
             handle.set_array(np.asarray(color_indices(c, color_map)))
-            handle.cmap = mpl.colors.ListedColormap(list(six.itervalues(color_map)))
+            handle.cmap = mpl.colors.ListedColormap(list(color_map.values()))
             off = (len(color_map)-1)/(len(color_map))/2
             height = (len(color_map)-1)-2*off
             ticks = [0] if len(color_map) <= 1 else [(i/(len(color_map)-1) * height + off) for i in range(len(color_map))]
@@ -214,8 +210,8 @@ def scatter3d(model, data,
                   handler_map={proxy: HandlerSizeLegend()})
         
     if interactive:
-        def formatter(**kwargs):
-            i = kwargs.get("ind")[0]
+        def formatter(sel):
+            i = sel.index
             point = data[i]
             keys = model.responses.keys()
             label = "Index %d" % i
@@ -225,7 +221,9 @@ def scatter3d(model, data,
             
             return label
             
-        mpldatacursor.datacursor(artists=handle, formatter=formatter, hover=True)
+        c = mplcursors.cursor(handle, hover=True)
+        c.connect(
+            "add", lambda sel: sel.annotation.set_text(formatter(sel)))
         
     if pick_handler:
         def handle_click(event):
@@ -262,25 +260,25 @@ def scatter2d(model, data,
         brush_set = BrushSet(brush)
         c, color_map = color_brush(brush_set, df)
     
-    if isinstance(x, six.string_types):
+    if isinstance(x, str):
         x_label = x
         x = df[x_label]
     else:
         x_label = None
             
-    if isinstance(y, six.string_types):
+    if isinstance(y, str):
         y_label = y
         y = df[y_label]
     else:
         y_label = None
         
-    if isinstance(c, six.string_types):
+    if isinstance(c, str):
         c_label = c
         c = df[c_label]
     else:
         c_label = None
         
-    if isinstance(s, six.string_types):
+    if isinstance(s, str):
         s_label = s
         s = df[s_label]
     else:
@@ -371,8 +369,8 @@ def scatter2d(model, data,
                   handler_map={mpatches.Circle: HandlerSizeLegend()})
     
     if interactive:  
-        def formatter(**kwargs):
-            i = kwargs.get("ind")[0]
+        def formatter(sel):
+            i = sel.index
             point = data[i]
             keys = model.responses.keys()
             label = "Index %d" % i
@@ -382,7 +380,9 @@ def scatter2d(model, data,
             
             return label
             
-        mpldatacursor.datacursor(artists=handle, formatter=formatter, hover=True)
+        c = mplcursors.cursor(handle, hover=True)
+        c.connect(
+            "add", lambda sel: sel.annotation.set_text(formatter(sel)))
         
     return fig
 
@@ -473,19 +473,19 @@ def interact(model, data, x, y, z, **kwargs):
 def contour2d(model, data, x=None, y=None, z=None, levels=15, size=100, xlim=None, ylim=None, labels=True, show_colorbar=True, shrink=0.05, method='cubic', **kwargs):
     df = data.as_dataframe(_combine_keys(model.responses.keys(), x, y, z))
     
-    if isinstance(x, six.string_types):
+    if isinstance(x, str):
         x_label = x
         x = df[x_label]
     else:
         x_label = None
             
-    if isinstance(y, six.string_types):
+    if isinstance(y, str):
         y_label = y
         y = df[y_label]
     else:
         y_label = None
         
-    if isinstance(z, six.string_types):
+    if isinstance(z, str):
         z_label = z
         z = df[z_label]
     else:
@@ -576,19 +576,19 @@ def contour3d(model, data, x=None, y=None, z=None, xlim=None, ylim=None, levels=
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     
-    if isinstance(x, six.string_types):
+    if isinstance(x, str):
         x_label = x
         x = df[x_label]
     else:
         x_label = None
             
-    if isinstance(y, six.string_types):
+    if isinstance(y, str):
         y_label = y
         y = df[y_label]
     else:
         y_label = None
         
-    if isinstance(z, six.string_types):
+    if isinstance(z, str):
         z_label = z
         z = df[z_label]
     else:

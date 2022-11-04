@@ -15,9 +15,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import division, print_function, absolute_import
-
-import six
 import ast
 
 _eval_env = {}
@@ -50,12 +47,12 @@ def _evaluate(expr, env, update_env=True):
     tmp_env.update(_eval_env)
     tmp_env.update(env)
             
-    if isinstance(expr, six.string_types):
+    if isinstance(expr, str):
         tree = ast.parse(expr, mode="exec")
         result_keys = _get_result_keys(tree)
         
         if update_env and len(result_keys) > 0:
-            six.exec_(expr, {}, tmp_env)
+            exec(expr, {}, tmp_env)
                     
             for key in result_keys:
                 env[key] = tmp_env[key]
@@ -66,7 +63,7 @@ def _evaluate(expr, env, update_env=True):
                 return [tmp_env[key] for key in result_keys]
         else:
             return eval(expr, {}, tmp_env)
-    elif six.callable(expr):
+    elif callable(expr):
         tmp_env = {}
         tmp_env.update(env)
         
@@ -77,7 +74,7 @@ def _evaluate(expr, env, update_env=True):
 def _evaluate_all(expr, iterable, update_env=True):
     result = []
             
-    if isinstance(expr, six.string_types):
+    if isinstance(expr, str):
         tree = ast.parse(expr, mode="exec")
         result_keys = _get_result_keys(tree)
             
@@ -87,7 +84,7 @@ def _evaluate_all(expr, iterable, update_env=True):
             tmp_env.update(env)
             
             if update_env and len(result_keys) > 0:
-                six.exec_(expr, {}, tmp_env)
+                exec(expr, {}, tmp_env)
                         
                 for key in result_keys:
                     env[key] = tmp_env[key]
@@ -98,7 +95,7 @@ def _evaluate_all(expr, iterable, update_env=True):
                     result.append([tmp_env[key] for key in result_keys])
             else:
                 result.append(eval(expr, {}, tmp_env))
-    elif six.callable(expr):
+    elif callable(expr):
         for env in iterable:
             tmp_env = {}
             tmp_env.update(env)
