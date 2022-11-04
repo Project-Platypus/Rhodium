@@ -34,7 +34,8 @@ Rhodium has several optional dependencies that enable additional graphical and a
 
 1. [GraphViz](http://www.graphviz.org/Download.php) - Required for CART figures (`Cart#show_tree`)
 2. `pip install pywin32` - Required to connect to Excel models (`ExcelModel`)
-3. `pip install openmdao` - Required to connecto to OpenMDAO models (`OpenMDAOModel`)
+3. `pip install openmdao` - Required to connect to OpenMDAO models (`OpenMDAOModel`)
+4. `pip install pyper` - Required to connect to R models (`RModel`)
 4. `pip install images2gif` - Required to produce 3D animated GIFs (`animate3d`)
 5. [J3Py](https://github.com/Project-Platypus/J3Py) - Interactive 3D visualizations
 

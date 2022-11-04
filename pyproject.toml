@@ -28,7 +28,7 @@ dynamic = ["version"]  # Version is read from rhodium/__init__.py
 "Bug Tracker" = "https://github.com/Project-Platypus/Rhodium/issues"
 
 [project.optional-dependencies]
-test = ["pytest", "mock"]
+test = ["pytest", "mock", "openmdao"]
 
 [tool.setuptools.dynamic]
 version = {attr = "rhodium.__version__"}

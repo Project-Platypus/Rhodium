@@ -84,7 +84,7 @@ class BrushSet(object):
         return self.map[key]
     
     def __iter__(self):
-        return self.map.values()
+        return iter(self.map.values())
     
     def colors(self):
         return [brush.color for brush in self]
