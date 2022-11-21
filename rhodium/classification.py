@@ -24,8 +24,9 @@ import pandas as pd
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
-import sklearn
-from sklearn import tree
+#import sklearn
+import scikit-learn as sklearn
+from scikit-learn import tree
 from six import StringIO
 from distutils.version import StrictVersion
 from prim import Prim
