@@ -19,7 +19,7 @@ dependencies = [
   "prim",
   "SALib",
   "platypus-opt",
-  "sklearn"
+  "scikit-learn"
 ]
 dynamic = ["version"]  # Version is read from rhodium/__init__.py
 
