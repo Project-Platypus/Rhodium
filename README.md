@@ -72,7 +72,7 @@ def lake_problem(pollution_limit,
          delta = 0.98,    # future utility discount rate
          nsamples = 100): # monte carlo sampling of natural inflows
     # add body of function
-    return (max_P, utility, intertia, reliability)
+    return (max_P, utility, inertia, reliability)
 
 
 model = Model(lake_problem)
