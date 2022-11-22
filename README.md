@@ -1,6 +1,6 @@
 <img align="left" src="logo.png" />
 
-# Rhodium #
+# Rhodium
 
 <a href="https://github.com/Project-Platypus/Rhodium"><img alt="GitHub Actions status" src="https://github.com/Project-Platypus/Rhodium/workflows/Tests/badge.svg?branch=master&event=push"></a>
 [![PyPI](https://img.shields.io/pypi/v/Rhodium.svg)](https://pypi.python.org/pypi/Rhodium)
@@ -9,12 +9,14 @@
 Rhodium is an open source Python library for robust decision making (RDM) and multiobjective robust decision
 making (MORDM), and exploratory modelling (EM).
 
-#### Resources
+## Citation
 
-* [Demo IPython Notebook](https://gist.github.com/dhadka/a8d7095c98130d8f73bc)
-* [Examples](https://github.com/Project-Platypus/Rhodium/tree/master/examples)
+Please cite the following paper [(PDF)](https://par.nsf.gov/servlets/purl/10314245) if using this project in your own works:
 
-#### Installation
+> Hadjimichael A, et al. 2020 Rhodium: Python Library for Many-Objective Robust Decision Making and Exploratory Modeling.
+> Journal of Open Research Software, 8: 12. DOI: https://doi.org/10.5334/jors.293
+
+## Installation
 
 To install the latest Rhodium release, run the following command:
 
@@ -40,7 +42,14 @@ Rhodium has several optional dependencies that enable additional graphical and a
 4. `pip install images2gif` - Required to produce 3D animated GIFs (`animate3d`)
 5. [J3Py](https://github.com/Project-Platypus/J3Py) - Interactive 3D visualizations
 
-#### What is Robust Decision Making?
+## Resources
+
+* [Demo IPython Notebook](https://gist.github.com/dhadka/a8d7095c98130d8f73bc)
+* [Examples](https://github.com/Project-Platypus/Rhodium/tree/master/examples)
+
+## About
+
+### What is Robust Decision Making?
 
 Robust Decision Making (RDM) is an analytic framework developed by Robert Lempert and his
 collaborators at RAND Corporation that helps identify potential robust strategies for a
@@ -50,7 +59,7 @@ is an extension of RDM to account for problems with multiple competing performan
 enabling the exploration of performance tradeoffs with respect to robustness
 [3, 4].
 
-#### What is Rhodium?
+### What is Rhodium?
 
 Rhodium is an open source Python library providing methods for RDM and MORDM.  It follows a
 declarative design, where you tell Rhodium the actions or analyses you wish to perform and
@@ -133,3 +142,5 @@ to see Rhodium in action!
 4. Hadka, D., Herman, J., Reed, P.M., Keller, K. An Open Source Framework for Many-Objective
    Robust Decision Making. Environmental Modelling & Software, 74:114-129, 2015.
    DOI:10.1016/j.envsoft.2015.07.014. [(View Online)](http://www.sciencedirect.com/science/article/pii/S1364815215300190)
+5. Hadjimichael A, et al. 2020 Rhodium: Python Library for Many-Objective Robust Decision Making and Exploratory Modeling.
+   Journal of Open Research Software, 8: 12. DOI: https://doi.org/10.5334/jors.293
