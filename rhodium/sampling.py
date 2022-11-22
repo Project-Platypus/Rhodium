@@ -52,7 +52,11 @@ def sample_lhs(model, nsamples):
         
         for key, values in samples.items():
             entry[key] = values[i]
-    
+            
+        # include model fixed parameters
+        for key in model.fixed_parameters.keys():
+            entry[key] = model.fixed_parameters[key]
+
         result.append(entry)
         
     return result
