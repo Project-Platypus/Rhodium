@@ -12,7 +12,6 @@ making (MORDM), and exploratory modelling (EM).
 #### Resources
 
 * [Demo IPython Notebook](https://gist.github.com/dhadka/a8d7095c98130d8f73bc)
-* [Installation Instructions](INSTALL.md)
 * [Examples](https://github.com/Project-Platypus/Rhodium/tree/master/examples)
 
 #### Installation
