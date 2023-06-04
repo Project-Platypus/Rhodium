@@ -15,13 +15,9 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import division, print_function, absolute_import
-
-import six
 import pydot
 import operator
 import functools
-import itertools
 import numpy as np
 import numpy.lib.recfunctions as rf
 import pandas as pd
@@ -30,10 +26,9 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import sklearn
 from sklearn import tree
-from six import StringIO
 from distutils.version import StrictVersion
 from prim import Prim
-from io import BytesIO
+from io import BytesIO, StringIO
 
 class Cart(object):
     
@@ -79,7 +74,7 @@ class Cart(object):
             
         # if y is a string or function, compute the actual response value
         # otherwise, ensure y is a numpy matrix/array
-        if isinstance(y, six.string_types):
+        if isinstance(y, str):
             key = y
             y = x[key]
             
@@ -87,7 +82,7 @@ class Cart(object):
                 exclude = list(exclude) + [key]
             else:
                 exclude = [key]
-        elif six.callable(y):
+        elif callable(y):
             fun = y
             y = np.apply_along_axis(fun, 0, x)
         elif isinstance(y, pd.DataFrame) or isinstance(y, pd.Series):
@@ -98,22 +93,22 @@ class Cart(object):
             y = np.asarray(y)
             
         # convert include/exclude arguments to lists if they are strings
-        if include and isinstance(include, six.string_types):
+        if include and isinstance(include, str):
             include = [include]
             
-        if exclude and isinstance(exclude, six.string_types):
+        if exclude and isinstance(exclude, str):
             exclude = [exclude]     
             
         # include or exclude columns from the analysis
         if include:
-            if isinstance(include, six.string_types):
+            if isinstance(include, str):
                 include = [include]
 
             drop_names = set(rf.get_names(x.dtype))-set(include)
             x = rf.drop_fields(x, drop_names, asrecarray=True)
         
         if exclude:
-            if isinstance(exclude, six.string_types):
+            if isinstance(exclude, str):
                 exclude = [exclude]
 
             drop_names = set(exclude) 
@@ -121,7 +116,7 @@ class Cart(object):
             
         # apply the threshold if 
         if threshold:
-            if six.callable(threshold):
+            if callable(threshold):
                 y = np.apply_along_axis(threshold, 0, y)
             else:
                 # The syntax for threshold_type is "x <op> <threshold>", e.g.,
@@ -210,7 +205,7 @@ class Cart(object):
         clf = self._clf
         feature_names, class_names = self._get_names(**kwargs)
         
-        if not hasattr(coi, "__iter__") and not isinstance(coi, six.string_types):
+        if not hasattr(coi, "__iter__") and not isinstance(coi, str):
             coi = [coi]
         
         left      = clf.tree_.children_left
