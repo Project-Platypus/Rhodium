@@ -2,7 +2,7 @@
 
 # Rhodium
 
-<a href="https://github.com/Project-Platypus/Rhodium"><img alt="GitHub Actions status" src="https://github.com/Project-Platypus/Rhodium/workflows/Tests/badge.svg?branch=master&event=push"></a>
+[![Tests](https://github.com/Project-Platypus/Rhodium/actions/workflows/tests.yml/badge.svg)](https://github.com/Project-Platypus/Rhodium/actions/workflows/tests.yml)
 [![PyPI](https://img.shields.io/pypi/v/Rhodium.svg)](https://pypi.python.org/pypi/Rhodium)
 [![PyPI](https://img.shields.io/pypi/dm/Rhodium.svg)](https://pypi.python.org/pypi/Rhodium)
 
