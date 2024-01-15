@@ -13,3 +13,8 @@ Rhodium.egg-info/
 examples/Languages/C/src/boost_1_56_0/
 examples/Basic/*_results.csv
 .DS_Store
+libtest.so
+test.dll
+test.o
+rhodium.cache
+
