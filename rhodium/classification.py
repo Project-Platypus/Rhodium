@@ -26,7 +26,7 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import sklearn
 from sklearn import tree
-from distutils.version import StrictVersion
+from packaging.version import Version
 from prim import Prim
 from io import BytesIO, StringIO
 
@@ -170,7 +170,7 @@ class Cart(object):
         dot_data = StringIO()
         feature_names, class_names = self._get_names(**kwargs)
     
-        if StrictVersion(sklearn.__version__) >= StrictVersion('0.17'):
+        if Version(sklearn.__version__) >= Version('0.17'):
             tree.export_graphviz(clf,
                                  out_file=dot_data,  
                                  feature_names=feature_names,

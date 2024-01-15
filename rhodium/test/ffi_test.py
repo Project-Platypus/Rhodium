@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
 import os
+improt platform
+import subprocess
 import unittest
 from ..model import *
 from ..optimization import *
@@ -26,20 +28,25 @@ class TestNativeModel(unittest.TestCase):
     
     @classmethod
     def setUpClass(cls):
-        from distutils.ccompiler import new_compiler, show_compilers
-         
         # determine the relative path to the source file
         dir = os.path.dirname(__file__)
         cwd = os.getcwd()
         common_prefix = os.path.commonprefix([dir, cwd])
         rel_dir = os.path.relpath(dir, cwd)
         src = os.path.join(rel_dir, "test.c")
-         
-        compiler = new_compiler("gcc")
-        (obj,) = compiler.compile([src]) #, extra_preargs=["-m64"])
-        compiler.link_shared_lib([obj], "test")
-         
-        libname = compiler.library_filename("test", lib_type="shared")
+
+        if platform.system() == "Linux":
+            libname = "libtest.so"
+        elif platform.system() == "Darwin":
+            libname = "libtest.dylib"
+        elif platform.system() == "Windows":
+            libname = "test.dll"
+
+        result = subprocess.run(["gcc", "-shared", "-o", lib_name, "-c", src], capture_output=True)
+        print(result.stdout)
+        print(result.stderr)
+        result.check_returncode()
+
         cls.sopath = os.path.join(os.getcwd(), libname)
 
     def testNormalReturn(self):
