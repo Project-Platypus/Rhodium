@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
 import os
-improt platform
+import platform
 import subprocess
 import unittest
 from ..model import *
@@ -42,7 +42,7 @@ class TestNativeModel(unittest.TestCase):
         elif platform.system() == "Windows":
             libname = "test.dll"
 
-        result = subprocess.run(["gcc", "-shared", "-o", lib_name, "-c", src], capture_output=True)
+        result = subprocess.run(["gcc", "-shared", "-fPIC", "-o", libname, "-c", src], capture_output=True)
         print(result.stdout)
         print(result.stderr)
         result.check_returncode()
