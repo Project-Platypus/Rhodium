@@ -42,7 +42,7 @@ class TestNativeModel(unittest.TestCase):
         elif platform.system() == "Windows":
             libname = "test.dll"
 
-        result = subprocess.run(["gcc", "-shared", "-fPIC", "-o", libname, "-c", src], capture_output=True)
+        result = subprocess.run(["gcc", "-shared", "-fPIC", "-o", libname, src], capture_output=True)
         print(result.stdout)
         print(result.stderr)
         result.check_returncode()
