@@ -31,6 +31,7 @@ pip install -U build setuptools
 git clone https://github.com/Project-Platypus/Rhodium.git
 cd Rhodium
 python -m build
+python -m pip install --editable .
 ```
 
 Rhodium has several optional dependencies that enable additional graphical and analytical capabilities.
