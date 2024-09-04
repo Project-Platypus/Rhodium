@@ -40,7 +40,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update
-          suto apt install -y graphviz r-base
+          sudo apt install -y graphviz r-base
           pip install .[test]
 
       - name: Run example
