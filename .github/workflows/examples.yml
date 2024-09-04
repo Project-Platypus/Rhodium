@@ -1,0 +1,37 @@
+name: Examples
+
+on: 
+  workflow_dispatch:
+  schedule: # Run once a week to detect any regressions
+    - cron: '0 0 * * 1'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        example: [
+          "dps_example.py",
+          "example_decorators.py",
+          "example_prallelization.py",
+          "example.py",
+          "Eijgenraam/eijgenram.py"]
+        python-version: ["3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          pip install .[test]
+
+      - name: Run example
+        run: |
+          python examples/${{ matrix.example }}
