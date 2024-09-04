@@ -157,7 +157,6 @@ def optimize(model, algorithm="NSGAII", NFE=10000, module="platypus", **kwargs):
         if any([r.dir not in [Response.MINIMIZE, Response.MAXIMIZE] for r in model.responses]):
             # if there are any responses not included in the optimization, we must
             # re-evaluate the model to get all responses
-            print("reeval")
             env = evaluate(model, env)
         else:
             for i, response in enumerate(model.responses):
