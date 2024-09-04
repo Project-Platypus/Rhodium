@@ -132,19 +132,6 @@ plt.show()
 Check out the [examples](https://github.com/Project-Platypus/Rhodium/tree/master/examples) folder
 to see Rhodium in action!
 
-## Publishing
-
-To publish a new version to PyPI, use:
-
-```bash
-python3 -m build
-python3 -m pip install --upgrade twine
-
-# The following command publishes the build.  Add `--repository testpypi` for testnig.
-# Use `__token__` for the username and the PyPI token to authenticate.
-python3 -m twine upload dist/*
-```
-
 ## References
 
 1. Rhodium logo by Tyler Glaude, Creative Commons License, https://thenounproject.com/term/knight/30912/
