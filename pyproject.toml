@@ -29,7 +29,7 @@ dynamic = ["version"]  # Version is read from rhodium/__init__.py
 
 [project.optional-dependencies]
 test = ["pytest", "mock", "pyper"]
-optional = ["openmdao]
+optional = ["openmdao"]
 
 [tool.setuptools.dynamic]
 version = {attr = "rhodium.__version__"}
