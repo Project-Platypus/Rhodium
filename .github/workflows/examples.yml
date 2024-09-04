@@ -12,20 +12,24 @@ jobs:
       fail-fast: false
       matrix:
         example: [
-          "dps_example.py",
-          "example_decorators.py",
-          "example_prallelization.py",
-          "example.py",
+          "Basic/dps_example.py",
+          "Basic/example_decorators.py",
+          "Basic/example_prallelization.py",
+          "Basic/example.py",
           "Eijgenraam/eijgenram.py"]
-        python-version: ["3.12"]
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Get minimum Python version
+        run: |
+          PYTHON_VERSION=$(cat pyproject.toml | grep "requires-python" | grep -Eo "[0-9]+\.[0-9]+")
+          echo "PYTHON_VERSION=${PYTHON_VERSION}" >> $GITHUB_ENV
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ env.PYTHON_VERSION }}
           cache: "pip"
 
       - name: Install dependencies
