@@ -28,7 +28,8 @@ jobs:
 
       - name: Get minimum Python version
         run: |
-          PYTHON_VERSION=$(cat pyproject.toml | grep "requires-python" | grep -Eo "[0-9]+\.[0-9]+")
+          #PYTHON_VERSION=$(cat pyproject.toml | grep "requires-python" | grep -Eo "[0-9]+\.[0-9]+")
+          PYTHON_VERSION="3.12"
           echo "PYTHON_VERSION=${PYTHON_VERSION}" >> $GITHUB_ENV
 
       - name: Set up Python ${{ env.PYTHON_VERSION }}

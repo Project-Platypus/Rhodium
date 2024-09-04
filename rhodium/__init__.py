@@ -16,12 +16,11 @@
 # You should have received a copy of the GNU General Public License
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
 __author__ = "David Hadka"
-__copyright__ = "Copyright 2015, David Hadka"
+__copyright__ = "Copyright 2015-2024, David Hadka"
 __license__ = "GPLv3"
 __version__ = "1.3.0"
 __maintainer__ = "David Hadka"
 __email__ = "dhadka@users.noreply.github.com"
-__status__ = "Development"
 
 from .config import *
 from .model import *
