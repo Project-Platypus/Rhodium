@@ -448,7 +448,7 @@ def hist(model, data, keys=None):
     sns.despine(left=True)
 
     for i, k in enumerate(keys):
-        sns.distplot(df[k], kde=False, ax=axes[i])
+        sns.histplot(df[k], kde=False, ax=axes[i])
 
     plt.setp(axes, yticks=[])
     plt.tight_layout()
