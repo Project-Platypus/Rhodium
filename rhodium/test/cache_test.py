@@ -19,6 +19,10 @@ import unittest
 from ..cache import *
 
 class TestCache(unittest.TestCase):
+    
+    @classmethod
+    def setUpClass(cls):
+        setup_cache(clear=True)
 
     def testSimpleCache(self):
         cache("testValue", 5)
