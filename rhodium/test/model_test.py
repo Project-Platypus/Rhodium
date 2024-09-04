@@ -17,27 +17,29 @@
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
 import unittest
 import numpy as np
-from rhodium.model import *
+from rhodium.model import Constraint, Model, Parameter, Response, \
+    CategoricalUncertainty, IntegerUncertainty, PointUncertainty, \
+    TriangularUncertainty, UniformUncertainty
 
 class TestConstraint(unittest.TestCase):
 
     def testSimpleConstraint(self):
         c = Constraint("x < 1")
-        self.assertTrue(c.is_feasible({ "x" : 0 }))
-        self.assertFalse(c.is_feasible({ "x" : 1 }))
+        self.assertTrue(c.is_feasible({"x": 0}))
+        self.assertFalse(c.is_feasible({"x": 1}))
 
-        self.assertEqual(0, c.distance({ "x" : 0 }))
-        self.assertNotEqual(0, c.distance({ "x" : 1 }))
+        self.assertEqual(0, c.distance({"x": 0}))
+        self.assertNotEqual(0, c.distance({"x": 1}))
 
     def testComplexConstraint(self):
         c = Constraint("x < 1 and y > 1")
-        self.assertTrue(c.is_feasible({ "x" : 0, "y" : 2 }))
-        self.assertFalse(c.is_feasible({ "x" : 0, "y" : 1 }))
-        self.assertFalse(c.is_feasible({ "x" : 1, "y" : 1 }))
+        self.assertTrue(c.is_feasible({"x": 0, "y": 2}))
+        self.assertFalse(c.is_feasible({"x": 0, "y": 1}))
+        self.assertFalse(c.is_feasible({"x": 1, "y": 1}))
 
-        self.assertEqual(0, c.distance({ "x" : 0, "y" : 2 }))
-        self.assertNotEqual(0, c.distance({ "x" : 0, "y" : 1 }))
-        self.assertNotEqual(0, c.distance({ "x" : 1, "y" : 1 }))
+        self.assertEqual(0, c.distance({"x": 0, "y": 2}))
+        self.assertNotEqual(0, c.distance({"x": 0, "y": 1}))
+        self.assertNotEqual(0, c.distance({"x": 1, "y": 1}))
 
 class TestModelParameters(unittest.TestCase):
 
@@ -157,11 +159,11 @@ class TestTriangularUncertainty(unittest.TestCase):
     def test_out_of_order(self):
         """Check that an error is raised if the min, max and mode are not properly ordered."""
         with self.assertRaises(ValueError):
-            tu = TriangularUncertainty('x', 2, 1, 0)
+            TriangularUncertainty('x', 2, 1, 0)
         with self.assertRaises(ValueError):
-            tu = TriangularUncertainty('x', 0, 1, 2)
+            TriangularUncertainty('x', 0, 1, 2)
         with self.assertRaises(ValueError):
-            tu = TriangularUncertainty('x', 2, 0, 1)
+            TriangularUncertainty('x', 2, 0, 1)
 
 class TestPointUncertainty(unittest.TestCase):
     """Unit tests for PointUncertainty"""

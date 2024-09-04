@@ -15,7 +15,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
-import os
 import sys
 import shelve
 import atexit
@@ -23,7 +22,6 @@ import pickle
 import inspect
 import warnings
 import functools
-import collections
 
 _CACHE_FILE = None
 _CACHE_CLEAR = False

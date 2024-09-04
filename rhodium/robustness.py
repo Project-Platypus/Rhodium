@@ -17,9 +17,9 @@
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
 import numpy as np
 import scipy.spatial as sp
-from .model import *
-from .sampling import *
-from .optimization import *
+from .model import DataSet, Response, populate_defaults, update
+from .sampling import sample_lhs
+from .optimization import evaluate
 
 def _is_feasible(model, result):
     for constraint in model.constraints:

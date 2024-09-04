@@ -46,7 +46,7 @@ class Parameter(NamedObject):
     model.
     """
 
-    def __init__(self, name, default_value = None, **kwargs):
+    def __init__(self, name, default_value=None, **kwargs):
         super(Parameter, self).__init__(name)
         self.default_value = default_value
 
@@ -68,7 +68,7 @@ class Response(NamedObject):
     INFO = 2
     IGNORE = 0
 
-    def __init__(self, name, dir = INFO, **kwargs):
+    def __init__(self, name, dir=INFO, **kwargs):
         super(Response, self).__init__(name)
         self.dir = dir
 
@@ -147,7 +147,7 @@ class Constraint(object):
                 tmp_env.update(_eval_env)
                 tmp_env.update(env)
                 return abs(eval(self._distance, {}, tmp_env)) + 0.001
-            except:
+            except Exception:
                 return 1.0
         else:
             return 1.0
@@ -190,7 +190,7 @@ class Lever(NamedObject):
 class RealLever(Lever):
     """Defines a lever for real values."""
 
-    def __init__(self, name, min_value, max_value, length = 1):
+    def __init__(self, name, min_value, max_value, length=1):
         super(RealLever, self).__init__(name)
         self.min_value = float(min_value)
         self.max_value = float(max_value)
@@ -208,7 +208,7 @@ class RealLever(Lever):
 class IntegerLever(Lever):
     """Defines a lever for integer values."""
 
-    def __init__(self, name, min_value, max_value, length = 1):
+    def __init__(self, name, min_value, max_value, length=1):
         super(IntegerLever, self).__init__(name)
         self.min_value = int(min_value)
         self.max_value = int(max_value)
@@ -446,7 +446,7 @@ class NamedObjectMap(object):
             raise TypeError("can only add " + self.type.__name__ + " objects")
 
         if isinstance(key, int):
-            self._data = OrderedDict([(value.name, value) if i==key else (k, v) for i, (k, v) in enumerate(self._data.items())])
+            self._data = OrderedDict([(value.name, value) if i == key else (k, v) for i, (k, v) in enumerate(self._data.items())])
         else:
             if value.name != key:
                 raise ValueError("key does not match name of " + self.type.__name__)
@@ -613,7 +613,7 @@ class DataSet(list):
 
     def __getitem__(self, pos):
         if isinstance(pos, tuple):
-            indices,keys = pos
+            indices, keys = pos
 
             if isinstance(indices, slice):
                 indices = list(range(*indices.indices(len(self))))
@@ -643,7 +643,7 @@ class DataSet(list):
             for i in indices:
                 result.append(super(DataSet, self).__getitem__(i))
 
-            return result    
+            return result
         else:
             return super(DataSet, self).__getitem__(pos)
 
@@ -726,7 +726,7 @@ class DataSet(list):
             for i, env in enumerate(self):
                 result[i] = self._trim(env[key], index)
         else:
-            dt = { "names" : keys, "formats" : [numpy.dtype(type(self[0][key])) for key in keys] }
+            dt = {"names": keys, "formats": [numpy.dtype(type(self[0][key])) for key in keys]}
             result = numpy.empty([len(self)], dtype=dt)
 
             for i, env in enumerate(self):
@@ -821,7 +821,7 @@ def load(file, format=None, parameters=[], **kwargs):
         entry = {}
 
         for j in range(df.shape[1]):
-            entry[names[j]] = df.iloc[i,j]
+            entry[names[j]] = df.iloc[i, j]
 
         data.append(entry)
 
@@ -874,7 +874,7 @@ def populate_defaults(model, samples):
         samples = [samples]
 
     argspec = inspect.getargspec(model.function)
-    default_values = {k:v for k, v in zip(argspec.args[-len(argspec.defaults):], argspec.defaults)}
+    default_values = {k: v for k, v in zip(argspec.args[-len(argspec.defaults):], argspec.defaults)}
 
     for sample in samples:
         for parameter in model.parameters:

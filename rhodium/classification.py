@@ -34,11 +34,11 @@ class Cart(object):
 
     def __init__(self,
                  x,
-                 y, 
-                 threshold = None,
-                 threshold_type = ">",
-                 include = None,
-                 exclude = None,
+                 y,
+                 threshold=None,
+                 threshold_type=">",
+                 include=None,
+                 exclude=None,
                  **kwargs):
         """Generates a decision tree for classification.
 
@@ -97,7 +97,7 @@ class Cart(object):
             include = [include]
 
         if exclude and isinstance(exclude, str):
-            exclude = [exclude]     
+            exclude = [exclude]
 
         # include or exclude columns from the analysis
         if include:
@@ -111,10 +111,10 @@ class Cart(object):
             if isinstance(exclude, str):
                 exclude = [exclude]
 
-            drop_names = set(exclude) 
+            drop_names = set(exclude)
             x = rf.drop_fields(x, drop_names, asrecarray=True)
 
-        # apply the threshold if 
+        # apply the threshold if
         if threshold:
             if callable(threshold):
                 y = np.apply_along_axis(threshold, 0, y)
@@ -124,11 +124,11 @@ class Cart(object):
                 # arguments for built-in operators.  Thus, we must assign the
                 # threshold to the first position and use a different operator.
                 # For example, "x > 0.5" must be evaluated as "0.5 < x".
-                OPERATORS = {"<" : operator.ge,
-                             ">" : operator.le,
-                             "<=" : operator.gt,
-                             ">=" : operator.lt,
-                             "=" : operator.eq}
+                OPERATORS = {"<": operator.ge,
+                             ">": operator.le,
+                             "<=": operator.gt,
+                             ">=": operator.lt,
+                             "=": operator.eq}
 
                 op = OPERATORS[threshold_type]
                 y = np.apply_along_axis(functools.partial(op, threshold), 0, y)
@@ -172,16 +172,16 @@ class Cart(object):
 
         if Version(sklearn.__version__) >= Version('0.17'):
             tree.export_graphviz(clf,
-                                 out_file=dot_data,  
+                                 out_file=dot_data,
                                  feature_names=feature_names,
-                                 class_names=class_names,  
+                                 class_names=class_names,
                                  filled=kwargs.get("filled", True),
-                                 rounded=kwargs.get("rounded", True),  
+                                 rounded=kwargs.get("rounded", True),
                                  special_characters=kwargs.get("special_characters", True),
                                  **kwargs)
         else:
             tree.export_graphviz(clf,
-                                 out_file=dot_data,  
+                                 out_file=dot_data,
                                  feature_names=feature_names,
                                  **kwargs)
 
@@ -193,12 +193,12 @@ class Cart(object):
     def print_tree(self, coi=None, all=True, **kwargs):
         # Being unfamiliar with version control, I just added "#", or comments, in places where I made changes to the original Rhodium code.
         # Below is the unaltered (although commented out):
-        #print(self._to_string(coi, all, **kwargs))
+        # print(self._to_string(coi, all, **kwargs))
 
         # But it does not return a list of the scenario nodes, which we would like. So I made alterations to the _to_string() function to achieve this:
         results, node_list = self._to_string(coi, all, **kwargs)
-        print(results) 
-        return node_list #
+        print(results)
+        return node_list
 
     def _to_string(self, coi=None, all=True, **kwargs):
         result = ""
@@ -208,17 +208,17 @@ class Cart(object):
         if not hasattr(coi, "__iter__") and not isinstance(coi, str):
             coi = [coi]
 
-        left      = clf.tree_.children_left
-        right     = clf.tree_.children_right
+        left = clf.tree_.children_left
+        right = clf.tree_.children_right
         threshold = clf.tree_.threshold
-        features  = [feature_names[i] for i in clf.tree_.feature]
-        classes   = [class_names[np.argmax(i)] for i in clf.tree_.value]
+        features = [feature_names[i] for i in clf.tree_.feature]
+        classes = [class_names[np.argmax(i)] for i in clf.tree_.value]
 
         # get ids of the nodes to print
         if all:
             idx = range(1, clf.tree_.node_count)
         else:
-            idx = np.argwhere(left == -1)[:,0]     
+            idx = np.argwhere(left == -1)[:, 0]
 
         def recurse(left, right, child, lineage=None):
             if lineage is None:
@@ -230,7 +230,7 @@ class Cart(object):
                 parent = np.where(right == child)[0].item()
                 split = "r"
 
-            lineage.append((features[parent], "<=" if split=="l" else ">", threshold[parent]))
+            lineage.append((features[parent], "<=" if split == "l" else ">", threshold[parent]))
 
             if parent == 0:
                 lineage.reverse()
@@ -239,9 +239,9 @@ class Cart(object):
                 return recurse(left, right, parent, lineage)
 
         # NOTE: This is where I added a child_list, where each scenario node should be added. Each child/scenario node is a dict. Probably, there exists more elegant solutions.
-        child_list = [] #
+        child_list = []
         for child in idx:
-            child_dict = {} #
+            child_dict = {}
             if coi is None or classes[child] in coi:
                 if len(result) > 0:
                     result += "\n"
@@ -254,18 +254,18 @@ class Cart(object):
                     density = ncoi/np.sum(value)
                     coverage = ncoi/sum([1 if yi in coi else 0 for yi in self._y])
                     result += "    Density: %.2f%%\n" % (100*density,)
-                    result += "    Coverage: %.2f%%\n" % (100*coverage,)  
+                    result += "    Coverage: %.2f%%\n" % (100*coverage,)
                 # Below is original code (commented out). I split it up into two lines, to be able to save the rules of each child/scenario node in a separate vector.
-                #result += "    Rule: " + " and\n          ".join(self._collapse_bounds(recurse(left, right, child), feature_names))
-                rules_vec = self._collapse_bounds(recurse(left, right, child), feature_names) #
-                child_dict["Rules"] = rules_vec #
-                result += "    Rule: " + " and\n          ".join(rules_vec) #
+                # result += "    Rule: " + " and\n          ".join(self._collapse_bounds(recurse(left, right, child), feature_names))
+                rules_vec = self._collapse_bounds(recurse(left, right, child), feature_names)
+                child_dict["Rules"] = rules_vec
+                result += "    Rule: " + " and\n          ".join(rules_vec)
 
                 # Now it is easy to just store the rest of the scenario data, and append the scenario node.
-                child_dict["Node"]      = str(child)
-                child_dict["Class"]     = str(classes[child])
-                child_dict["Density"]   = str(100*density)
-                child_dict["Coverage"]  = str(100*coverage)
+                child_dict["Node"] = str(child)
+                child_dict["Class"] = str(classes[child])
+                child_dict["Density"] = str(100*density)
+                child_dict["Coverage"] = str(100*coverage)
                 child_list.append(child_dict)    #
 
         # Now the code returns a list of the scenario nodes, which was what we wanted! But since I do not understand this code completely (e.g. isinstance(), the recursive calls,

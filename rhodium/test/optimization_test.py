@@ -16,14 +16,15 @@
 # You should have received a copy of the GNU General Public License
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
 import unittest
-from rhodium import *
+from rhodium import Model, Parameter, Response, IntegerLever, RealLever, \
+    optimize
 
 def schaffer(x):
     return [x**2, (x-2)**2]
 
 class TestOptimization(unittest.TestCase):
 
-    def testReal(self):   
+    def testReal(self):
         model = Model(schaffer)
 
         model.parameters = [Parameter("x")]

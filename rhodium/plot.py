@@ -23,17 +23,10 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from scipy.interpolate import griddata
-from matplotlib.colors import ColorConverter, Normalize
 from matplotlib.legend_handler import HandlerPatch
-from mpl_toolkits.mplot3d import Axes3D
 from .config import RhodiumConfig
 from .model import Response
-from .brush import Brush, BrushSet, apply_brush, color_brush, brush_color_map, color_indices
-
-try:
-    set
-except NameError:
-    from sets import Set as set  # @UnresolvedImport
+from .brush import BrushSet, apply_brush, color_brush, brush_color_map, color_indices
 
 def _combine_keys(*args):
     result = []
@@ -55,14 +48,11 @@ def _combine_keys(*args):
     return result
 
 class HandlerSizeLegend(HandlerPatch):
-    def __call__(self, legend, orig_handle,
-             fontsize,
-             handlebox):
-        print("here")
+    def __call__(self, legend, orig_handle, fontsize, handlebox):
+        pass
 
     def create_artists(self, legend, orig_handle,
-                      xdescent, ydescent, width, height, fontsize, trans):
-        print("Create Artists")
+                       xdescent, ydescent, width, height, fontsize, trans):
         p1 = mpatches.Circle(xy=(0.2 * width - 0.5 * xdescent, 0.5 * height - 0.5 * ydescent),
                              radius=(height*0.25)/2)
         self.update_prop(p1, orig_handle, legend)
@@ -76,19 +66,18 @@ class HandlerSizeLegend(HandlerPatch):
         return [p1, p2]
 
 def scatter3d(model, data,
-           x = None,
-           y = None,
-           z = None,
-           c = None,
-           s = None,
-           s_range = (10, 50),
-           show_colorbar = True,
-           show_legend = False,
-           interactive = False,
-           brush = None,
-           pick_handler = None,
-           **kwargs):
-
+              x=None,
+              y=None,
+              z=None,
+              c=None,
+              s=None,
+              s_range=(10, 50),
+              show_colorbar=True,
+              show_legend=False,
+              interactive=False,
+              brush=None,
+              pick_handler=None,
+              **kwargs):
     df = data.as_dataframe()
 
     if "axes.facecolor" in mpl.rcParams:
@@ -176,12 +165,12 @@ def scatter3d(model, data,
     if "cmap" not in kwargs:
         kwargs["cmap"] = RhodiumConfig.default_cmap
 
-    handle = ax.scatter(xs = x,
-                        ys = y,
-                        zs = z,
-                        c = c,
-                        s = s,
-                        picker = kwargs["picker"] if "picker" in kwargs else pick_handler is not None,
+    handle = ax.scatter(xs=x,
+                        ys=y,
+                        zs=z,
+                        c=c,
+                        s=s,
+                        picker=kwargs["picker"] if "picker" in kwargs else pick_handler is not None,
                         **kwargs)
 
     ax.set_xlabel(x_label)
@@ -240,18 +229,18 @@ def scatter3d(model, data,
     return fig
 
 def scatter2d(model, data,
-           x = None,
-           y = None,
-           c = None,
-           s = None,
-           s_range = (10, 50),
-           show_colorbar = True,
-           show_legend = False,
-           interactive = False,
-           brush = None,
-           is_class = False,
-           colors = None,
-           **kwargs):
+              x=None,
+              y=None,
+              c=None,
+              s=None,
+              s_range=(10, 50),
+              show_colorbar=True,
+              show_legend=False,
+              interactive=False,
+              brush=None,
+              is_class=False,
+              colors=None,
+              **kwargs):
     df = data.as_dataframe()
     fig = plt.figure(facecolor='white')
     ax = plt.gca()
@@ -335,10 +324,10 @@ def scatter2d(model, data,
     elif "cmap" not in kwargs:
         kwargs["cmap"] = RhodiumConfig.default_cmap
 
-    handle = plt.scatter(x = x,
-                         y = y,
-                         c = c,
-                         s = s,
+    handle = plt.scatter(x=x,
+                         y=y,
+                         c=c,
+                         s=s,
                          **kwargs)
 
     ax.set_xlabel(x_label)
@@ -392,9 +381,9 @@ def joint(model, data, x, y, **kwargs):
                   **kwargs)
 
 def pairs(model, data,
-          keys = None,
-          brush = None,
-          brush_label = "class",
+          keys=None,
+          brush=None,
+          brush_label="class",
           **kwargs):
     df = data.as_dataframe(keys if keys is not None else model.responses.keys())
 
@@ -410,9 +399,9 @@ def pairs(model, data,
         sns.pairplot(df, hue=brush_label, **kwargs)
 
 def kdeplot(model, data, x, y,
-            brush = None,
+            brush=None,
             alpha=1.0,
-            cmap = ["Reds", "Blues", "Oranges", "Greens", "Greys"],
+            cmap=["Reds", "Blues", "Oranges", "Greens", "Greys"],
             **kwargs):
     df = data.as_dataframe()
 
@@ -693,8 +682,8 @@ def animate3d(prefix, dir="images/", steps=36, transform=(10, 0, 0), **kwargs):
     writeGif(file_path_name, images, **kwargs)
 
 def parallel_coordinates(model, data, c=None, cols=None, ax=None, colors=None,
-                     use_columns=False, xticks=None, colormap=None,
-                     target="top", brush=None, zorder=None, **kwds):
+                         use_columns=False, xticks=None, colormap=None,
+                         target="top", brush=None, zorder=None, **kwds):
     if "axes.facecolor" in mpl.rcParams:
         orig_facecolor = mpl.rcParams["axes.facecolor"]
         mpl.rcParams["axes.facecolor"] = "white"
@@ -705,7 +694,7 @@ def parallel_coordinates(model, data, c=None, cols=None, ax=None, colors=None,
         brush_set = BrushSet(brush)
         assignment = apply_brush(brush_set, data)
         color_map = brush_color_map(brush_set, assignment)
-        class_col = pd.DataFrame({"class" : assignment})["class"]
+        class_col = pd.DataFrame({"class": assignment})["class"]
         is_class = True
     else:
         if c is None:
@@ -740,10 +729,10 @@ def parallel_coordinates(model, data, c=None, cols=None, ax=None, colors=None,
     for i in range(ncols):
         if target == "top":
             if model.responses[df.columns.values[i]].dir == Response.MINIMIZE:
-                df.iloc[:,i] = 1-df.iloc[:,i]
+                df.iloc[:, i] = 1-df.iloc[:, i]
         elif target == "bottom":
             if model.responses[df.columns.values[i]].dir == Response.MAXIMIZE:
-                df.iloc[:,i] = 1-df.iloc[:,i]
+                df.iloc[:, i] = 1-df.iloc[:, i]
 
     # determine values to use for xticks
     if use_columns is True:
@@ -775,8 +764,8 @@ def parallel_coordinates(model, data, c=None, cols=None, ax=None, colors=None,
                 from pandas.tools.plotting import _get_standard_colors
                 classes = class_col.drop_duplicates()
                 color_values = _get_standard_colors(num_colors=len(classes),
-                                                colormap=colormap, color_type='random',
-                                                color=colors)
+                                                    colormap=colormap, color_type='random',
+                                                    color=colors)
                 cmap = dict(zip(classes, color_values))
         else:
             cmap = color_map
@@ -784,7 +773,7 @@ def parallel_coordinates(model, data, c=None, cols=None, ax=None, colors=None,
     if zorder is None:
         indices = range(n)
     else:
-        indices = [i[0] for i in sorted(enumerate(df[zorder]), key=lambda x : x[1])]
+        indices = [i[0] for i in sorted(enumerate(df[zorder]), key=lambda x: x[1])]
 
     for i in indices:
         y = df.iloc[i].values
@@ -852,7 +841,7 @@ def parallel_coordinates(model, data, c=None, cols=None, ax=None, colors=None,
         ax.legend(loc='center right', bbox_to_anchor=(1.25, 0.5))
         fig.subplots_adjust(right=0.8)
     else:
-        cax,_ = mpl.colorbar.make_axes(ax)
+        cax, _ = mpl.colorbar.make_axes(ax)
         cb = mpl.colorbar.ColorbarBase(cax, cmap=cmap, spacing='proportional', norm=mpl.colors.Normalize(vmin=class_min, vmax=class_max), format='%.2f')
         cb.set_label(c)
         cb.set_clim(class_min, class_max)

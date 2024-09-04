@@ -15,11 +15,10 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
-import os
-import sys
 import unittest
 import pandas as pd
-from ..brush import *
+from ..brush import Brush, BrushSet, apply_brush
+from ..config import RhodiumConfig
 
 class TestBrush(unittest.TestCase):
 
@@ -49,4 +48,3 @@ class TestBrush(unittest.TestCase):
         self.assertEqual(assignment[0], brush1.name)
         self.assertEqual(assignment[1], RhodiumConfig.default_unassigned_label)
         self.assertEqual(assignment[2], brush2.name)
-

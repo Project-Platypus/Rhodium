@@ -17,7 +17,10 @@
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
 import random
 import inspect
-from rhodium import *
+from .model import Constraint, Lever, Model, Parameter, Response, \
+    Uncertainty, CategoricalLever, IntegerLever, PermutationLever, \
+    SubsetLever, RealLever, UniformUncertainty, NormalUncertainty, \
+    LogNormalUncertainty
 
 MINIMIZE = Response.MINIMIZE
 MAXIMIZE = Response.MAXIMIZE

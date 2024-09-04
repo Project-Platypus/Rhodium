@@ -17,7 +17,7 @@
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
 import re
 import ctypes
-from .model import *
+from .model import Model
 
 TYPE_RE = re.compile(r"([a-zA-Z ]+)\s*(\*?)\s*((?:[0-9]+)?)")
 

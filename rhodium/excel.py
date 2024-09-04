@@ -17,7 +17,7 @@
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
 import win32com.client
 from win32com.universal import com_error
-from .model import *
+from .model import Model
 
 class ExcelHelper(object):
 

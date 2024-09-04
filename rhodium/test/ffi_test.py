@@ -19,10 +19,9 @@ import os
 import platform
 import subprocess
 import unittest
-from ..model import *
-from ..optimization import *
-from ..sampling import *
-from ..ffi import *
+from ..model import Parameter, Response
+from ..optimization import evaluate
+from ..ffi import NativeModel
 
 class TestNativeModel(unittest.TestCase):
 
@@ -54,7 +53,7 @@ class TestNativeModel(unittest.TestCase):
         model.parameters = [Parameter("x", type="double"),
                             Parameter("y", type="double")]
         model.responses = [Response("z", type="double")]
-        result = evaluate(model, {"x" : 3, "y" : 5})
+        result = evaluate(model, {"x": 3, "y": 5})
         self.assertEqual(15, result["z"])
 
     def testArgumentReturn(self):
@@ -62,14 +61,14 @@ class TestNativeModel(unittest.TestCase):
         model.parameters = [Parameter("x", type="double"),
                             Parameter("y", type="double")]
         model.responses = [Response("z", type="double", asarg=True)]
-        result = evaluate(model, {"x" : 3, "y" : 5})
+        result = evaluate(model, {"x": 3, "y": 5})
         self.assertEqual(15, result["z"])
 
     def testSum(self):
         model = NativeModel(TestNativeModel.sopath, "sum")
         model.parameters = [Parameter("x", type="double*10")]
         model.responses = [Response("sum", type="double")]
-        result = evaluate(model, {"x" : [1, 2, 3, 4, 5]})
+        result = evaluate(model, {"x": [1, 2, 3, 4, 5]})
         self.assertEqual(15, result["sum"])
 
     def testArrayAdd(self):
@@ -78,5 +77,5 @@ class TestNativeModel(unittest.TestCase):
                             Parameter("y", type="double*", len_arg="n"),
                             Parameter("n", type="int")]
         model.responses = [Response("z", type="double*", len_arg="n", asarg=True)]
-        result = evaluate(model, {"x" : [1, 2, 3, 4, 5], "y" : [5, 4, 3, 2, 1]})
+        result = evaluate(model, {"x": [1, 2, 3, 4, 5], "y": [5, 4, 3, 2, 1]})
         self.assertEqual([6, 6, 6, 6, 6], result["z"])

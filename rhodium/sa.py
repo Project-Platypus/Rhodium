@@ -15,6 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
+import math
 import inspect
 import operator
 import itertools
@@ -27,9 +28,9 @@ from SALib.analyze import ff as ff_analyzer
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from .model import *
-from .optimization import *
-from .sampling import *
+from .model import overwrite
+from .optimization import evaluate
+from .sampling import sample_lhs
 
 def _cleanup_kwargs(function, kwargs):
     argspec = inspect.getfullargspec(function)
@@ -326,9 +327,10 @@ class SAResult(dict):
             for i, group in enumerate(groups.keys()):
                 group_angle = np.mean([angles[j] for j in range(n) if parameters[j] in groups[group]])
 
-                ax.text(gpNameMult*radSc*math.cos(group_angle), gpNameMult*radSc*math.sin(group_angle), group, ha='center', va='center',
-                    rotation=group_angle*360/(2*math.pi) - 90,
-                    color=colors[i % len(colors)])
+                ax.text(gpNameMult*radSc*math.cos(group_angle),
+                        gpNameMult*radSc*math.sin(group_angle), group, ha='center', va='center',
+                        rotation=group_angle*360/(2*math.pi) - 90,
+                        color=colors[i % len(colors)])
 
         ax.set_facecolor('white')
         ax.set_xticks([])
@@ -342,10 +344,10 @@ def sa(model, response, policy={}, method="sobol", nsamples=1000, **kwargs):
     if len(model.uncertainties) == 0:
         raise ValueError("no uncertainties defined in model")
 
-    problem = { 'num_vars' : len(model.uncertainties),
-                'names' : model.uncertainties.keys(),
-                'bounds' : [[0.0, 1.0] for u in model.uncertainties],
-                'groups' : kwargs.get("groups", None) }
+    problem = {'num_vars': len(model.uncertainties),
+               'names': model.uncertainties.keys(),
+               'bounds': [[0.0, 1.0] for u in model.uncertainties],
+               'groups': kwargs.get("groups", None)}
 
     # estimate the argument N passed to the sampler that produces the requested
     # number of samples
@@ -370,13 +372,13 @@ def sa(model, response, policy={}, method="sobol", nsamples=1000, **kwargs):
 
     # convert from samples in [0, 1] to uncertainty domain
     for i, u in enumerate(model.uncertainties):
-        samples[:,i] = u.ppf(samples[:,i])
+        samples[:, i] = u.ppf(samples[:, i])
 
     # run the model and collect the responses
     responses = np.empty(samples.shape[0])
 
     for i in range(samples.shape[0]):
-        sample = {k : v for k, v in zip(model.uncertainties.keys(), samples[i])}
+        sample = {k: v for k, v in zip(model.uncertainties.keys(), samples[i])}
         responses[i] = evaluate(model, overwrite(sample, policy))[response]
 
     # run the sensitivity analysis method
@@ -398,37 +400,37 @@ def sa(model, response, policy={}, method="sobol", nsamples=1000, **kwargs):
     pretty_result = SAResult(list(result["names"] if "names" in result else problem["names"]))
 
     if "S1" in result:
-        pretty_result["S1"] = {k : float(v) for k, v in zip(problem["names"], result["S1"])}
+        pretty_result["S1"] = {k: float(v) for k, v in zip(problem["names"], result["S1"])}
     if "S1_conf" in result:
-        pretty_result["S1_conf"] = {k : float(v) for k, v in zip(problem["names"], result["S1_conf"])}
+        pretty_result["S1_conf"] = {k: float(v) for k, v in zip(problem["names"], result["S1_conf"])}
     if "ST" in result:
-        pretty_result["ST"] = {k : float(v) for k, v in zip(problem["names"], result["ST"])}
+        pretty_result["ST"] = {k: float(v) for k, v in zip(problem["names"], result["ST"])}
     if "ST_conf" in result:
-        pretty_result["ST_conf"] = {k : float(v) for k, v in zip(problem["names"], result["ST_conf"])}
+        pretty_result["ST_conf"] = {k: float(v) for k, v in zip(problem["names"], result["ST_conf"])}
     if "S2" in result:
         pretty_result["S2"] = _S2_to_dict(result["S2"], problem)
     if "S2_conf" in result:
         pretty_result["S2_conf"] = _S2_to_dict(result["S2_conf"], problem)
     if "delta" in result:
-        pretty_result["delta"] = {k : float(v) for k, v in zip(problem["names"], result["delta"])}
+        pretty_result["delta"] = {k: float(v) for k, v in zip(problem["names"], result["delta"])}
     if "delta_conf" in result:
-        pretty_result["delta_conf"] = {k : float(v) for k, v in zip(problem["names"], result["delta_conf"])}
+        pretty_result["delta_conf"] = {k: float(v) for k, v in zip(problem["names"], result["delta_conf"])}
     if "vi" in result:
-        pretty_result["vi"] = {k : float(v) for k, v in zip(problem["names"], result["vi"])}
+        pretty_result["vi"] = {k: float(v) for k, v in zip(problem["names"], result["vi"])}
     if "vi_std" in result:
-        pretty_result["vi_std"] = {k : float(v) for k, v in zip(problem["names"], result["vi_std"])}
+        pretty_result["vi_std"] = {k: float(v) for k, v in zip(problem["names"], result["vi_std"])}
     if "dgsm" in result:
-        pretty_result["dgsm"] = {k : float(v) for k, v in zip(problem["names"], result["dgsm"])}
+        pretty_result["dgsm"] = {k: float(v) for k, v in zip(problem["names"], result["dgsm"])}
     if "dgsm_conf" in result:
-        pretty_result["dgsm_conf"] = {k : float(v) for k, v in zip(problem["names"], result["dgsm_conf"])}
+        pretty_result["dgsm_conf"] = {k: float(v) for k, v in zip(problem["names"], result["dgsm_conf"])}
     if "mu" in result:
-        pretty_result["mu"] = {k : float(v) for k, v in zip(result["names"], result["mu"])}
+        pretty_result["mu"] = {k: float(v) for k, v in zip(result["names"], result["mu"])}
     if "mu_star" in result:
-        pretty_result["mu_star"] = {k : float(v) for k, v in zip(result["names"], result["mu_star"])}
+        pretty_result["mu_star"] = {k: float(v) for k, v in zip(result["names"], result["mu_star"])}
     if "mu_star_conf" in result:
-        pretty_result["mu_star_conf"] = {k : float(v) for k, v in zip(result["names"], result["mu_star_conf"])}
+        pretty_result["mu_star_conf"] = {k: float(v) for k, v in zip(result["names"], result["mu_star_conf"])}
     if "sigma" in result:
-        pretty_result["sigma"] = {k : float(v) for k, v in zip(result["names"], result["sigma"])}
+        pretty_result["sigma"] = {k: float(v) for k, v in zip(result["names"], result["sigma"])}
 
     return pretty_result
 
@@ -442,7 +444,7 @@ def oat(model, response, policy={}, nsamples=100, **kwargs):
         ppf_samples = u.ppf(samples)
 
         for j in range(nsamples):
-            sample = { u.name : ppf_samples[j] }
+            sample = {u.name: ppf_samples[j]}
             responses[j, i] = evaluate(model, overwrite(sample, policy))[response]
 
     minv = np.nanmin(responses, axis=0)
@@ -463,7 +465,7 @@ def oat(model, response, policy={}, nsamples=100, **kwargs):
     colors = []
 
     for i, u in enumerate(model.uncertainties):
-        h = ax2.plot(samples, responses[:,i])
+        h = ax2.plot(samples, responses[:, i])
         colors.append(h[0].get_color())
 
     ax2.axvline(0.5, ls='--', color='k')
@@ -516,6 +518,6 @@ def regional_sa(model, expr, policy={}, nsamples=1000):
                   list(map(str, classes)) + ["Unconditioned"],
                   loc='lower center',
                   ncol=3,
-                  labelspacing=0. )
+                  labelspacing=0.0)
 
     return fig

@@ -18,9 +18,10 @@
 import os
 import sys
 import unittest
-from ..model import *
-from ..optimization import *
-from ..sampling import *
+from ..model import Parameter, Response, IntegerUncertainty, \
+    UniformUncertainty
+from ..optimization import evaluate
+from ..sampling import sample_lhs
 
 class TestExcelHelper(unittest.TestCase):
 
@@ -32,7 +33,7 @@ class TestExcelHelper(unittest.TestCase):
         with ExcelHelper(file) as helper:
             self.assertEqual(1, helper["A1"])
             self.assertEqual(5, helper["A5"])
-            self.assertEqual(((1.0,),(2.0,),(3.0,),(4.0,),(5.0,)), helper["A1:A5"])
+            self.assertEqual(((1.0,), (2.0,), (3.0,), (4.0,), (5.0,)), helper["A1:A5"])
             self.assertEqual(None, helper["B2"])
             self.assertEqual(u"hello", helper["C2"])
             self.assertEqual(((u"hello", u"world",),), helper["C2:D2"])
@@ -74,7 +75,7 @@ class TestExcelModel(unittest.TestCase):
                                 Parameter("X2", cell="B2")]
             model.responses = [Response("Y", cell="B3")]
 
-            result = evaluate(model, {"X1" : 3, "X2" : 5})
+            result = evaluate(model, {"X1": 3, "X2": 5})
             self.assertEqual(8, result["Y"])
 
     @unittest.skipUnless(sys.platform.startswith("win"), "requires Windows")

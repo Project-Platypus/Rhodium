@@ -20,7 +20,6 @@ from collections import OrderedDict
 from pandas.core.frame import DataFrame
 from .config import RhodiumConfig
 from .model import DataSet
-from .expr import _evaluate
 
 class Brush(object):
     """Defines a brush to color data points matching an expression.
@@ -112,7 +111,7 @@ def apply_brush(brush_set, data):
 def _apply_brush_dataset(brush_set, ds):
     brush_set = _as_brush_set(brush_set)
     n = len(ds)
-    assignment = [None]*n;
+    assignment = [None]*n
 
     for brush in brush_set:
         bin = ds.apply(brush.expr)
@@ -129,7 +128,7 @@ def _apply_brush_dataset(brush_set, ds):
 
 def _apply_brush_dataframe(brush_set, df):
     brush_set = _as_brush_set(brush_set)
-    assignment = [None]*df.shape[0];
+    assignment = [None]*df.shape[0]
 
     for brush in brush_set:
         bin = df.query(brush.expr)
@@ -176,7 +175,7 @@ def brush_color_map(brush_set, assignment):
 
 def color_brush(brush_set, data, **kwargs):
     assignment = apply_brush(brush_set, data)
-    color_map = brush_color_map(brush_set, assignment)                
+    color_map = brush_color_map(brush_set, assignment)
     return ([color_map[a] for a in assignment], color_map)
 
 def color_indices(c, color_map):

@@ -16,10 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
 import unittest
-from ..model import *
-from ..optimization import *
-from ..sampling import *
-from ..openmdao import *
+from ..model import Parameter, Response
+from ..optimization import evaluate
+from ..openmdao import OpenMDAOModel
 
 class TestOpenMDAOModel(unittest.TestCase):
 
@@ -80,5 +79,5 @@ class TestOpenMDAOModel(unittest.TestCase):
                             Parameter("y", connect="p2.y")]
         model.responses = [Response("f_xy", connect="p.f_xy")]
 
-        output = evaluate(model, {"x" : 3.0, "y" : -4.0})
+        output = evaluate(model, {"x": 3.0, "y": -4.0})
         self.assertEqual(-15.0, output["f_xy"])
