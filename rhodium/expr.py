@@ -31,10 +31,10 @@ def _has_assignment(tree):
 
 def _get_result_keys(tree):
     keys = []
-    
+
     if _has_assignment(tree):
         target = tree.body[0].targets[0]
-                
+
         if isinstance(target, ast.Tuple):
             keys.extend([t.id for t in target.elts if isinstance(t, ast.Name)])
         elif isinstance(target, ast.Name):
@@ -46,17 +46,17 @@ def _evaluate(expr, env, update_env=True):
     tmp_env = {}
     tmp_env.update(_eval_env)
     tmp_env.update(env)
-            
+
     if isinstance(expr, str):
         tree = ast.parse(expr, mode="exec")
         result_keys = _get_result_keys(tree)
-        
+
         if update_env and len(result_keys) > 0:
             exec(expr, {}, tmp_env)
-                    
+
             for key in result_keys:
                 env[key] = tmp_env[key]
-                
+
             if len(result_keys) == 1:
                 return tmp_env[result_keys[0]]
             else:
@@ -66,29 +66,29 @@ def _evaluate(expr, env, update_env=True):
     elif callable(expr):
         tmp_env = {}
         tmp_env.update(env)
-        
+
         return expr(tmp_env)
     else:
         raise ValueError("expr must be a string or a callable")
-    
+
 def _evaluate_all(expr, iterable, update_env=True):
     result = []
-            
+
     if isinstance(expr, str):
         tree = ast.parse(expr, mode="exec")
         result_keys = _get_result_keys(tree)
-            
+
         for env in iterable:
             tmp_env = {}
             tmp_env.update(_eval_env)
             tmp_env.update(env)
-            
+
             if update_env and len(result_keys) > 0:
                 exec(expr, {}, tmp_env)
-                        
+
                 for key in result_keys:
                     env[key] = tmp_env[key]
-                    
+
                 if len(result_keys) == 1:
                     result.append(tmp_env[result_keys[0]])
                 else:
@@ -99,9 +99,9 @@ def _evaluate_all(expr, iterable, update_env=True):
         for env in iterable:
             tmp_env = {}
             tmp_env.update(env)
-            
+
             result.append(expr(tmp_env))
     else:
         raise ValueError("expr must be a string or a callable")
-    
+
     return result

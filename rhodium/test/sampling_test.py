@@ -19,25 +19,25 @@ import unittest
 from rhodium import *
 
 class TestSampling(unittest.TestCase):
-    
-    def testUniform(self):   
+
+    def testUniform(self):
         model = Model("foo")
         model.uncertainties = [UniformUncertainty("x", 5.0, 10.0)]
-        
+
         samples = sample_uniform(model, 100)
-        
+
         self.assertEqual(100, len(samples))
 
         for i in range(len(samples)):
             self.assertTrue("x" in samples[i])
             self.assertTrue(samples[i]["x"] >= 5.0 and samples[i]["x"] <= 10.0)
-        
+
     def testLHS(self):
         model = Model("foo")
         model.uncertainties = [UniformUncertainty("x", 5.0, 10.0)]
-        
+
         samples = sample_lhs(model, 100)
-        
+
         self.assertEqual(100, len(samples))
 
         for i in range(len(samples)):

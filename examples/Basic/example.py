@@ -23,22 +23,22 @@ def lake_problem(pollution_limit,
 
     for _ in range(nsamples):
         X[0] = 0.0
-        
+
         natural_inflows = np.random.lognormal(
                 math.log(mean**2 / math.sqrt(stdev**2 + mean**2)),
                 math.sqrt(math.log(1.0 + stdev**2 / mean**2)),
                 size = nvars)
-        
+
         for t in range(1,nvars):
             X[t] = (1-b)*X[t-1] + X[t-1]**q/(1+X[t-1]**q) + decisions[t-1] + natural_inflows[t-1]
             average_daily_P[t] += X[t]/float(nsamples)
-    
+
         reliability += np.sum(X < Pcrit)/float(nsamples*nvars)
-      
+
     max_P = np.max(average_daily_P)
     utility = np.sum(alpha*decisions*np.power(delta,np.arange(nvars)))
     inertia = np.sum(np.diff(decisions) > -0.02)/float(nvars-1)
-    
+
     return (max_P, utility, inertia, reliability)
 
 model = Model(lake_problem)
@@ -82,7 +82,7 @@ output = cache("output", lambda: optimize(model, "NSGAII", 10000))
 # save the Pareto approximate set as a .csv file
 output.save('optimization_results.csv')
 
-   
+
 # ----------------------------------------------------------------------------
 # Plotting
 # ----------------------------------------------------------------------------
@@ -107,7 +107,7 @@ plt.show()
 # Plot the points in 3D space
 scatter3d(model, output, s="reliability", show_legend=True)
 plt.show()
-  
+
 # Kernel density estimation plots show density contours for samples.  By
 # default, it will show the density of all sampled points
 kdeplot(model, output, x="max_P", y="utility")
@@ -137,7 +137,7 @@ plt.show()
 # A histogram of the distribution of points along each parameter
 hist(model, output)
 plt.show()
- 
+
 # A parallel coordinates plot to view interactions among responses
 parallel_coordinates(model, output, colormap="rainbow", zorder="reliability", brush=Brush("reliability > 0.2"))     
 plt.show()
@@ -165,7 +165,7 @@ results.save('reevaluation_results.csv')
 
 # define performance criteria
 metric = ["Reliable" if v["reliability"] > 0.9 else "Unreliable" for v in results]
- 
+
 # Use PRIM to identify the key uncertainties if we require reliability > 0.9
 p = Prim(results, metric, include=model.uncertainties.keys(), coi="Reliable")
 box = p.find_box()

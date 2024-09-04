@@ -22,36 +22,36 @@ def schaffer(x):
     return [x**2, (x-2)**2]
 
 class TestOptimization(unittest.TestCase):
-    
+
     def testReal(self):   
         model = Model(schaffer)
-        
+
         model.parameters = [Parameter("x")]
         model.responses = [Response("f1", Response.MINIMIZE),
                            Response("f2", Response.MINIMIZE)]
         model.levers = [RealLever("x", -10.0, 10.0)]
 
         output = optimize(model, "NSGAII", 10000)
-        
+
         self.assertTrue(len(output) > 0)
-        
+
         for i in range(len(output)):
             self.assertTrue("x" in output[i])
             self.assertTrue("f1" in output[i])
             self.assertTrue("f2" in output[i])
-        
+
     def testInteger(self):
         model = Model(schaffer)
-        
+
         model.parameters = [Parameter("x")]
         model.responses = [Response("f1", Response.MINIMIZE),
                            Response("f2", Response.MINIMIZE)]
         model.levers = [IntegerLever("x", -10, 10)]
 
         output = optimize(model, "NSGAII", 10000)
-        
+
         self.assertTrue(len(output) > 0)
-        
+
         for i in range(len(output)):
             self.assertTrue("x" in output[i])
             self.assertTrue(isinstance(output[i]["x"], int))

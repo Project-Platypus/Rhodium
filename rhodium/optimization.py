@@ -128,7 +128,7 @@ def _to_problem(model):
 def optimize(model, algorithm="NSGAII", NFE=10000, module="platypus", **kwargs):
     if not model.levers:
         raise AssertionError("must have levers to optimize")
-        
+
     module = __import__(module, fromlist=[''])
     class_ref = getattr(module, algorithm)
 

@@ -20,30 +20,30 @@ from .model import *
 import numpy as np
 
 class RModel(Model):
-    
+
     def __init__(self, file, function, **kwargs):
         super(RModel, self).__init__(self._evaluate)
         self.file = file
         self.r_function = function
         self.r = R(**kwargs)
-        
+
         with open(file) as f:
             self.r(f.read())
-        
+
     def _evaluate(self, **kwargs):
         prefix = "...rhodium."
         assigned_parameters = []
-        
+
         for parameter in self.parameters:
             if parameter.name in kwargs:
                 self.r.assign(prefix + parameter.name, kwargs[parameter.name])
                 assigned_parameters.append(parameter)
-        
+
         self.r(prefix + "..result = " + self.r_function + "(" + ",".join([prefix + p.name for p in assigned_parameters]) + ")")
         r_result = self.r[prefix + "..result"]
-        
+
         result = {}
-        
+
         if isinstance(r_result, (list, tuple, np.ndarray)):
             for i, response in enumerate(self.responses):
                 result[response.name] = r_result[i]
@@ -55,5 +55,5 @@ class RModel(Model):
                 raise ValueError("received more than one response from R")
             else:
                 result[self.responses[0].name] = r_result
-        
+
         return result

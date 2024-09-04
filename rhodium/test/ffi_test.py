@@ -25,7 +25,7 @@ from ..sampling import *
 from ..ffi import *
 
 class TestNativeModel(unittest.TestCase):
-    
+
     @classmethod
     def setUpClass(cls):
         # determine the relative path to the source file
@@ -56,7 +56,7 @@ class TestNativeModel(unittest.TestCase):
         model.responses = [Response("z", type="double")]
         result = evaluate(model, {"x" : 3, "y" : 5})
         self.assertEqual(15, result["z"])
-        
+
     def testArgumentReturn(self):
         model = NativeModel(TestNativeModel.sopath, "arg_return")
         model.parameters = [Parameter("x", type="double"),
@@ -71,7 +71,7 @@ class TestNativeModel(unittest.TestCase):
         model.responses = [Response("sum", type="double")]
         result = evaluate(model, {"x" : [1, 2, 3, 4, 5]})
         self.assertEqual(15, result["sum"])
-       
+
     def testArrayAdd(self):
         model = NativeModel(TestNativeModel.sopath, "array_add")
         model.parameters = [Parameter("x", type="double*", len_arg="n"),
@@ -80,4 +80,3 @@ class TestNativeModel(unittest.TestCase):
         model.responses = [Response("z", type="double*", len_arg="n", asarg=True)]
         result = evaluate(model, {"x" : [1, 2, 3, 4, 5], "y" : [5, 4, 3, 2, 1]})
         self.assertEqual([6, 6, 6, 6, 6], result["z"])
- 

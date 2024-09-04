@@ -4,7 +4,7 @@ import numbers
 import numpy as np
 import matplotlib.pyplot as plt
 from rhodium import * 
-      
+
 ##==============================================================================
 ## Implement the model described by Eijgenraam et al. (2012)
 ##------------------------------------------------------------------------------
@@ -38,7 +38,7 @@ data = {i : {k : v for k, v in zip(params, raw_data[i])} for i in raw_data.keys(
 # Set the ring we are analyzing
 ring = 15
 max_failure_probability = data[ring]["max_Pf"]
-   
+
 # Compute the investment cost to increase the dike height
 def exponential_investment_cost(u,     # increase in dike height
                                 h0,    # original height of the dike
@@ -49,7 +49,7 @@ def exponential_investment_cost(u,     # increase in dike height
         return 0
     else:
         return (c + b*u)*math.exp(lam*(h0+u))
-    
+
 # The Python function implementing the model
 def eijgenraam(Xs,                          # list of dike heightenings
                Ts,                          # time of dike heightenings
@@ -67,41 +67,41 @@ def eijgenraam(Xs,                          # list of dike heightenings
                lam = data[ring]["lam"]):    # constant from Table 1
     Ts = [int(Ts[i] + sum(Ts[:i])) for i in range(len(Ts)) if Ts[i] + sum(Ts[:i]) < T]
     Xs = Xs[:len(Ts)]
-    
+
     if len(Ts) == 0:
         Ts = [0]
         Xs = [0]
-        
+
     if Ts[0] > 0:
         Ts.insert(0, 0)
         Xs.insert(0, 0)
-    
+
     S0 = P0*V0
     beta = alpha*eta + gamma - rho
     theta = alpha - zeta
-    
+
     # calculate investment
     investment = 0
-    
+
     for i in range(len(Xs)):
         step_cost = exponential_investment_cost(Xs[i], 0 if i==0 else sum(Xs[:i]), c, b, lam)
         step_discount = math.exp(-delta*Ts[i])
         investment += step_cost * step_discount
-    
+
     # calculate expected losses
     losses = 0
-    
+
     for i in range(len(Xs)-1):
         losses += math.exp(-theta*sum(Xs[:(i+1)]))*(math.exp((beta - delta)*Ts[i+1]) - math.exp((beta - delta)*Ts[i]))
-        
+
     if Ts[-1] < T:
         losses += math.exp(-theta*sum(Xs))*(math.exp((beta - delta)*T) - math.exp((beta - delta)*Ts[-1]))
 
     losses = losses * S0 / (beta - delta)
-    
+
     # salvage term
     losses += S0*math.exp(beta*T)*math.exp(-theta*sum(Xs))*math.exp(-delta*T) / delta
-    
+
     def find_height(t):
         if t < Ts[0]:
             return 0
@@ -109,12 +109,12 @@ def eijgenraam(Xs,                          # list of dike heightenings
             return sum(Xs)
         else:
             return sum(Xs[:bisect.bisect_right(Ts, t)])
-    
+
     failure_probability = [P0*np.exp(alpha*eta*t)*np.exp(-alpha*find_height(t)) for t in range(T+1)]
     total_failure = 1 - functools.reduce(operator.mul, [1 - p for p in failure_probability], 1)
     mean_failure = sum(failure_probability) / (T+1)
     max_failure = max(failure_probability)
-    
+
     return (investment, losses, investment+losses, total_failure, mean_failure, max_failure)
 
 # Generate a plot showing the dike heightenings and failure probability over time
@@ -128,17 +128,17 @@ def plot_details(
                plot_args = {}):   
     Ts = [int(Ts[i] + sum(Ts[:i])) for i in range(len(Ts)) if Ts[i] + sum(Ts[:i]) < T]
     Xs = Xs[:len(Ts)]
-    
+
     if len(Ts) == 0:
         Ts = [0]
         Xs = [0]
-        
+
     # convert inputs to numpy arrays
     P0 = np.asarray([P0]) if isinstance(P0, numbers.Number) else np.asarray(P0)
     alpha = np.asarray([alpha]) if isinstance(alpha, numbers.Number) else np.asarray(alpha)
     eta = np.asarray([eta]) if isinstance(eta, numbers.Number) else np.asarray(eta)
     n = max([x.shape[0] for x in [P0, alpha, eta]])
-    
+
     # compute the failure probability
     def find_height(t):
         if t < Ts[0]:
@@ -147,9 +147,9 @@ def plot_details(
             return sum(Xs)
         else:
             return sum(Xs[:bisect.bisect_right(Ts, t)])
-              
+
     failure_probability = np.empty((n, T+1))
-    
+
     for t in range(T+1):
         failure_probability[:,t] = P0*np.exp(alpha*eta*t)*np.exp(-alpha*find_height(t))
 
@@ -158,20 +158,20 @@ def plot_details(
 
     for i in range(n):
         plt.plot(range(T+1), failure_probability[i,:], 'b-', **plot_args)
-            
+
     plt.plot(range(T+1), [max_failure_probability]*(T+1), 'r--')
-    
+
     for i in range(len(Ts)):
         if Ts[i] == 0:
             plt.text(0, np.max(failure_probability[:,Ts[0]])/2, str(round(Xs[i], 1)) + " cm", ha='left', va='center')
         else:
             plt.text(Ts[i], (np.max(failure_probability[:,Ts[i]-1])+np.max(failure_probability[:,Ts[i]]))/2, str(round(Xs[i], 1)) + " cm", ha='left', va='center')
-    
+
     if n == 1:
         plt.legend(["Failure Probability", "Current Safety Standard"])
     else:
         plt.ylim([0, 0.001])
-    
+
     plt.xlabel("Time (years)")
     plt.ylabel("Failure Probability")
     plt.show()
@@ -180,7 +180,7 @@ def plot_details(
 ## Create the model in Rhodium
 ##------------------------------------------------------------------------------
 model = Model(eijgenraam)
- 
+
 model.parameters = [Parameter("Xs"),
                     Parameter("Ts"),
                     Parameter("T"),
@@ -235,6 +235,6 @@ plot_details(policy["Xs"], policy["Ts"])
 model.uncertainties = [LogNormalUncertainty("P0", 0.00137, 0.25),
                        NormalUncertainty("alpha", 0.0502, 0.01),
                        LogNormalUncertainty("eta", 0.76, 0.1)]
-     
+
 SOWs = sample_lhs(model, 1000)
 plot_details(policy["Xs"], policy["Ts"], P0=SOWs["P0"], alpha=SOWs["alpha"], eta=SOWs["eta"], plot_args={"alpha" : 0.02})

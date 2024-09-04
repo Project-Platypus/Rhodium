@@ -22,7 +22,7 @@ import pandas as pd
 from ..brush import *
 
 class TestBrush(unittest.TestCase):
-    
+
     def testSimpleBrush(self):
         d = {'col1': [1, 2], 'col2': [3, 4]}
         df = pd.DataFrame(data=d)
@@ -30,7 +30,7 @@ class TestBrush(unittest.TestCase):
         assignment = apply_brush(brush, df)
         self.assertEqual(assignment[0], brush.name)
         self.assertEqual(assignment[1], RhodiumConfig.default_unassigned_label)
-        
+
     def testComplexBrush(self):
         d = {'col1': [1, 2, 3], 'col2': [3, 4, 5]}
         df = pd.DataFrame(data=d)
@@ -39,7 +39,7 @@ class TestBrush(unittest.TestCase):
         self.assertEqual(assignment[0], RhodiumConfig.default_unassigned_label)
         self.assertEqual(assignment[1], brush.name)
         self.assertEqual(assignment[2], RhodiumConfig.default_unassigned_label)
-        
+
     def testMultipleBrush(self):
         d = {'col1': [1, 2, 3], 'col2': [3, 4, 5]}
         df = pd.DataFrame(data=d)
@@ -49,4 +49,4 @@ class TestBrush(unittest.TestCase):
         self.assertEqual(assignment[0], brush1.name)
         self.assertEqual(assignment[1], RhodiumConfig.default_unassigned_label)
         self.assertEqual(assignment[2], brush2.name)
-        
+

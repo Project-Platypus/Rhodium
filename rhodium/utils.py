@@ -24,15 +24,15 @@ def promptToRun(message, default="yes"):
         prompt = "[y/N]"
     else:
         raise ValueError("invalid default answer")
-    
+
     print(message + " " + prompt + " ", end='')
     sys.stdout.flush()
-    
+
     response = sys.stdin.readline().strip()
-    
+
     if response == "":
         response = default[0]
-        
+
     if response == "y" or response == "Y":
         return True
     else:

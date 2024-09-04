@@ -12,7 +12,7 @@ with ExcelModel(file) as model:
                         Parameter("mean", sheet="Inputs", cell="D2"),
                         Parameter("stdev", sheet="Inputs", cell="E2"),
                         Parameter("delta", sheet="Inputs", cell="F2")]
-    
+
     # List all outputs from the R function, which should return these values either as
     # an unnamed array in the given order (e.g., c(max_P, utility, ...)) or as a named
     # list (e.g., list(max_P=..., utility=..., ...)).
@@ -20,10 +20,10 @@ with ExcelModel(file) as model:
                        Response("utility", Response.MAXIMIZE, sheet="Calculations", cell="A11"),
                        Response("inertia", Response.MAXIMIZE, sheet="Calculations", cell="A14"),
                        Response("reliability", Response.MAXIMIZE, sheet="Calculations", cell="A5")]
-    
+
     # Specify the levers
     model.levers = [RealLever("pollution_limit", 0.0, 0.1, length=100)]
-    
+
     # Optimize the model using Rhodium
     output = optimize(model, "NSGAII", 10000)
     print(output)

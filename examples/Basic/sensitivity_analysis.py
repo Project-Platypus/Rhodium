@@ -23,22 +23,22 @@ def lake_problem(pollution_limit,
 
     for _ in range(nsamples):
         X[0] = 0.0
-        
+
         natural_inflows = np.random.lognormal(
                 math.log(mean**2 / math.sqrt(stdev**2 + mean**2)),
                 math.sqrt(math.log(1.0 + stdev**2 / mean**2)),
                 size = nvars)
-        
+
         for t in range(1,nvars):
             X[t] = (1-b)*X[t-1] + X[t-1]**q/(1+X[t-1]**q) + decisions[t-1] + natural_inflows[t-1]
             average_daily_P[t] += X[t]/float(nsamples)
-    
+
         reliability += np.sum(X < Pcrit)/float(nsamples*nvars)
-      
+
     max_P = np.max(average_daily_P)
     utility = np.sum(alpha*decisions*np.power(delta,np.arange(nvars)))
     intertia = np.sum(np.diff(decisions) > -0.02)/float(nvars-1)
-    
+
     return (max_P, utility, intertia, reliability)
 
 model = Model(lake_problem)
@@ -95,13 +95,13 @@ print("Fourier Amplitude Sensitivity Test (FAST)")
 print("------------------------------------------------------------")
 print(fast_results)
 print()
- 
+
 delta_results = sa(model, "reliability", policy=policy, method="delta", nsamples=1000)
 print("Borgonovo's Delta Moment-Independent Measure")
 print("------------------------------------------------------------")
 print(delta_results)
 print()
- 
+
 sobol_results = sa(model, "reliability", policy=policy, method="sobol", nsamples=10000)
 print("Sobol Sensitivity Analysis")
 print("------------------------------------------------------------")

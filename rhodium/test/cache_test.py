@@ -19,42 +19,41 @@ import unittest
 from ..cache import *
 
 class TestCache(unittest.TestCase):
-    
+
     def testSimpleCache(self):
         cache("testValue", 5)
         value=cache("testValue", 10) # Should return the cached value of 5
         self.assertEqual(5, value)
-        
+
     def testFunction(self):
         self.testFunction_called=False
-        
+
         def fun():
             self.testFunction_called=True
             return 5
-        
+
         value=cache("testFun", fun)
         self.assertEqual(True, self.testFunction_called)
         self.assertEqual(5, value)
         self.testFunction_called=False
-        
+
         value=cache("testFun", fun)
         self.assertEqual(False, self.testFunction_called)
         self.assertEqual(5, value)
-        
+
     def testCachedFunction(self):
         self.testCachedFunction_called=False
-        
+
         @cached
         def fun():
             self.testCachedFunction_called=True
             return 5
-        
+
         value=fun()
         self.assertEqual(True, self.testCachedFunction_called)
         self.assertEqual(5, value)
         self.testCachedFunction_called=False
-        
+
         value=fun()
         self.assertEqual(False, self.testCachedFunction_called)
         self.assertEqual(5, value)
-            

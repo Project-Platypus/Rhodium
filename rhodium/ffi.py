@@ -20,14 +20,14 @@ import ctypes
 from .model import *
 
 TYPE_RE = re.compile(r"([a-zA-Z ]+)\s*(\*?)\s*((?:[0-9]+)?)")
-        
+
 class NativeModel(Model):
-    
+
     def __init__(self, library, function, mode=ctypes.CDLL):
         super(NativeModel, self).__init__(self._evaluate)
         self._cdll = mode(library)
         self._func = getattr(self._cdll, function)
-        
+
     def _str_to_type(self, type, is_pointer=False):
         if type == "bool" or type == "_Bool":
             return ctypes.c_bool
@@ -69,18 +69,18 @@ class NativeModel(Model):
             return ctypes.c_void_p
         else:
             raise ValueError("unknown type " + str(type))
-         
+
     def _cast(self, argument, value=None, length=None):
         if hasattr(argument, "type"):
             type = getattr(argument, "type")
-                
+
             if isinstance(type, str):
                 match = TYPE_RE.match(type)
-                
+
                 if match:
                     base_type = match.group(1)
                     is_pointer = match.group(2) == "*"
-                    
+
                     if length is None:
                         if len(match.group(3)) > 0:
                             length = int(match.group(3))
@@ -88,12 +88,12 @@ class NativeModel(Model):
                             length = len(value)
                         else:
                             length = 1
-                    
+
                     type = self._str_to_type(base_type, is_pointer)
-                    
+
                     if is_pointer and type != ctypes.c_void_p and type != ctypes.c_char_p and type != ctypes.c_wchar_p:
                         type = type * length
-                    
+
                     if value is None:
                         return type()
                     elif isinstance(value, (list, tuple)):
@@ -111,14 +111,14 @@ class NativeModel(Model):
                     return type(value)
         else:
             raise ValueError("missing type attribute")
-        
+
     def _evaluate(self, **kwargs):
         nargs = len(self.parameters) + sum([1 if hasattr(r, "asarg") and getattr(r, "asarg") else 0 for r in self.responses])
         args = [None]*nargs
         arg_map = {}
         locals = {}
         length_args = {}
-        
+
         # first pass aggregates the length arguments
         for parameter in self.parameters:
             if hasattr(parameter, "len_arg"):
@@ -127,10 +127,10 @@ class NativeModel(Model):
                         raise ValueError("arguments using same length argument have different lengths")
                 else:
                     length_args[getattr(parameter, "len_arg")] = len(kwargs[parameter.name])
-                    
+
         for k, v in length_args.items():
             kwargs[k] = v
-    
+
         # second pass places arguments with the order attribute
         for parameter in self.parameters:
             if hasattr(parameter, "order"):
@@ -139,7 +139,7 @@ class NativeModel(Model):
                                  length=length_args[getattr(parameter, "len_arg")] if hasattr(parameter, "len_arg") else None)
                 arg_map[parameter.name] = getattr(parameter, "order")
                 args[getattr(parameter, "order")] = arg
-            
+
         for response in self.responses:
             if hasattr(response, "asarg") and getattr(response, "asarg") and hasattr(response, "order"):
                 arg = self._cast(response,
@@ -147,46 +147,46 @@ class NativeModel(Model):
                 arg_map[response.name] = getattr(response, "order")
                 locals[response.name] = arg
                 args[getattr(response, "order")] = ctypes.byref(arg)
-                
+
         # third pass fills in any remaining arguments
         index = 0
-        
+
         for parameter in self.parameters:
             if not hasattr(parameter, "order"):
                 while args[index] is not None:
                     index += 1
-                    
+
                 arg = self._cast(parameter,
                                  value=kwargs[parameter.name],
                                  length=length_args[getattr(parameter, "len_arg")] if hasattr(parameter, "len_arg") else None)
                 arg_map[parameter.name] = index
                 args[index] = arg
-            
+
         for response in self.responses:
             if hasattr(response, "asarg") and getattr(response, "asarg") and not hasattr(response, "order"):
                 while args[index] is not None:
                     index += 1
-                    
+
                 arg = self._cast(response,
                                  length=length_args[getattr(response, "len_arg")] if hasattr(response, "len_arg") else None)
                 arg_map[response.name] = index
                 locals[response.name] = arg
                 args[index] = ctypes.byref(arg)
-                
+
         # determine if the function will be returning a value
         leftover = [r for r in self.responses if not hasattr(r, "asarg") or not getattr(r, "asarg")]
-        
+
         if len(leftover) > 1:
             raise ValueError("native functions can only return one type")
         elif len(leftover) == 1:
             self._func.restype = type(self._cast(leftover[0]))
-                
+
         # call the function
         value = self._func(*args)
-        
+
         # process the results
         result = {}
-        
+
         for response in self.responses:
             if hasattr(response, "asarg") and getattr(response, "asarg"):
                 if hasattr(locals[response.name], "__getitem__"):
@@ -195,5 +195,5 @@ class NativeModel(Model):
                     result[response.name] = locals[response.name].value
             else:
                 result[response.name] = value
-            
+
         return result
