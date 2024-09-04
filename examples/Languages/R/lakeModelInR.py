@@ -2,7 +2,8 @@ from rhodium import *
 from rhodium.rbridge import RModel
 
 # Provide the R file and function name
-model = RModel("lake.R", "lake.eval", RCMD=r"C:\Program Files\R\R-3.2.1\bin\R.exe")
+#   TIP: If unable to locate R, the path can be set with RCMD=r"C:\Program Files\R\R-3.2.1\bin\R.exe"
+model = RModel("lake.R", "lake.eval")
 
 # The parameter names must match the R arguments exactly
 model.parameters = [Parameter("pollution_limit"),

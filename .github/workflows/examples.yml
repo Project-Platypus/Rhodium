@@ -12,11 +12,16 @@ jobs:
       fail-fast: false
       matrix:
         example: [
-          "Basic/dps_example.py",
-          "Basic/example_decorators.py",
-          "Basic/example_prallelization.py",
           "Basic/example.py",
-          "Eijgenraam/eijgenram.py"]
+          "Basic/example_decorators.py",
+          "Basic/example_parallelization.py",
+          "Basic/sensitivity_analysis.py",
+          "Basic/dps_example.py",
+          "Eijgenraam/eijgenraam.py",
+          "Languages/Python/lakeModelInPython.py",
+          "Languages/R/lakeModelInR.py",
+          #"Languages/Excel/lakeModelInExcel.py"  # requires Windows
+          "Languages/C/lakeModelInC.py"]
 
     steps:
       - uses: actions/checkout@v4
@@ -34,8 +39,21 @@ jobs:
 
       - name: Install dependencies
         run: |
+          sudo apt update
+          suto apt install -y graphviz r-base
           pip install .[test]
 
       - name: Run example
         run: |
-          python examples/${{ matrix.example }}
+          EXAMPLE="examples/${{ matrix.example }}"
+          EXAMPLE_DIR=$(dirname "${EXAMPLE}")
+          EXAMPLE_FILE=$(basename "${EXAMPLE}")
+
+          pushd "${EXAMPLE_DIR}"
+
+          if [ -f "Makefile" ]; then
+            make
+          fi
+
+          LD_LIBRARY_PATH="$(pwd):${LD_LIBRARY_PATH}"
+          python "${EXAMPLE_FILE}"

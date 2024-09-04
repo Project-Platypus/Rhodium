@@ -1,9 +1,9 @@
+import sys
 from rhodium import *
 from rhodium.ffi import NativeModel
 
-# Provide the DLL/SO file and the function name.  The appropriate extension,
-# such as .dll or .so, will be automatically added.
-model = NativeModel("lake", "lake_problem")
+# Provide the DLL/SO file and the function name.
+model = NativeModel("lake.so" if sys.platform == "linux" else "lake.dll", "lake_problem")
 
 # List the inputs.  The order matters!
 model.parameters = [Parameter("pollution_limit", type="double*"),
