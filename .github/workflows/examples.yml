@@ -2,6 +2,11 @@ name: Examples
 
 on: 
   workflow_dispatch:
+    inputs:
+      python-version:
+        type: string
+        description: Version of Python (e.g., 3.12)
+        required: false
   schedule: # Run once a week to detect any regressions
     - cron: '0 0 * * 1'
 
@@ -26,10 +31,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Get minimum Python version
+      - name: Get Python version
         run: |
-          #PYTHON_VERSION=$(cat pyproject.toml | grep "requires-python" | grep -Eo "[0-9]+\.[0-9]+")
-          PYTHON_VERSION="3.12"
+          PYTHON_VERSION="${{ inputs.python-version }}"
+
+          if [ -z "${{ inputs.python-version }}" ]; then
+            PYTHON_VERSION=$(cat pyproject.toml | grep "requires-python" | grep -Eo "[0-9]+\.[0-9]+")
+          fi
+
           echo "PYTHON_VERSION=${PYTHON_VERSION}" >> $GITHUB_ENV
 
       - name: Set up Python ${{ env.PYTHON_VERSION }}

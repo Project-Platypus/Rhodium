@@ -10,16 +10,16 @@ authors = [
 ]
 readme = "README.md"
 license = { file="COPYING" }
-requires-python = ">= 3.9"
+requires-python = ">= 3.8"
 dependencies = [
-  "numpy",
-  "seaborn",
-  "mplcursors",
-  "pydot",
-  "prim",
-  "SALib",
+  "numpy<=1.26.3",
+  "seaborn<=0.13.1",
+  "scikit-learn<=1.4.0",
+  "mplcursors<=0.5.3",
+  "pydot<=2.0.0",
+  "SALib<=1.4.6.1",
   "platypus-opt",
-  "scikit-learn"
+  "prim"
 ]
 dynamic = ["version"]  # Version is read from rhodium/__init__.py
 
@@ -28,8 +28,8 @@ dynamic = ["version"]  # Version is read from rhodium/__init__.py
 "Bug Tracker" = "https://github.com/Project-Platypus/Rhodium/issues"
 
 [project.optional-dependencies]
-test = ["pytest", "mock", "pyper"]
-openmdao = ["openmdao"]
+test = ["pytest", "mock", "pyper<=1.1.1"]
+openmdao = ["openmdao<=3.30.0"]
 
 [tool.setuptools.dynamic]
 version = {attr = "rhodium.__version__"}
