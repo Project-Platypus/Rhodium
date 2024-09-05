@@ -14,7 +14,7 @@ requires-python = ">= 3.8"
 dependencies = [
   "numpy<=1.26.3",
   "seaborn<=0.13.1",
-  "scikit-learn<=1.4.0",
+  "scikit-learn<=1.5.0",
   "mplcursors<=0.5.3",
   "pydot<=2.0.0",
   "SALib<=1.4.6.1",
