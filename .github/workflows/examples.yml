@@ -74,5 +74,5 @@ jobs:
       - name: Upload figures
         uses: actions/upload-artifact@v4
         with:
-          name: figures
+          name: "${{ matrix.example }}"
           path: figs/
