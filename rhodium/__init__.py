@@ -18,7 +18,7 @@
 __author__ = "David Hadka"
 __copyright__ = "Copyright 2015-2024, David Hadka"
 __license__ = "GPLv3"
-__version__ = "1.3.0"
+__version__ = "1.4.0"
 __maintainer__ = "David Hadka"
 __email__ = "dhadka@users.noreply.github.com"
 
