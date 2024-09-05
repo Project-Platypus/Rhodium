@@ -312,12 +312,12 @@ def scatter2d(model, data,
         if isinstance(colors, dict):
             cmap = colors
         else:
-            from pandas.tools.plotting import _get_standard_colors
+            from pandas.plotting._matplotlib.style import get_standard_colors
             classes = c.drop_duplicates()
-            color_values = _get_standard_colors(num_colors=len(classes),
-                                                colormap=kwargs["cmap"] if "cmap" in kwargs else None,
-                                                color_type='random',
-                                                color=colors)
+            color_values = get_standard_colors(num_colors=len(classes),
+                                               colormap=kwargs["cmap"] if "cmap" in kwargs else None,
+                                               color_type='random',
+                                               color=colors)
             cmap = dict(zip(classes, color_values))
         c = [cmap[c_i] for c_i in c]
         show_colorbar = False
@@ -761,11 +761,12 @@ def parallel_coordinates(model, data, c=None, cols=None, ax=None, colors=None,
             if isinstance(colors, dict):
                 cmap = colors
             else:
-                from pandas.tools.plotting import _get_standard_colors
+                from pandas.plotting._matplotlib.style import get_standard_colors
                 classes = class_col.drop_duplicates()
-                color_values = _get_standard_colors(num_colors=len(classes),
-                                                    colormap=colormap, color_type='random',
-                                                    color=colors)
+                color_values = get_standard_colors(num_colors=len(classes),
+                                                   colormap=colormap,
+                                                   color_type='random',
+                                                   color=colors)
                 cmap = dict(zip(classes, color_values))
         else:
             cmap = color_map

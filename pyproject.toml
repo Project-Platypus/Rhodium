@@ -12,8 +12,8 @@ readme = "README.md"
 license = { file="COPYING" }
 requires-python = ">= 3.8"
 dependencies = [
-  "numpy<=1.26.3",
-  "seaborn<=0.13.1",
+  "numpy<=1.26.4",
+  "seaborn<=0.13.2",
   "scikit-learn<=1.5.0",
   "mplcursors<=0.5.3",
   "pydot<=2.0.0",
