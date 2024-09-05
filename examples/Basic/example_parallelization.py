@@ -1,7 +1,5 @@
 import math
 import numpy as np
-import matplotlib as mpl
-import matplotlib.pyplot as plt
 from scipy.optimize import brentq as root
 from rhodium import *
 from rhodium.config import RhodiumConfig

@@ -1,9 +1,9 @@
 import math
 import numpy as np
+import matplotlib.pyplot as plt
 from scipy.optimize import brentq as root
 from rhodium import *
 from rhodium.decorators import *
-from rhodium.config import RhodiumConfig
 
 @RhodiumModel()
 @Responses(Minimize("max_P"), Maximize("utility"), Maximize("inertia"), Maximize("reliability"))

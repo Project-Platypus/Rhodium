@@ -8,7 +8,7 @@ if __name__ == "__main__":
         sys.exit(-1)
 
     fig_index = 1
-    fig_basename = pathlib.Path(sys.argv[2]) / pathlib.Path(__file__).stem
+    fig_basename = pathlib.Path(sys.argv[2]) / pathlib.Path(sys.argv[1]).stem
     pyplot_alias = "matplotlib.pyplot"
     result = []
 
