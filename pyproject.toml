@@ -18,6 +18,7 @@ dependencies = [
   "mplcursors<=0.5.3",
   "pydot<=2.0.0",
   "SALib<=1.4.6.1",
+  "pandas",
   "platypus-opt",
   "prim"
 ]
@@ -30,6 +31,7 @@ dynamic = ["version"]  # Version is read from rhodium/__init__.py
 [project.optional-dependencies]
 test = ["pytest", "mock", "pyper<=1.1.2"]
 openmdao = ["openmdao"]
+excel = ["pandas[excel]"]
 
 [tool.setuptools.dynamic]
 version = {attr = "rhodium.__version__"}

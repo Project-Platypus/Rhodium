@@ -52,7 +52,7 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y graphviz r-base
-          pip install .[test]
+          pip install .[test,excel]
 
       - name: Run example
         run: |

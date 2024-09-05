@@ -191,11 +191,6 @@ class Cart(object):
         return self._to_string()
 
     def print_tree(self, coi=None, all=True, **kwargs):
-        # Being unfamiliar with version control, I just added "#", or comments, in places where I made changes to the original Rhodium code.
-        # Below is the unaltered (although commented out):
-        # print(self._to_string(coi, all, **kwargs))
-
-        # But it does not return a list of the scenario nodes, which we would like. So I made alterations to the _to_string() function to achieve this:
         results, node_list = self._to_string(coi, all, **kwargs)
         print(results)
         return node_list
