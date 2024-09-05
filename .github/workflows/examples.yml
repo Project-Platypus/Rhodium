@@ -59,6 +59,9 @@ jobs:
           EXAMPLE_DIR=$(dirname "${EXAMPLE}")
           EXAMPLE_FILE=$(basename "${EXAMPLE}")
 
+          mkdir -p figs
+          python rhodium/test/plot_to_savefig.py "${EXAMPLE}" "$(realpath figs/)"
+
           pushd "${EXAMPLE_DIR}"
 
           if [ -f "Makefile" ]; then
@@ -67,3 +70,9 @@ jobs:
 
           LD_LIBRARY_PATH="$(pwd):${LD_LIBRARY_PATH}"
           python "${EXAMPLE_FILE}"
+
+      - name: Upload figures
+        uses: actions/upload-artifact@v4
+        with:
+          name: figures
+          path: figs/
