@@ -96,7 +96,7 @@ plt.show()
 
 # The optional interactive flag will show additional details of each point when
 # hovering the mouse
-scatter2d(model, output, brush="reliability >= 0.5 and utility > 0.5")
+scatter2d(model, output, interactive=True)
 plt.show()
 
 # Most of Rhodiums's plotting functions accept an optional expr argument for
