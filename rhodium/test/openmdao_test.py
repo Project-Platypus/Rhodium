@@ -25,8 +25,8 @@ class TestOpenMDAOModel(unittest.TestCase):
     def test(self):
         try:
             from openmdao.api import IndepVarComp, Component, Problem, Group
-        except ImportError:
-            self.skipTest("OpenMDAO not available")
+        except ImportError as e:
+            self.skipTest(f"OpenMDAO not available: {e}")
 
         # the following example is taken from OpenMDAO's Paraboloid tutorial
         class Paraboloid(Component):
