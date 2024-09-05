@@ -31,7 +31,7 @@ dynamic = ["version"]  # Version is read from rhodium/__init__.py
 [project.optional-dependencies]
 test = ["pytest", "mock", "rhodium[examples]"]
 openmdao = ["openmdao"]
-examples = ["pandas[excel]", "images2gif", "pyper<=1.1.2"]
+examples = ["pandas[excel]", "pyper<=1.1.2"]
 
 [tool.setuptools.dynamic]
 version = {attr = "rhodium.__version__"}

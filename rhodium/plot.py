@@ -673,7 +673,6 @@ def animate3d(prefix, dir="images/", steps=36, transform=(10, 0, 0), **kwargs):
     import math
     import inspect
     from PIL import Image
-    from images2gif import writeGif
 
     base_dir = os.path.join(dir, prefix)
 
@@ -690,15 +689,15 @@ def animate3d(prefix, dir="images/", steps=36, transform=(10, 0, 0), **kwargs):
         else:
             ax.azim += transform[0]
             ax.elev += transform[1]
-            ax.dist += transform[2]
+            # ax.dist += transform[2]  # This is deprecated, use ax.set_box_aspect(None, zoom=2) instead
 
         filename = os.path.join(base_dir, 'img' + str(n).zfill(digits) + '.png')
         plt.savefig(filename, bbox_inches='tight')
         files.append(filename)
-
+      
     images = [Image.open(file) for file in files]
     file_path_name = os.path.join(dir, prefix + '.gif')
-    writeGif(file_path_name, images, **kwargs)
+    images[0].save(file_path_name, save_all=True, append_images=images[1:], **kwargs)
 
 def parallel_coordinates(model, data, c=None, cols=None, ax=None, colors=None,
                          use_columns=False, xticks=None, colormap=None,
