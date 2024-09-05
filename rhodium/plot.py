@@ -15,6 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
+import os
 import mplcursors
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -28,6 +29,23 @@ from matplotlib.legend_handler import HandlerPatch
 from .config import RhodiumConfig
 from .model import Response
 from .brush import BrushSet, apply_brush, color_brush, brush_color_map, color_indices
+
+# When set, override the plt.show() method to save.  Intended for CI
+# or headless mode.
+_figure_output_envvar = "RHODIUM_FIGURE_OUTPUT"
+
+if os.getenv(_figure_output_envvar):
+    def show_override(*args, **kwargs):
+        directory = os.getenv(_figure_output_envvar)
+        
+        if not os.path.exists(directory):
+            os.makedirs(directory, exist_ok=True)
+        
+        filename = os.path.join(directory, f"figure_{plt.gcf().number}.png")
+        plt.savefig(filename)
+        print(f"{_figure_output_envvar} set, saving figure to {filename}")
+        
+    plt.show = show_override
 
 def _combine_keys(*args):
     result = []
@@ -423,6 +441,7 @@ def kdeplot(model, data, x, y,
             cmap=["Reds", "Blues", "Oranges", "Greens", "Greys"],
             **kwargs):
     df = data.as_dataframe()
+    plt.figure()
 
     if brush is None:
         sns.kdeplot(x=df[x],

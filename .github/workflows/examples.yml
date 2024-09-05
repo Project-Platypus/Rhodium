@@ -59,13 +59,6 @@ jobs:
           EXAMPLE="examples/${{ matrix.example }}"
           EXAMPLE_DIR=$(dirname "${EXAMPLE}")
           EXAMPLE_FILE=$(basename "${EXAMPLE}")
-          FIGURE_DIR=$(realpath figs/)
-
-          echo "ARTIFACT_NAME=${EXAMPLE_FILE}" >> $GITHUB_ENV
-          echo "FIGURE_DIR=${FIGURE_DIR}" >> $GITHUB_ENV
-
-          mkdir -p "${FIGURE_DIR}"
-          python rhodium/test/plot_to_savefig.py "${EXAMPLE}" "${FIGURE_DIR}"
 
           pushd "${EXAMPLE_DIR}"
 
@@ -73,17 +66,20 @@ jobs:
             make
           fi
 
+          IMAGES_DIR=$(realpath images/)
+
           export RHODIUM_NO_PROMPT=true
+          export RHODIUM_FIGURE_OUTPUT="${IMAGES_DIR}"
           export LD_LIBRARY_PATH="$(pwd):${LD_LIBRARY_PATH}"
+
           python "${EXAMPLE_FILE}"
 
-          if [ -d "images/" ]; then
-            mv images/ "${FIGURE_DIR}"
-          fi
+          echo "IMAGES_DIR=${IMAGES_DIR}" >> $GITHUB_ENV
+          echo "ARTIFACT_NAME=${EXAMPLE_FILE}" >> $GITHUB_ENV
 
       - name: Upload figures
         uses: actions/upload-artifact@v4
         with:
           name: "${{ env.ARTIFACT_NAME }}"
-          path: "${{ env.FIGURE_DIR }}"
+          path: "${{ env.IMAGES_DIR }}"
           if-no-files-found: ignore
