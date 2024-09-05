@@ -22,6 +22,7 @@ import matplotlib.patches as mpatches
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from collections.abc import Sequence
 from scipy.interpolate import griddata
 from matplotlib.legend_handler import HandlerPatch
 from .config import RhodiumConfig
@@ -47,6 +48,23 @@ def _combine_keys(*args):
 
     return result
 
+def _is_color(c, expected_size=None):
+    if isinstance(c, str):
+        return True
+    
+    if not isinstance(c, Sequence):
+        return False
+    
+    if expected_size:
+        if len(c) != expected_size:
+            raise ValueError(f"expected color array to have {expected_size} elements, given {len(c)}")
+        
+    for color in c:
+        if not mpl.colors.is_color_like(color):
+            return False
+        
+    return True
+   
 class HandlerSizeLegend(HandlerPatch):
     def __call__(self, legend, orig_handle, fontsize, handlebox):
         pass
@@ -162,7 +180,7 @@ def scatter3d(model, data,
         s_max = max(s)
         s = (s_range[1]-s_range[0]) * ((s-s_min) / (s_max-s_min)) + s_range[0]
 
-    if "cmap" not in kwargs:
+    if "cmap" not in kwargs and not _is_color(c, len(x)):
         kwargs["cmap"] = RhodiumConfig.default_cmap
 
     handle = ax.scatter(xs=x,
@@ -321,7 +339,8 @@ def scatter2d(model, data,
             cmap = dict(zip(classes, color_values))
         c = [cmap[c_i] for c_i in c]
         show_colorbar = False
-    elif "cmap" not in kwargs:
+    
+    if "cmap" not in kwargs and not _is_color(c, len(x)):
         kwargs["cmap"] = RhodiumConfig.default_cmap
 
     handle = plt.scatter(x=x,
