@@ -23,6 +23,7 @@ jobs:
           "Basic/sensitivity_analysis.py",
           "Basic/dps_example.py",
           "Eijgenraam/eijgenraam.py",
+          "Eijgenraam/eijgenraam_mordm.py",
           "Languages/Python/lakeModelInPython.py",
           "Languages/R/lakeModelInR.py",
           #"Languages/Excel/lakeModelInExcel.py"  # requires Windows
@@ -70,7 +71,8 @@ jobs:
             make
           fi
 
-          LD_LIBRARY_PATH="$(pwd):${LD_LIBRARY_PATH}"
+          export RHODIUM_NO_PROMPT=true
+          export LD_LIBRARY_PATH="$(pwd):${LD_LIBRARY_PATH}"
           python "${EXAMPLE_FILE}"
 
       - name: Upload figures
