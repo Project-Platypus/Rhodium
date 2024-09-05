@@ -16,5 +16,6 @@ Rhodium.egg-info/
 *.o
 *.pyc
 *.so
+*.xlsx
 .Rhistory
 .DS_Store

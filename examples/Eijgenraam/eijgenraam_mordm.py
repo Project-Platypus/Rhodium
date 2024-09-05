@@ -236,8 +236,8 @@ policies = cache("policies_mordm", lambda: optimize(model, "NSGAII", 10000))
 ##==============================================================================
 ## Export the data (Excel, CSV, JSON, pickle)
 ##------------------------------------------------------------------------------
-if promptToRun("Save policies to Excel (eijgenraam_mordm.xls)?"):
-    policies.save("eijgenraam_mordm.xls")
+if promptToRun("Save policies to Excel (eijgenraam_mordm.xlsx)?"):
+    policies.save("eijgenraam_mordm.xlsx")
 
 ##==============================================================================
 ## Display all the data in a pretty format

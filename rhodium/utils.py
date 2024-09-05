@@ -19,19 +19,20 @@ import os
 import sys
 
 def promptToRun(message, default="yes"):
+    if default == "yes":
+        prompt = "[Y/n]"
+    elif default == "no":
+        prompt = "[y/N]"
+    else:
+        raise ValueError("invalid default answer")
+
+    print(message + " " + prompt + " ", end='')
+    sys.stdout.flush()
+
     if os.getenv("RHODIUM_NO_PROMPT"):
+        print("(Skipping prompt since RHODIUM_NO_PROMPT is set)")
         response = ""
     else:
-        if default == "yes":
-            prompt = "[Y/n]"
-        elif default == "no":
-            prompt = "[y/N]"
-        else:
-            raise ValueError("invalid default answer")
-
-        print(message + " " + prompt + " ", end='')
-        sys.stdout.flush()
-
         response = sys.stdin.readline().strip()
 
     if response == "":
