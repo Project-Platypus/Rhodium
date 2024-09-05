@@ -815,14 +815,14 @@ def parallel_coordinates(model, data, c=None, cols=None, ax=None, colors=None,
         format = "%.2f"
 
         if target == "top":
-            value = df_min[i] if model.responses[df.columns.values[i]].dir == Response.MINIMIZE else df_max[i]
+            value = df_min.iloc[i] if model.responses[df.columns.values[i]].dir == Response.MINIMIZE else df_max.iloc[i]
 
             if model.responses[df.columns.values[i]].dir != Response.INFO:
                 format = format + "*"
         elif target == "bottom":
-            value = df_max[i] if model.responses[df.columns.values[i]].dir == Response.MINIMIZE else df_min[i]
+            value = df_max.iloc[i] if model.responses[df.columns.values[i]].dir == Response.MINIMIZE else df_min.iloc[i]
         else:
-            value = df_max[i]
+            value = df_max.iloc[i]
 
             if model.responses[df.columns.values[i]].dir == Response.MAXIMIZE:
                 format = format + "*"
@@ -831,14 +831,14 @@ def parallel_coordinates(model, data, c=None, cols=None, ax=None, colors=None,
         format = "%.2f"
 
         if target == "top":
-            value = df_max[i] if model.responses[df.columns.values[i]].dir == Response.MINIMIZE else df_min[i]
+            value = df_max.iloc[i] if model.responses[df.columns.values[i]].dir == Response.MINIMIZE else df_min.iloc[i]
         elif target == "bottom":
-            value = df_min[i] if model.responses[df.columns.values[i]].dir == Response.MINIMIZE else df_max[i]
+            value = df_min.iloc[i] if model.responses[df.columns.values[i]].dir == Response.MINIMIZE else df_max.iloc[i]
 
             if model.responses[df.columns.values[i]].dir != Response.INFO:
                 format = format + "*"
         else:
-            value = df_min[i]
+            value = df_min.iloc[i]
 
             if model.responses[df.columns.values[i]].dir == Response.MINIMIZE:
                 format = format + "*"
