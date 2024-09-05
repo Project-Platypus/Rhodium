@@ -689,7 +689,7 @@ def animate3d(prefix, dir="images/", steps=36, transform=(10, 0, 0), **kwargs):
         else:
             ax.azim += transform[0]
             ax.elev += transform[1]
-            # ax.dist += transform[2]  # This is deprecated, use ax.set_box_aspect(None, zoom=2) instead
+            ax.set_box_aspect(None, zoom=transform[2] if transform[2] > 0 else 1)
 
         filename = os.path.join(base_dir, 'img' + str(n).zfill(digits) + '.png')
         plt.savefig(filename, bbox_inches='tight')
