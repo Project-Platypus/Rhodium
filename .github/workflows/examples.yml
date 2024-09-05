@@ -59,6 +59,8 @@ jobs:
           EXAMPLE_DIR=$(dirname "${EXAMPLE}")
           EXAMPLE_FILE=$(basename "${EXAMPLE}")
 
+          echo "ARTIFACT_NAME=${EXAMPLE_FILE}" >> $GITHUB_ENV
+
           mkdir -p figs
           python rhodium/test/plot_to_savefig.py "${EXAMPLE}" "$(realpath figs/)"
 
@@ -71,15 +73,9 @@ jobs:
           LD_LIBRARY_PATH="$(pwd):${LD_LIBRARY_PATH}"
           python "${EXAMPLE_FILE}"
 
-          popd
-
-          if [ "$(ls figs | wc -l)" -gt "0" ]; then
-            echo "ARTIFACT_NAME=${EXAMPLE_FILE}" >> $GITHUB_ENV
-          fi
-
       - name: Upload figures
         uses: actions/upload-artifact@v4
-        if: ${{ env.ARTIFACT_NAME }} != ""
         with:
           name: "${{ env.ARTIFACT_NAME }}"
           path: figs/
+          if-no-files-found: ignore
