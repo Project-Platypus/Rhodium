@@ -26,9 +26,3 @@ Rhodium (using the SALib library).
 ## dps_example.py
 
 An example solving the Lake Problem using direct policy search (DPS).
-
-## visualization_with_J3.py
-
-An example visualizing Rhodium's data using the J3 viewer.  J3 is a
-cross-platform viewer for high-dimensional data.  To run, you must
-install the J3Py module first.
