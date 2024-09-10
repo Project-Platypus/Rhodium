@@ -29,7 +29,7 @@ from collections import OrderedDict
 from abc import ABCMeta, abstractmethod
 from enum import Enum
 from platypus import Real, Integer, Permutation, Subset
-from .expr import _evaluate_all
+from .expr import _evaluate, _evaluate_all
 
 class RhodiumError(Exception):
     pass
@@ -103,14 +103,6 @@ class Response(NamedObject):
         else:
             raise AttributeError()
 
-# Set up the evaluation environment with all math function.
-_eval_env = {}
-_module = __import__("math", fromlist=[''])
-
-for name in dir(_module):
-    if not name.startswith("_"):
-        _eval_env[name] = getattr(_module, name)
-
 class Constraint:
     """Defines model constraints.
 
@@ -156,14 +148,7 @@ class Constraint:
 
     def is_feasible(self, env):
         """Returns True if the constraint is feasible / satisfied, otherwise False."""
-        tmp_env = {}
-        tmp_env.update(_eval_env)
-        tmp_env.update(env)
-
-        if isinstance(self.expr, str):
-            return eval(self.expr, {}, tmp_env)
-        else:
-            return self.expr(tmp_env)
+        return _evaluate(self.expr, env, update_env=False)
 
     def distance(self, env):
         """Returns the distance to the feasibility threshold."""
@@ -171,10 +156,7 @@ class Constraint:
             return 0.0
         elif hasattr(self, "_distance"):
             try:
-                tmp_env = {}
-                tmp_env.update(_eval_env)
-                tmp_env.update(env)
-                return abs(eval(self._distance, {}, tmp_env)) + 0.001
+                return math.nextafter(abs(_evaluate(self._distance, env, update_env=False)), math.inf)
             except Exception:
                 return 1.0
         else:
