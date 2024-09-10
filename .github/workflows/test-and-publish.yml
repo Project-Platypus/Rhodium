@@ -35,7 +35,8 @@ jobs:
 
       - name: Run tests
         run: |
-          python -m pytest
+          # Disable the fault handler to fix https://stackoverflow.com/questions/57523762/pytest-windows-fatal-exception-code-0x8001010d
+          pytest -p no:faulthandler
 
   # ------------------------------------------------------------
   # Build the distribution and publish (on release tag).
