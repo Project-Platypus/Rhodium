@@ -17,6 +17,7 @@
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
 import os
 import ast
+import sys
 import math
 import inspect
 import random
@@ -97,7 +98,10 @@ class Response(NamedObject):
         if name == 'dir':
             warnings.warn(f"'dir' is deprecated, use 'direction' instead", DeprecationWarning, stacklevel=2)
             return self.direction.value
-        raise AttributeError(name=name, obj=self)
+        if sys.version_info >= (3,10):
+            raise AttributeError(name=name, obj=self)
+        else:
+            raise AttributeError()
 
 _eval_env = {}
 module = __import__("math", fromlist=[''])
