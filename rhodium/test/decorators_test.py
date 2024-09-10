@@ -25,17 +25,17 @@ class TestResponses(unittest.TestCase):
         r = Minimize("foo")
         self.assertEqual("foo", r.name)
         self.assertEqual(Direction.MINIMIZE, r.direction)
-        
+
     def testMaximize(self):
         r = Maximize("foo")
         self.assertEqual("foo", r.name)
         self.assertEqual(Direction.MAXIMIZE, r.direction)
-        
+
     def testInfo(self):
         r = Info("foo")
         self.assertEqual("foo", r.name)
         self.assertEqual(Direction.INFO, r.direction)
-        
+
     def testIgnore(self):
         r = Ignore("foo")
         self.assertEqual("foo", r.name)
