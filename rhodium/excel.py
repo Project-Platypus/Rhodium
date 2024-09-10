@@ -17,13 +17,20 @@
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
 import win32com.client
 from win32com.universal import com_error
-from .model import Model
+from .model import Model, RhodiumError
 
 class ExcelHelper:
 
     def __init__(self, filename, sheet=1, visible=False):
-        self.xl = win32com.client.Dispatch("Excel.Application")
-        self.wb = self.xl.Workbooks.Open(filename)
+        try:
+            self.xl = win32com.client.Dispatch("Excel.Application")
+        except com_error as e:
+            raise RhodiumError("Failed to load Excel application", e)
+
+        try:
+            self.wb = self.xl.Workbooks.Open(filename)
+        except com_error as e:
+            raise RhodiumError("Failed to open Excel file", e)
 
         # ensure auto-calculations is enabled
         sheets = self.xl.Worksheets
