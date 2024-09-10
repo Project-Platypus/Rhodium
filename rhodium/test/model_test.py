@@ -18,7 +18,7 @@
 import unittest
 import warnings
 import numpy as np
-from rhodium.model import Constraint, Model, Parameter, Response, \
+from rhodium.model import Constraint, Direction, Model, Parameter, Response, \
     CategoricalUncertainty, IntegerUncertainty, PointUncertainty, \
     TriangularUncertainty, UniformUncertainty
 
@@ -41,6 +41,30 @@ class TestConstraint(unittest.TestCase):
         self.assertEqual(0, c.distance({"x": 0, "y": 2}))
         self.assertNotEqual(0, c.distance({"x": 0, "y": 1}))
         self.assertNotEqual(0, c.distance({"x": 1, "y": 1}))
+
+class TestResponse(unittest.TestCase):
+    
+    def testInvalidName(self):
+        with warnings.catch_warnings(record=True) as w:
+            Response("f-1")
+            self.assertEqual(1, len(w))
+            self.assertTrue(issubclass(w[0].category, DeprecationWarning))
+            
+    def testDeprecatedDir(self):
+        for d in [Response.MINIMIZE, Response.MAXIMIZE, Response.INFO, Response.IGNORE]:
+            # Using dir argument issues a warning
+            with warnings.catch_warnings(record=True) as w:
+                r = Response("f", dir=d)
+                self.assertEqual(1, len(w))
+                self.assertTrue(issubclass(w[0].category, DeprecationWarning))
+                self.assertEqual(Direction(d), r.direction)
+                
+            # Reading dir attribute issues a warning
+            with warnings.catch_warnings(record=True) as w:
+                r = Response("f", direction=Direction(d))
+                self.assertEqual(d, r.dir)
+                self.assertEqual(1, len(w))
+                self.assertTrue(issubclass(w[0].category, DeprecationWarning))
 
 class TestModelParameters(unittest.TestCase):
 
@@ -69,9 +93,8 @@ class TestModelParameters(unittest.TestCase):
         self.assertEqual(p3, m.parameters[2])
         
     def testInvalidName(self):
-        m = Model("foo")
         with warnings.catch_warnings(record=True) as w:
-            p = Parameter("x-1")
+            Parameter("x-1")
             self.assertEqual(1, len(w))
             self.assertTrue(issubclass(w[0].category, DeprecationWarning))
 

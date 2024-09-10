@@ -26,6 +26,7 @@ import pandas as pd
 import scipy.stats as stats
 from collections import OrderedDict
 from abc import ABCMeta, abstractmethod
+from enum import Enum
 from platypus import Real, Integer, Permutation, Subset
 from .expr import _evaluate_all
 
@@ -56,6 +57,12 @@ class Parameter(NamedObject):
         for k, v in kwargs.items():
             setattr(self, k, v)
 
+class Direction(Enum):
+    MINIMIZE = -1
+    MAXIMIZE = 1
+    INFO = 2
+    IGNORE = 0
+
 class Response(NamedObject):
     """Defines a model response (i.e., output).
 
@@ -66,17 +73,31 @@ class Response(NamedObject):
     participate in optimization.
     """
 
+    # These constants are deprecated.  Use the Direction enum instead.
     MINIMIZE = -1
-    MAXIMIZE = 1
+    MAXIMIZE = 1  
     INFO = 2
     IGNORE = 0
 
-    def __init__(self, name, dir=INFO, **kwargs):
+    def __init__(self, name, direction=Direction.INFO, dir=None, **kwargs):
         super().__init__(name)
-        self.dir = dir
-
+        self.direction = Direction(direction)
+        
+        if dir is not None:
+            warnings.warn(f"'dir' is deprecated, use 'direction' instead", DeprecationWarning, stacklevel=2)
+            if isinstance(dir, Direction):
+                self.direction = dir
+            else:
+                self.direction = Direction(dir)
+            
         for k, v in kwargs.items():
             setattr(self, k, v)
+            
+    def __getattr__(self, name):
+        if name == 'dir':
+            warnings.warn(f"'dir' is deprecated, use 'direction' instead", DeprecationWarning, stacklevel=2)
+            return self.direction.value
+        raise AttributeError(name=name, obj=self)
 
 _eval_env = {}
 module = __import__("math", fromlist=[''])

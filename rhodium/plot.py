@@ -27,7 +27,7 @@ from collections.abc import Sequence
 from scipy.interpolate import griddata
 from matplotlib.legend_handler import HandlerPatch
 from .config import RhodiumConfig
-from .model import Response
+from .model import Direction, Response
 from .brush import BrushSet, apply_brush, color_brush, brush_color_map, color_indices
 
 # When set, override the plt.show() method to save.  Intended for CI
@@ -765,10 +765,10 @@ def parallel_coordinates(model, data, c=None, cols=None, ax=None, colors=None,
 
     for i in range(ncols):
         if target == "top":
-            if model.responses[df.columns.values[i]].dir == Response.MINIMIZE:
+            if model.responses[df.columns.values[i]].direction == Direction.MINIMIZE:
                 df.iloc[:, i] = 1-df.iloc[:, i]
         elif target == "bottom":
-            if model.responses[df.columns.values[i]].dir == Response.MAXIMIZE:
+            if model.responses[df.columns.values[i]].direction == Direction.MAXIMIZE:
                 df.iloc[:, i] = 1-df.iloc[:, i]
 
     # determine values to use for xticks
@@ -833,32 +833,32 @@ def parallel_coordinates(model, data, c=None, cols=None, ax=None, colors=None,
         format = "%.2f"
 
         if target == "top":
-            value = df_min.iloc[i] if model.responses[df.columns.values[i]].dir == Response.MINIMIZE else df_max.iloc[i]
+            value = df_min.iloc[i] if model.responses[df.columns.values[i]].direction == Direction.MINIMIZE else df_max.iloc[i]
 
-            if model.responses[df.columns.values[i]].dir != Response.INFO:
+            if model.responses[df.columns.values[i]].direction != Direction.INFO:
                 format = format + "*"
         elif target == "bottom":
-            value = df_max.iloc[i] if model.responses[df.columns.values[i]].dir == Response.MINIMIZE else df_min.iloc[i]
+            value = df_max.iloc[i] if model.responses[df.columns.values[i]].direction == Direction.MINIMIZE else df_min.iloc[i]
         else:
             value = df_max.iloc[i]
 
-            if model.responses[df.columns.values[i]].dir == Response.MAXIMIZE:
+            if model.responses[df.columns.values[i]].direction == Direction.MAXIMIZE:
                 format = format + "*"
 
         ax.text(i, 1.001, format % value, ha="center", fontsize=10)
         format = "%.2f"
 
         if target == "top":
-            value = df_max.iloc[i] if model.responses[df.columns.values[i]].dir == Response.MINIMIZE else df_min.iloc[i]
+            value = df_max.iloc[i] if model.responses[df.columns.values[i]].direction == Direction.MINIMIZE else df_min.iloc[i]
         elif target == "bottom":
-            value = df_min.iloc[i] if model.responses[df.columns.values[i]].dir == Response.MINIMIZE else df_max.iloc[i]
+            value = df_min.iloc[i] if model.responses[df.columns.values[i]].direction == Direction.MINIMIZE else df_max.iloc[i]
 
-            if model.responses[df.columns.values[i]].dir != Response.INFO:
+            if model.responses[df.columns.values[i]].direction != Direction.INFO:
                 format = format + "*"
         else:
             value = df_min.iloc[i]
 
-            if model.responses[df.columns.values[i]].dir == Response.MINIMIZE:
+            if model.responses[df.columns.values[i]].direction == Direction.MINIMIZE:
                 format = format + "*"
 
         ax.text(i, -0.001, format % value, ha="center", va="top", fontsize=10)

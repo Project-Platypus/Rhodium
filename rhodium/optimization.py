@@ -19,7 +19,7 @@ import inspect
 import functools
 from collections import OrderedDict
 from platypus import Job, Problem, unique, nondominated
-from .model import Response, DataSet
+from .model import Direction, Response, DataSet
 
 def generate_jobs(model, samples):
     if isinstance(samples, dict):
@@ -55,10 +55,10 @@ class EvaluateJob(Job):
             offset = 0
 
             for response in self.model.responses:
-                if response.dir is not Response.IGNORE:
+                if response.direction is not Direction.IGNORE:
                     args[response.name] = raw_output[offset]
                     offset += 1
-        elif len(self.model.responses) == 1 and self.model.responses[0].dir != Response.IGNORE:
+        elif len(self.model.responses) == 1 and self.model.responses[0].direction != Direction.IGNORE:
             args[self.model.responses[0].name] = raw_output
 
         self.output = args
@@ -90,7 +90,7 @@ def _evaluation_function(vars, model, nvars, nobjs, nconstrs, levers):
     job = EvaluateJob(model, env)
     job.run()
 
-    objectives = [job.output[r.name] for r in model.responses if r.dir in [Response.MINIMIZE, Response.MAXIMIZE]]
+    objectives = [job.output[r.name] for r in model.responses if r.direction in [Direction.MINIMIZE, Direction.MAXIMIZE]]
     constraints = [constraint.distance(job.output) for constraint in model.constraints]
 
     if nconstrs > 0:
@@ -108,7 +108,7 @@ def _to_problem(model):
         levers.append((lever, len(vars)))
 
     nvars = len(variables)
-    nobjs = sum([1 if r.dir == Response.MINIMIZE or r.dir == Response.MAXIMIZE else 0 for r in model.responses])
+    nobjs = sum([1 if r.direction in [Direction.MINIMIZE, Direction.MAXIMIZE] else 0 for r in model.responses])
     nconstrs = len(model.constraints)
 
     function = functools.partial(_evaluation_function,
@@ -120,7 +120,7 @@ def _to_problem(model):
 
     problem = Problem(nvars, nobjs, nconstrs, function)
     problem.types[:] = variables
-    problem.directions[:] = [Problem.MINIMIZE if r.dir == Response.MINIMIZE else Problem.MAXIMIZE for r in model.responses if r.dir == Response.MINIMIZE or r.dir == Response.MAXIMIZE]
+    problem.directions[:] = [r.direction.value for r in model.responses if r.direction in [Direction.MINIMIZE, Direction.MAXIMIZE]]
     problem.constraints[:] = "==0"
     return (problem, levers)
 
@@ -153,7 +153,7 @@ def optimize(model, algorithm="NSGAII", NFE=10000, module="platypus", **kwargs):
             env[lever.name] = lever.from_variables(vars[offset:(offset+length)])
             offset += length
 
-        if any([r.dir not in [Response.MINIMIZE, Response.MAXIMIZE] for r in model.responses]):
+        if any([r.direction not in [Direction.MINIMIZE, Direction.MAXIMIZE] for r in model.responses]):
             # if there are any responses not included in the optimization, we must
             # re-evaluate the model to get all responses
             env = evaluate(model, env)
@@ -170,7 +170,7 @@ def _robust_evaluation_function(vars, model, SOWs, nvars, nobjs, nconstrs, lever
     constraints = {}
 
     for response in model.responses:
-        if response.dir in [Response.MINIMIZE, Response.MAXIMIZE]:
+        if response.direction in [Direction.MINIMIZE, Direction.MAXIMIZE]:
             objectives[response] = []
 
     for constraint in model.constraints:
@@ -188,16 +188,16 @@ def _robust_evaluation_function(vars, model, SOWs, nvars, nobjs, nconstrs, lever
         job.run()
 
         for response in model.responses:
-            if response.dir in [Response.MINIMIZE, Response.MAXIMIZE]:
+            if response.direction in [Direction.MINIMIZE, Direction.MAXIMIZE]:
                 objectives[response].append(job.output[response.name])
 
         for constraint in model.constraints:
             constraints[constraint].append(constraint.distance(job.output))
 
     if isinstance(obj_aggregate, dict):
-        objective_values = [obj_aggregate[r.name](objectives[r]) for r in model.responses if r.dir in [Response.MINIMIZE, Response.MAXIMIZE]]
+        objective_values = [obj_aggregate[r.name](objectives[r]) for r in model.responses if r.direction in [Direction.MINIMIZE, Direction.MAXIMIZE]]
     else:
-        objective_values = [obj_aggregate(objectives[r]) for r in model.responses if r.dir in [Response.MINIMIZE, Response.MAXIMIZE]]
+        objective_values = [obj_aggregate(objectives[r]) for r in model.responses if r.direction in [Direction.MINIMIZE, Direction.MAXIMIZE]]
 
     if isinstance(constr_aggregate, dict):
         constraint_values = [constr_aggregate[c](constraints[c]) for c in model.constraints]
@@ -219,7 +219,7 @@ def _to_robust_problem(model, SOWs, obj_aggregate, constr_aggregate):
         levers.append((lever, len(vars)))
 
     nvars = len(variables)
-    nobjs = sum([1 if r.dir == Response.MINIMIZE or r.dir == Response.MAXIMIZE else 0 for r in model.responses])
+    nobjs = sum([1 if r.direction in [Direction.MINIMIZE, Direction.MAXIMIZE] else 0 for r in model.responses])
     nconstrs = len(model.constraints)
 
     function = functools.partial(_robust_evaluation_function,
@@ -234,7 +234,7 @@ def _to_robust_problem(model, SOWs, obj_aggregate, constr_aggregate):
 
     problem = Problem(nvars, nobjs, nconstrs, function)
     problem.types[:] = variables
-    problem.directions[:] = [Problem.MINIMIZE if r.dir == Response.MINIMIZE else Problem.MAXIMIZE for r in model.responses if r.dir == Response.MINIMIZE or r.dir == Response.MAXIMIZE]
+    problem.directions[:] = [r.direction.value for r in model.responses if r.direction in [Direction.MINIMIZE, Direction.MAXIMIZE]]
     problem.constraints[:] = "==0"
     return (problem, levers)
 
@@ -271,13 +271,13 @@ def robust_optimize(model, SOWs, algorithm="NSGAII", NFE=10000, obj_aggregate=No
             env[lever.name] = lever.from_variables(vars[offset:(offset+length)])
             offset += length
 
-        if any([r.dir not in [Response.MINIMIZE, Response.MAXIMIZE] for r in model.responses]):
+        if any([r.direction not in [Direction.MINIMIZE, Direction.MAXIMIZE] for r in model.responses]):
             # if there are any responses not included in the optimization, we must
             # re-evaluate the model to get all responses
             env = evaluate(model, env)
 
         # here we copy over the objectives from the evaluated solution, which has been aggregated over all SOWs
-        for i, response in enumerate([r for r in model.responses if r.dir in [Response.MINIMIZE, Response.MAXIMIZE]]):
+        for i, response in enumerate([r for r in model.responses if r.direction in [Direction.MINIMIZE, Direction.MAXIMIZE]]):
             env[response.name] = solution.objectives[i]
 
         result.append(env)

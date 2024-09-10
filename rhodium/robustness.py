@@ -17,7 +17,7 @@
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
 import numpy as np
 import scipy.spatial as sp
-from .model import DataSet, Response, populate_defaults, update
+from .model import DataSet, Direction, Response, populate_defaults, update
 from .sampling import sample_lhs
 from .optimization import evaluate
 
@@ -45,7 +45,7 @@ def regret_type1(model, results, baseline, percentile=90):
     quantiles = []
 
     for response in model.responses:
-        if response.dir == Response.MINIMIZE or response.dir == Response.MAXIMIZE:
+        if response.direction in [Direction.MINIMIZE, Direction.MAXIMIZE]:
             values = [abs((result[response.name] - baseline[response.name]) / baseline[response.name]) for result in results]
             quantiles.append(np.percentile(values, percentile))
 
@@ -59,9 +59,9 @@ def regret_type2(model, all_results, baseline_results, percentile=90):
         entry = {}
 
         for response in model.responses:
-            if response.dir == Response.MINIMIZE:
+            if response.direction == Direction.MINIMIZE:
                 entry[response.name] = min([result[i][response.name] for result in all_results])
-            elif response.dir == Response.MAXIMIZE:
+            elif response.direction == Direction.MAXIMIZE:
                 entry[response.name] = max([result[i][response.name] for result in all_results])
 
         best.append(entry)
@@ -70,7 +70,7 @@ def regret_type2(model, all_results, baseline_results, percentile=90):
     quantiles = []
 
     for response in model.responses:
-        if response.dir == Response.MINIMIZE or response.dir == Response.MAXIMIZE:
+        if response.direction in [Direction.MINIMIZE, Direction.MAXIMIZE]:
             values = []
 
             for i in range(len(all_results[0])):
