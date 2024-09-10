@@ -21,6 +21,7 @@ import math
 import inspect
 import random
 import operator
+import warnings
 import pandas as pd
 import scipy.stats as stats
 from collections import OrderedDict
@@ -37,6 +38,9 @@ class NamedObject(object):
     def __init__(self, name):
         super(NamedObject, self).__init__()
         self.name = name
+        
+        if not name.isidentifier():
+            warnings.warn(f"{name} is not a valid Python identifier", DeprecationWarning, stacklevel=2)
 
 class Parameter(NamedObject):
     """Defines a model parameter (i.e., input).

@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
 import unittest
+import warnings
 import numpy as np
 from rhodium.model import Constraint, Model, Parameter, Response, \
     CategoricalUncertainty, IntegerUncertainty, PointUncertainty, \
@@ -66,6 +67,13 @@ class TestModelParameters(unittest.TestCase):
         self.assertEqual(p1, m.parameters[0])
         self.assertEqual(p2, m.parameters[1])
         self.assertEqual(p3, m.parameters[2])
+        
+    def testInvalidName(self):
+        m = Model("foo")
+        with warnings.catch_warnings(record=True) as w:
+            p = Parameter("x-1")
+            self.assertEqual(1, len(w))
+            self.assertTrue(issubclass(w[0].category, DeprecationWarning))
 
     def testInvalidType(self):
         m = Model("foo")
