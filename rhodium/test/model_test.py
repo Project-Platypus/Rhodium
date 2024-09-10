@@ -43,13 +43,13 @@ class TestConstraint(unittest.TestCase):
         self.assertNotEqual(0, c.distance({"x": 1, "y": 1}))
 
 class TestResponse(unittest.TestCase):
-    
+
     def testInvalidName(self):
         with warnings.catch_warnings(record=True) as w:
             Response("f-1")
             self.assertEqual(1, len(w))
             self.assertTrue(issubclass(w[0].category, DeprecationWarning))
-            
+
     def testDeprecatedDir(self):
         for d in [Response.MINIMIZE, Response.MAXIMIZE, Response.INFO, Response.IGNORE]:
             # Using dir argument issues a warning
@@ -58,7 +58,7 @@ class TestResponse(unittest.TestCase):
                 self.assertEqual(1, len(w))
                 self.assertTrue(issubclass(w[0].category, DeprecationWarning))
                 self.assertEqual(Direction(d), r.direction)
-                
+
             # Reading dir attribute issues a warning
             with warnings.catch_warnings(record=True) as w:
                 r = Response("f", direction=Direction(d))
@@ -91,7 +91,7 @@ class TestModelParameters(unittest.TestCase):
         self.assertEqual(p1, m.parameters[0])
         self.assertEqual(p2, m.parameters[1])
         self.assertEqual(p3, m.parameters[2])
-        
+
     def testInvalidName(self):
         with warnings.catch_warnings(record=True) as w:
             Parameter("x-1")

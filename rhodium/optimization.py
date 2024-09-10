@@ -19,7 +19,7 @@ import inspect
 import functools
 from collections import OrderedDict
 from platypus import Job, Problem, unique, nondominated
-from .model import Direction, Response, DataSet
+from .model import Direction, DataSet
 
 def generate_jobs(model, samples):
     if isinstance(samples, dict):

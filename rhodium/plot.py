@@ -27,7 +27,7 @@ from collections.abc import Sequence
 from scipy.interpolate import griddata
 from matplotlib.legend_handler import HandlerPatch
 from .config import RhodiumConfig
-from .model import Direction, Response
+from .model import Direction
 from .brush import BrushSet, apply_brush, color_brush, brush_color_map, color_indices
 
 # When set, override the plt.show() method to save.  Intended for CI
@@ -37,14 +37,14 @@ _figure_output_envvar = "RHODIUM_FIGURE_OUTPUT"
 if os.getenv(_figure_output_envvar):
     def show_override(*args, **kwargs):
         directory = os.getenv(_figure_output_envvar)
-        
+
         if not os.path.exists(directory):
             os.makedirs(directory, exist_ok=True)
-        
+
         filename = os.path.join(directory, f"figure_{plt.gcf().number}.png")
         plt.savefig(filename)
         print(f"{_figure_output_envvar} set, saving figure to {filename}")
-        
+
     plt.show = show_override
 
 def _combine_keys(*args):
@@ -69,20 +69,20 @@ def _combine_keys(*args):
 def _is_color(c, expected_size=None):
     if isinstance(c, str):
         return True
-    
+
     if not isinstance(c, Sequence):
         return False
-    
+
     if expected_size:
         if len(c) != expected_size:
             raise ValueError(f"expected color array to have {expected_size} elements, given {len(c)}")
-        
+
     for color in c:
         if not mpl.colors.is_color_like(color):
             return False
-        
+
     return True
-   
+
 class HandlerSizeLegend(HandlerPatch):
     def __call__(self, legend, orig_handle, fontsize, handlebox):
         pass
@@ -357,7 +357,7 @@ def scatter2d(model, data,
             cmap = dict(zip(classes, color_values))
         c = [cmap[c_i] for c_i in c]
         show_colorbar = False
-    
+
     if "cmap" not in kwargs and not _is_color(c, len(x)):
         kwargs["cmap"] = RhodiumConfig.default_cmap
 
@@ -595,7 +595,7 @@ def contour3d(model, data, x=None, y=None, z=None, xlim=None, ylim=None, levels=
         raise ValueError("insufficient number of dimensions")
 
     if "axes.facecolor" in mpl.rcParams:
-        orig_facecolor = mpl.rcParams["axes.facecolor"]
+        # orig_facecolor = mpl.rcParams["axes.facecolor"]
         mpl.rcParams["axes.facecolor"] = "white"
 
     fig = plt.figure()
@@ -713,7 +713,7 @@ def animate3d(prefix, dir="images/", steps=36, transform=(10, 0, 0), **kwargs):
         filename = os.path.join(base_dir, 'img' + str(n).zfill(digits) + '.png')
         plt.savefig(filename, bbox_inches='tight')
         files.append(filename)
-      
+
     images = [Image.open(file) for file in files]
     file_path_name = os.path.join(dir, prefix + '.gif')
     images[0].save(file_path_name, save_all=True, append_images=images[1:], **kwargs)

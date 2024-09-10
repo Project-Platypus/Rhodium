@@ -30,7 +30,6 @@ class TestNativeModel(unittest.TestCase):
         # determine the relative path to the source file
         dir = os.path.dirname(__file__)
         cwd = os.getcwd()
-        common_prefix = os.path.commonprefix([dir, cwd])
         rel_dir = os.path.relpath(dir, cwd)
         src = os.path.join(rel_dir, "test.c")
 
@@ -42,8 +41,8 @@ class TestNativeModel(unittest.TestCase):
             libname = "test.dll"
 
         result = subprocess.run(["gcc", "-shared", "-fPIC", "-o", libname, src], capture_output=True)
-        print(result.stdout)
-        print(result.stderr)
+        # print(result.stdout)
+        # print(result.stderr)
         result.check_returncode()
 
         cls.sopath = os.path.join(os.getcwd(), libname)

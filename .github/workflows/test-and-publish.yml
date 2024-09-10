@@ -33,10 +33,13 @@ jobs:
         run: |
           pip install .[test,openmdao]
 
+      - name: Run flake8
+        run: |
+          flake8
+
       - name: Run tests
         run: |
-          # Disable the fault handler to fix https://stackoverflow.com/questions/57523762/pytest-windows-fatal-exception-code-0x8001010d
-          pytest -p no:faulthandler
+          pytest
 
   # ------------------------------------------------------------
   # Build the distribution and publish (on release tag).

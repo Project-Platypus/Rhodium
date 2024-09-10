@@ -31,7 +31,7 @@ dynamic = ["version"]  # Version is read from rhodium/__init__.py
 [project.optional-dependencies]
 test = [
   "pytest",
-  "mock",
+  "flake8",
   "rhodium[examples]"
 ]
 openmdao = [
@@ -50,5 +50,22 @@ windows = [
 version = {attr = "rhodium.__version__"}
 
 [tool.pytest.ini_options]
-addopts = "-rA"  # "-Werror"
+addopts = "-rA -p no:faulthandler"  # Disable the fault handler to fix https://stackoverflow.com/questions/57523762/pytest-windows-fatal-exception-code-0x8001010d
 testpaths = ["rhodium"]
+
+[tool.flake8]
+exclude = [
+  ".git",
+  "__pycache__",
+  "build",
+  "examples/Languages/C/src"
+]
+extend-ignore = [
+  "E302",  # Expected 2 blank lines, found N
+  "E305",  # Expected 2 blank lines after class or function definition, found N
+  "E501",  # Line too long (N > 79 characters)
+  "E741",  # Do not use variables named 'I', 'O', or 'l'
+]
+per-file-ignores = [
+  "__init__.py:F401",  # Module imported but unused
+]

@@ -32,7 +32,7 @@ from .model import RhodiumError, Parameter, Direction, Response, Constraint, \
     PointUncertainty, NormalUncertainty, LogNormalUncertainty, \
     IntegerUncertainty, CategoricalUncertainty, Model, DataSet, save, load, \
     overwrite, update, populate_defaults
-    
+
 from .decorators import Real, Integer, Categorical, Permutation, Subset, \
     Uniform, Normal, LogNormal, Minimize, Maximize, Info, Ignore, \
     RhodiumModel, Parameters, Responses, Constraints, Levers, Uncertainties
@@ -51,7 +51,7 @@ from .optimization import evaluate, optimize, robust_optimize
 from .sampling import sample_uniform, sample_lhs
 
 from .robustness import evaluate_robustness
- 
+
 from .brush import Brush, BrushSet, apply_brush, brush_color_map, \
     color_brush, color_indices
 

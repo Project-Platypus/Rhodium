@@ -39,7 +39,7 @@ class NamedObject(metaclass=ABCMeta):
 
     def __init__(self, name):
         self.name = name
-        
+
         if not name.isidentifier():
             warnings.warn(f"{name} is not a valid Python identifier", DeprecationWarning, stacklevel=2)
 
@@ -76,29 +76,29 @@ class Response(NamedObject):
 
     # These constants are deprecated.  Use the Direction enum instead.
     MINIMIZE = -1
-    MAXIMIZE = 1  
+    MAXIMIZE = 1
     INFO = 2
     IGNORE = 0
 
     def __init__(self, name, direction=Direction.INFO, dir=None, **kwargs):
         super().__init__(name)
         self.direction = Direction(direction)
-        
+
         if dir is not None:
-            warnings.warn(f"'dir' is deprecated, use 'direction' instead", DeprecationWarning, stacklevel=2)
+            warnings.warn("'dir' is deprecated, use 'direction' instead", DeprecationWarning, stacklevel=2)
             if isinstance(dir, Direction):
                 self.direction = dir
             else:
                 self.direction = Direction(dir)
-            
+
         for k, v in kwargs.items():
             setattr(self, k, v)
-            
+
     def __getattr__(self, name):
         if name == 'dir':
-            warnings.warn(f"'dir' is deprecated, use 'direction' instead", DeprecationWarning, stacklevel=2)
+            warnings.warn("'dir' is deprecated, use 'direction' instead", DeprecationWarning, stacklevel=2)
             return self.direction.value
-        if sys.version_info >= (3,10):
+        if sys.version_info >= (3, 10):
             raise AttributeError(name=name, obj=self)
         else:
             raise AttributeError()
@@ -183,7 +183,7 @@ class Lever(NamedObject, metaclass=ABCMeta):
     All levers must define a length attribute, which specifies the number of
     decision variables required to represent this lever in Platypus.
     """
-    
+
     def __init__(self, name):
         super().__init__(name)
 

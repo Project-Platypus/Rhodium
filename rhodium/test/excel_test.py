@@ -76,14 +76,14 @@ class TestExcelHelper(unittest.TestCase):
             helper["B2"] = "world"
             helper.set_sheet(2)
             self.assertEqual(u"hello", helper["B2"])
-            
+
     @unittest.skipUnless(sys.platform.startswith("win"), "requires Windows")
     @skipErrorsOnCI
     def testInvalidFile(self):
         from ..excel import ExcelHelper
         file = os.path.join(os.path.dirname(__file__), "Missing.xlsx")
-        with self.assertRaises(RhodiumError) as context:
-            with ExcelHelper(file) as helper:
+        with self.assertRaises(RhodiumError):
+            with ExcelHelper(file):
                 pass
 
 class TestExcelModel(unittest.TestCase):

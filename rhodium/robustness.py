@@ -17,7 +17,7 @@
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
 import numpy as np
 import scipy.spatial as sp
-from .model import DataSet, Direction, Response, populate_defaults, update
+from .model import DataSet, Direction, populate_defaults, update
 from .sampling import sample_lhs
 from .optimization import evaluate
 
