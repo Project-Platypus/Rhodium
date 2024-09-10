@@ -67,11 +67,10 @@ class Direction(Enum):
 class Response(NamedObject):
     """Defines a model response (i.e., output).
 
-    Defines a model response (i.e., output) and its type.  The type can be
-    MINIMIZE, MAXIMIZE, or INFO.  If MINIMIZE or MAXIMIZE, then the response
-    may be used during optimization.  If INFO, the default, the response is
-    purely for informative purposes (e.g., for generating plots) but does not
-    participate in optimization.
+    Defines a model response (i.e., output) and its direction.  If MINIMIZE or
+    MAXIMIZE, then the response may be used during optimization.  If INFO, the
+    default, the response is purely for informative purposes (e.g., for
+    generating plots) but does not participate in optimization.
     """
 
     # These constants are deprecated.  Use the Direction enum instead.

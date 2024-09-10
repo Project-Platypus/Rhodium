@@ -17,17 +17,13 @@
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
 import random
 import inspect
+from abc import ABCMeta
 from .model import Constraint, Lever, Model, Parameter, Response, \
     Uncertainty, CategoricalLever, IntegerLever, PermutationLever, \
     SubsetLever, RealLever, UniformUncertainty, NormalUncertainty, \
-    LogNormalUncertainty
+    LogNormalUncertainty, Direction
 
-MINIMIZE = Response.MINIMIZE
-MAXIMIZE = Response.MAXIMIZE
-INFO = Response.INFO
-IGNORE = Response.IGNORE
-
-class UnnamedObject:
+class UnnamedObject(metaclass=ABCMeta):
 
     def __init__(self, constructor, *args, **kwargs):
         self.constructor = constructor
@@ -89,22 +85,22 @@ class LogNormal(float, UnnamedObject):
 class Minimize(Response):
 
     def __init__(self, name, **kwargs):
-        super().__init__(name, type=Response.MINIMIZE, **kwargs)
+        super().__init__(name, direction=Direction.MINIMIZE, **kwargs)
 
 class Maximize(Response):
 
     def __init__(self, name, **kwargs):
-        super().__init__(name, type=Response.MAXIMIZE, **kwargs)
+        super().__init__(name, direction=Direction.MAXIMIZE, **kwargs)
 
 class Info(Response):
 
     def __init__(self, name, **kwargs):
-        super().__init__(name, type=Response.INFO, **kwargs)
+        super().__init__(name, direction=Direction.INFO, **kwargs)
 
 class Ignore(Response):
 
-    def __init__(self, **kwargs):
-        super().__init__("Ignored" + str(random.randint()), type=Response.IGNORE, **kwargs)
+    def __init__(self, name=None, **kwargs):
+        super().__init__("Ignored" + str(random.randint()) if name is None else name, direction=Direction.IGNORE, **kwargs)
 
 class CallableModel(Model):
 
