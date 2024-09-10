@@ -17,7 +17,7 @@ from rhodium import *
 class CubicDPSLever(Lever):
 
     def __init__(self, name, length = 1, c_bounds = (-2, 2), r_bounds = (0, 2)):
-        super(CubicDPSLever, self).__init__(name)
+        super().__init__(name)
         self.length = length
         self.c_bounds = c_bounds
         self.r_bounds = r_bounds

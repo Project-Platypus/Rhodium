@@ -22,7 +22,7 @@ import numpy as np
 class RModel(Model):
 
     def __init__(self, file, function, **kwargs):
-        super(RModel, self).__init__(self._evaluate)
+        super().__init__(self._evaluate)
         self.file = file
         self.r_function = function
         self.r = R(**kwargs)

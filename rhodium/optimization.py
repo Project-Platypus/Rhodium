@@ -31,7 +31,6 @@ def generate_jobs(model, samples):
 class EvaluateJob(Job):
 
     def __init__(self, model, sample):
-        super(EvaluateJob, self).__init__()
         self.model = model
         self.sample = sample
         self._args = inspect.getfullargspec(model.function).args

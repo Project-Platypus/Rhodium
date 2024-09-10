@@ -32,11 +32,10 @@ from .expr import _evaluate_all
 class RhodiumError(Exception):
     pass
 
-class NamedObject(object):
+class NamedObject(metaclass=ABCMeta):
     """Object with a name."""
 
     def __init__(self, name):
-        super(NamedObject, self).__init__()
         self.name = name
         
         if not name.isidentifier():
@@ -51,7 +50,7 @@ class Parameter(NamedObject):
     """
 
     def __init__(self, name, default_value=None, **kwargs):
-        super(Parameter, self).__init__(name)
+        super().__init__(name)
         self.default_value = default_value
 
         for k, v in kwargs.items():
@@ -73,7 +72,7 @@ class Response(NamedObject):
     IGNORE = 0
 
     def __init__(self, name, dir=INFO, **kwargs):
-        super(Response, self).__init__(name)
+        super().__init__(name)
         self.dir = dir
 
         for k, v in kwargs.items():
@@ -86,7 +85,7 @@ for name in dir(module):
     if not name.startswith("_"):
         _eval_env[name] = getattr(module, name)
 
-class Constraint(object):
+class Constraint:
     """Defines model constraints.
 
     Defines constraints that must be satisfied in order for a policy to be
@@ -97,7 +96,6 @@ class Constraint(object):
     """
 
     def __init__(self, expr):
-        super(Constraint, self).__init__()
         self.expr = expr
 
         if isinstance(expr, str):
@@ -167,7 +165,7 @@ class Constraint(object):
         if isinstance(self.expr, str):
             self._convert()
 
-class Lever(NamedObject):
+class Lever(NamedObject, metaclass=ABCMeta):
     """Defines an adjustable lever that controls a model parameter.
 
     Model parameters can either be constant, controlled by a lever, or
@@ -177,25 +175,23 @@ class Lever(NamedObject):
     All levers must define a length attribute, which specifies the number of
     decision variables required to represent this lever in Platypus.
     """
-
-    __metaclass__ = ABCMeta
-
+    
     def __init__(self, name):
-        super(Lever, self).__init__(name)
+        super().__init__(name)
 
     @abstractmethod
     def to_variables(self):
-        raise NotImplementedError("method not implemented")
+        raise NotImplementedError()
 
     @abstractmethod
     def from_variables(self, variables):
-        raise NotImplementedError("method not implemented")
+        raise NotImplementedError()
 
 class RealLever(Lever):
     """Defines a lever for real values."""
 
     def __init__(self, name, min_value, max_value, length=1):
-        super(RealLever, self).__init__(name)
+        super().__init__(name)
         self.min_value = float(min_value)
         self.max_value = float(max_value)
         self.length = length
@@ -213,7 +209,7 @@ class IntegerLever(Lever):
     """Defines a lever for integer values."""
 
     def __init__(self, name, min_value, max_value, length=1):
-        super(IntegerLever, self).__init__(name)
+        super().__init__(name)
         self.min_value = int(min_value)
         self.max_value = int(max_value)
         self.length = length
@@ -231,7 +227,7 @@ class CategoricalLever(Lever):
     """Defines a lever for categorical values (i.e., an enumeration of distinct values)."""
 
     def __init__(self, name, categories):
-        super(CategoricalLever, self).__init__(name)
+        super().__init__(name)
         self.categories = list(categories)
         self.length = 1
 
@@ -245,7 +241,7 @@ class PermutationLever(Lever):
     """Defines a lever for a permutation of values."""
 
     def __init__(self, name, options):
-        super(PermutationLever, self).__init__(name)
+        super().__init__(name)
         self.options = list(options)
         self.length = 1
 
@@ -259,7 +255,7 @@ class SubsetLever(Lever):
     """Defines a lever for a fixed-size subset of a set of values."""
 
     def __init__(self, name, options, size):
-        super(SubsetLever, self).__init__(name)
+        super().__init__(name)
         self.options = list(options)
         self.size = size
         self.length = 1
@@ -270,17 +266,15 @@ class SubsetLever(Lever):
     def from_variables(self, variables):
         return variables[0]
 
-class Uncertainty(NamedObject):
+class Uncertainty(NamedObject, metaclass=ABCMeta):
     """Defines an uncertainty for a model parameter.
 
     An uncertainty indicates a model parameter falls within a given
     distribution.  The specific subclass defines the distribution.
     """
 
-    __metaclass__ = ABCMeta
-
     def __init__(self, name):
-        super(Uncertainty, self).__init__(name)
+        super().__init__(name)
 
     @abstractmethod
     def levels(self, nlevels):
@@ -291,18 +285,18 @@ class Uncertainty(NamedObject):
         would result in three random values in the range [0-1/3], [1/3-2/3], [2/3-1].
         For non-uniform distributions, the levels are proportional to the PPF of the
         distribution."""
-        raise NotImplementedError("method not implemented")
+        raise NotImplementedError()
 
     @abstractmethod
     def ppf(self, x):
         """The Percent Point Function, or inverse of the Cumulative Distribution Function."""
-        raise NotImplementedError("method not implemented")
+        raise NotImplementedError()
 
 class UniformUncertainty(Uncertainty):
     """An uncertainty for real-valued parameters following a uniform distribution."""
 
     def __init__(self, name, min_value, max_value, **kwargs):
-        super(UniformUncertainty, self).__init__(name)
+        super().__init__(name)
         self.min_value = float(min_value)
         self.max_value = float(max_value)
 
@@ -323,7 +317,7 @@ class TriangularUncertainty(Uncertainty):
     """An uncertainty with a triangular distribution."""
 
     def __init__(self, name, min_value, max_value, mode_value, **kwargs):
-        super(TriangularUncertainty, self).__init__(name)
+        super().__init__(name)
         self.min_value = float(min_value)
         self.max_value = float(max_value)
         self.mode_value = float(mode_value)
@@ -349,7 +343,7 @@ class PointUncertainty(Uncertainty):
     """An uncertainty distribution with all its probability mass at one point on the real line."""
 
     def __init__(self, name, value):
-        super(PointUncertainty, self).__init__(name)
+        super().__init__(name)
         self.value = value
 
     def levels(self, nlevels):
@@ -363,7 +357,7 @@ class NormalUncertainty(Uncertainty):
     """An uncertainty for real-valued parameters following a normal (Gaussian) distribution."""
 
     def __init__(self, name, mean, stdev, **kwargs):
-        super(NormalUncertainty, self).__init__(name)
+        super().__init__(name)
         self.mean = float(mean)
         self.stdev = float(stdev)
 
@@ -378,7 +372,7 @@ class LogNormalUncertainty(Uncertainty):
     """An uncertainty for real-valued parameters following a log normal distribution."""
 
     def __init__(self, name, mu, sigma, **kwargs):
-        super(LogNormalUncertainty, self).__init__(name)
+        super().__init__(name)
         self.mu = float(mu)
         self.sigma = float(sigma)
 
@@ -393,7 +387,7 @@ class IntegerUncertainty(Uncertainty):
     """An uncertainty for integer parameters that follows a uniform distribution."""
 
     def __init__(self, name, min_value, max_value, **kwargs):
-        super(IntegerUncertainty, self).__init__(name)
+        super().__init__(name)
         self.min_value = int(min_value)
         self.max_value = int(max_value)
 
@@ -408,7 +402,7 @@ class CategoricalUncertainty(Uncertainty):
     """An uncertainty for categorial parameters that follows a uniform distribution."""
 
     def __init__(self, name, categories, **kwargs):
-        super(CategoricalUncertainty, self).__init__(name)
+        super().__init__(name)
         self.categories = categories
 
     def levels(self, nlevels):
@@ -418,10 +412,9 @@ class CategoricalUncertainty(Uncertainty):
     def ppf(self, x):
         return self.categories[int(math.floor(x*(len(self.categories)-0.0001)))]
 
-class NamedObjectMap(object):
+class NamedObjectMap:
 
     def __init__(self, type):
-        super(NamedObjectMap, self).__init__()
         self.type = type
         self._data = OrderedDict()
 
@@ -488,33 +481,29 @@ class NamedObjectMap(object):
     def keys(self):
         return self._data.keys()
 
-    # def __getattr__(self, name):
-    #     return getattr(self._data, name)
-
 class ParameterMap(NamedObjectMap):
 
     def __init__(self):
-        super(ParameterMap, self).__init__(Parameter)
+        super().__init__(Parameter)
 
 class ResponseMap(NamedObjectMap):
 
     def __init__(self):
-        super(ResponseMap, self).__init__(Response)
+        super().__init__(Response)
 
 class LeverMap(NamedObjectMap):
 
     def __init__(self):
-        super(LeverMap, self).__init__(Lever)
+        super().__init__(Lever)
 
 class UncertaintyMap(NamedObjectMap):
 
     def __init__(self):
-        super(UncertaintyMap, self).__init__(Uncertainty)
+        super().__init__(Uncertainty)
 
-class Model(object):
+class Model:
 
     def __init__(self, function):
-        super(Model, self).__init__()
         self.function = function
         self._parameters = ParameterMap()
         self._responses = ResponseMap()
@@ -576,8 +565,6 @@ class Model(object):
 class DataSet(list):
 
     def __init__(self, data=[]):
-        super(DataSet, self).__init__()
-
         if isinstance(data, str):
             self.load(data)
         else:
@@ -588,7 +575,7 @@ class DataSet(list):
         if not isinstance(sample, dict):
             raise TypeError("DataSet can only contain dict objects")
 
-        super(DataSet, self).append(sample)
+        super().append(sample)
 
     def __str__(self):
         result = ""
@@ -631,7 +618,7 @@ class DataSet(list):
                 submap = {}
 
                 for key in keys:
-                    submap[key] = super(DataSet, self).__getitem__(i)[key]
+                    submap[key] = super().__getitem__(i)[key]
 
                 result.append(submap)
 
@@ -643,11 +630,11 @@ class DataSet(list):
             result = DataSet()
 
             for i in indices:
-                result.append(super(DataSet, self).__getitem__(i))
+                result.append(super().__getitem__(i))
 
             return result
         else:
-            return super(DataSet, self).__getitem__(pos)
+            return super().__getitem__(pos)
 
     def __setitem__(self, pos, value):
         if isinstance(pos, str):
@@ -658,7 +645,7 @@ class DataSet(list):
                 for o in self:
                     o[pos] = value
         else:
-            return super(DataSet, self).__setitem__(pos)
+            return super().__setitem__(pos)
 
     def _trim(self, value, index=None):
         if index is not None and isinstance(value, (list, tuple)):
@@ -679,7 +666,7 @@ class DataSet(list):
                 key = list(self[0].keys())[0]
 
         for i in range(len(self)):
-            value = super(DataSet, self).__getitem__(i)[key]
+            value = super().__getitem__(i)[key]
             result.append(self._trim(value, index))
 
         return result
@@ -788,8 +775,9 @@ def save(data, file, format=None, **kwargs):
 
 class _FileModel(Model):
 
-    def __init__(self):
-        super(_FileModel, self).__init__(self._evaluate)
+    def __init__(self, source):
+        super().__init__(self._evaluate)
+        self.source = source
 
     def _evaluate(self, **kwargs):
         raise NotImplementedError("models loaded from files do not support evaluation")
@@ -827,7 +815,7 @@ def load(file, format=None, parameters=[], **kwargs):
 
         data.append(entry)
 
-    model = _FileModel()
+    model = _FileModel(file)
     model.parameters = [Parameter(names[j] if isinstance(j, int) else j) for j in parameters]
     model.responses = [Response(names[j]) for j in range(df.shape[1]) if j not in parameters and names[j] not in parameters]
 

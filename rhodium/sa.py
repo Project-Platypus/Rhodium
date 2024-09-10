@@ -78,7 +78,7 @@ def _predict_N(method, nsamples, nvars, kwargs):
 class SAResult(dict):
 
     def __init__(self, parameters, *args, **kwargs):
-        super(SAResult, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.parameters = parameters
 
     def _longest_name(self):

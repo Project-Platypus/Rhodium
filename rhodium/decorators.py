@@ -27,10 +27,9 @@ MAXIMIZE = Response.MAXIMIZE
 INFO = Response.INFO
 IGNORE = Response.IGNORE
 
-class UnnamedObject(object):
+class UnnamedObject:
 
     def __init__(self, constructor, *args, **kwargs):
-        super(UnnamedObject, self).__init__()
         self.constructor = constructor
         self.args = args
         self.kwargs = kwargs
@@ -41,32 +40,32 @@ class UnnamedObject(object):
 class Real(UnnamedObject):
 
     def __init__(self, *args, **kwargs):
-        super(Real, self).__init__(RealLever, *args, **kwargs)
+        super().__init__(RealLever, *args, **kwargs)
 
 class Integer(UnnamedObject):
 
     def __init__(self, *args, **kwargs):
-        super(Integer, self).__init__(IntegerLever, *args, **kwargs)
+        super().__init__(IntegerLever, *args, **kwargs)
 
 class Categorical(UnnamedObject):
 
     def __init__(self, *args, **kwargs):
-        super(Categorical, self).__init__(CategoricalLever, *args, **kwargs)
+        super().__init__(CategoricalLever, *args, **kwargs)
 
 class Permutation(UnnamedObject):
 
     def __init__(self, *args, **kwargs):
-        super(Permutation, self).__init__(PermutationLever, *args, **kwargs)
+        super().__init__(PermutationLever, *args, **kwargs)
 
 class Subset(UnnamedObject):
 
     def __init__(self, *args, **kwargs):
-        super(Subset, self).__init__(SubsetLever, *args, **kwargs)
+        super().__init__(SubsetLever, *args, **kwargs)
 
 class Uniform(float, UnnamedObject):
 
     def __init__(self, *args, **kwargs):
-        super(Uniform, self).__init__(UniformUncertainty, *args, **kwargs)
+        super().__init__(UniformUncertainty, *args, **kwargs)
 
     def __new__(cls, *args, **kwargs):
         return float.__new__(cls, kwargs.get("default_value", float("NaN")))
@@ -74,7 +73,7 @@ class Uniform(float, UnnamedObject):
 class Normal(float, UnnamedObject):
 
     def __init__(self, *args, **kwargs):
-        super(Normal, self).__init__(NormalUncertainty, *args, **kwargs)
+        super().__init__(NormalUncertainty, *args, **kwargs)
 
     def __new__(cls, *args, **kwargs):
         return float.__new__(cls, kwargs.get("default_value", float("NaN")))
@@ -82,7 +81,7 @@ class Normal(float, UnnamedObject):
 class LogNormal(float, UnnamedObject):
 
     def __init__(self, *args, **kwargs):
-        super(LogNormal, self).__init__(LogNormalUncertainty, *args, **kwargs)
+        super().__init__(LogNormalUncertainty, *args, **kwargs)
 
     def __new__(cls, *args, **kwargs):
         return float.__new__(cls, kwargs.get("default_value", float("NaN")))
@@ -91,32 +90,32 @@ class LogNormal(float, UnnamedObject):
 class Minimize(Response):
 
     def __init__(self, name, **kwargs):
-        super(Minimize, self).__init__(name, type=Response.MINIMIZE, **kwargs)
+        super().__init__(name, type=Response.MINIMIZE, **kwargs)
 
 class Maximize(Response):
 
     def __init__(self, name, **kwargs):
-        super(Maximize, self).__init__(name, type=Response.MAXIMIZE, **kwargs)
+        super().__init__(name, type=Response.MAXIMIZE, **kwargs)
 
 class Info(Response):
 
     def __init__(self, name, **kwargs):
-        super(Info, self).__init__(name, type=Response.INFO, **kwargs)
+        super().__init__(name, type=Response.INFO, **kwargs)
 
 class Ignore(Response):
 
     def __init__(self, **kwargs):
-        super(Ignore, self).__init__("Ignored" + str(random.randint()), type=Response.IGNORE, **kwargs)
+        super().__init__("Ignored" + str(random.randint()), type=Response.IGNORE, **kwargs)
 
 class CallableModel(Model):
 
     def __init__(self, function):
-        super(CallableModel, self).__init__(function)
+        super().__init__(function)
 
     def __call__(self, *args, **kwargs):
         return self.function(*args, **kwargs)
 
-class RhodiumModel(object):
+class RhodiumModel:
 
     def __init__(self, *args, **kwargs):
         self.args = args
@@ -148,7 +147,7 @@ class RhodiumModel(object):
 
         return f.rhodium_model
 
-class Parameters(object):
+class Parameters:
 
     def __init__(self, *args, **kwargs):
         self.args = args
@@ -176,7 +175,7 @@ class Parameters(object):
 
         return f
 
-class Responses(object):
+class Responses:
 
     def __init__(self, *args, **kwargs):
         self.args = args
@@ -185,21 +184,6 @@ class Responses(object):
     def __call__(self, f):
         if not hasattr(f, "rhodium_model"):
             f.rhodium_model = CallableModel(f)
-
-#         if len(self.args) == 2 and isinstance(self.args[0], (list, tuple)) and isinstance(self.args[1], (list, tuple)):
-#             for i, v in enumerate(self.args[0]):
-#                 f.rhodium_model.responses[v] = Response(v, self.args[1][i if i < len(self.args[1]) else -1])
-#         elif len(self.args) == 1 and isinstance(self.args[0], (list, tuple)):
-#             for v in self.args[0]:
-#                 f.rhodiuim_model.responses[v] = Response(v, Response.INFO)
-#         else:
-#             for v in self.args:
-#                 if isinstance(v, str):
-#                     f.rhodium_model.responses[v] = Response(v, Response.INFO)
-#                 elif isinstance(v, Response):
-#                     f.rhodium_model.responses[v.name] = v
-#                 else:
-#                     raise ValueError("arg must be a string or Response")
 
         for v in self.args:
             if isinstance(v, str):
@@ -221,7 +205,7 @@ class Responses(object):
 
         return f
 
-class Constraints(object):
+class Constraints:
 
     def __init__(self, *args):
         self.args = args
@@ -240,7 +224,7 @@ class Constraints(object):
 
         return f
 
-class Levers(object):
+class Levers:
 
     def __init__(self, *args, **kwargs):
         self.args = args
@@ -264,7 +248,7 @@ class Levers(object):
 
         return f
 
-class Uncertainties(object):
+class Uncertainties:
 
     def __init__(self, *args, **kwargs):
         self.args = args

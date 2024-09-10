@@ -21,7 +21,7 @@ from pandas.core.frame import DataFrame
 from .config import RhodiumConfig
 from .model import DataSet
 
-class Brush(object):
+class Brush:
     """Defines a brush to color data points matching an expression.
 
     A brush is a mechanism to highlight, or color, data that matches a given
@@ -35,8 +35,6 @@ class Brush(object):
     """
 
     def __init__(self, name, expr=None, color=None):
-        super(Brush, self).__init__()
-
         if expr is None:
             expr = name
 
@@ -44,7 +42,7 @@ class Brush(object):
         self.expr = expr
         self.color = color
 
-class BrushSet(object):
+class BrushSet:
     """A collection of Brush objects.
 
     If two or more brushes overlap, then the first brush, in the order they
@@ -54,7 +52,6 @@ class BrushSet(object):
     """
 
     def __init__(self, brushes):
-        super(BrushSet, self).__init__()
         self.map = OrderedDict()
 
         if not isinstance(brushes, (list, tuple)):

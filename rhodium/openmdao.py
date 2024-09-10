@@ -20,7 +20,7 @@ from .model import Model
 class OpenMDAOModel(Model):
 
     def __init__(self, problem):
-        super(OpenMDAOModel, self).__init__(self._evaluate)
+        super().__init__(self._evaluate)
 
         from openmdao.api import Problem
         if not isinstance(problem, Problem):

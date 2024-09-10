@@ -30,7 +30,7 @@ from packaging.version import Version
 from prim import Prim
 from io import BytesIO, StringIO
 
-class Cart(object):
+class Cart:
 
     def __init__(self,
                  x,
@@ -62,8 +62,6 @@ class Cart(object):
         exclude : list of str
             the names of variables excluded from the PRIM analysis
         """
-        super(Cart, self).__init__()
-
         # Ensure the input x is a numpy matrix/array
         if isinstance(x, pd.DataFrame):
             x = x.to_records(index=False)

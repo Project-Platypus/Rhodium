@@ -24,7 +24,7 @@ TYPE_RE = re.compile(r"([a-zA-Z ]+)\s*(\*?)\s*((?:[0-9]+)?)")
 class NativeModel(Model):
 
     def __init__(self, library, function, mode=ctypes.CDLL):
-        super(NativeModel, self).__init__(self._evaluate)
+        super().__init__(self._evaluate)
         self._cdll = mode(library)
         self._func = getattr(self._cdll, function)
 
