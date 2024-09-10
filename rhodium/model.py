@@ -103,12 +103,13 @@ class Response(NamedObject):
         else:
             raise AttributeError()
 
+# Set up the evaluation environment with all math function.
 _eval_env = {}
-module = __import__("math", fromlist=[''])
+_module = __import__("math", fromlist=[''])
 
-for name in dir(module):
+for name in dir(_module):
     if not name.startswith("_"):
-        _eval_env[name] = getattr(module, name)
+        _eval_env[name] = getattr(_module, name)
 
 class Constraint:
     """Defines model constraints.
@@ -337,7 +338,6 @@ class UniformUncertainty(Uncertainty):
     def ppf(self, x):
         return self.min_value + x*(self.max_value - self.min_value)
 
-
 class TriangularUncertainty(Uncertainty):
     """An uncertainty with a triangular distribution."""
 
@@ -363,7 +363,6 @@ class TriangularUncertainty(Uncertainty):
     def ppf(self, x):
         return stats.triang.ppf(x, c=self.c, loc=self.min_value, scale=self.scale)
 
-
 class PointUncertainty(Uncertainty):
     """An uncertainty distribution with all its probability mass at one point on the real line."""
 
@@ -376,7 +375,6 @@ class PointUncertainty(Uncertainty):
 
     def ppf(self, x):
         return self.value
-
 
 class NormalUncertainty(Uncertainty):
     """An uncertainty for real-valued parameters following a normal (Gaussian) distribution."""
@@ -437,7 +435,7 @@ class CategoricalUncertainty(Uncertainty):
     def ppf(self, x):
         return self.categories[int(math.floor(x*(len(self.categories)-0.0001)))]
 
-class NamedObjectMap:
+class NamedObjectMap(metaclass=ABCMeta):
 
     def __init__(self, type):
         self.type = type
@@ -798,7 +796,7 @@ def save(data, file, format=None, **kwargs):
     else:
         raise ValueError("unsupported file format '%s'" % str(format))
 
-class _FileModel(Model):
+class FileModel(Model):
 
     def __init__(self, source):
         super().__init__(self._evaluate)
@@ -840,7 +838,7 @@ def load(file, format=None, parameters=[], **kwargs):
 
         data.append(entry)
 
-    model = _FileModel(file)
+    model = FileModel(file)
     model.parameters = [Parameter(names[j] if isinstance(j, int) else j) for j in parameters]
     model.responses = [Response(names[j]) for j in range(df.shape[1]) if j not in parameters and names[j] not in parameters]
 

@@ -86,7 +86,6 @@ class LogNormal(float, UnnamedObject):
     def __new__(cls, *args, **kwargs):
         return float.__new__(cls, kwargs.get("default_value", float("NaN")))
 
-
 class Minimize(Response):
 
     def __init__(self, name, **kwargs):

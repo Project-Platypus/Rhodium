@@ -15,23 +15,48 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Rhodium.  If not, see <http://www.gnu.org/licenses/>.
-__author__ = "David Hadka"
-__copyright__ = "Copyright 2015-2024, David Hadka"
-__license__ = "GPLv3"
 __version__ = "1.4.0"
-__maintainer__ = "David Hadka"
-__email__ = "dhadka@users.noreply.github.com"
 
-from .config import *
-from .model import *
-from .plot import *
-from .sa import *
-from .classification import *
-from .cache import *
-from .optimization import *
-from .sampling import *
-from .robustness import *
-from .brush import *
-from .utils import *
+# Note: The following submodules are not exported here to allow for optional
+# dependencies:
+#   - rhodium.excel
+#   - rhodium.ffi
+#   - rhodium.openmdao
+#   - rhodium.rbridge
 
-from platypus.evaluator import *
+from .config import RhodiumConfig
+
+from .model import RhodiumError, Parameter, Direction, Response, Constraint, \
+    Lever, RealLever, IntegerLever, CategoricalLever, PermutationLever, \
+    SubsetLever, Uncertainty, UniformUncertainty, TriangularUncertainty, \
+    PointUncertainty, NormalUncertainty, LogNormalUncertainty, \
+    IntegerUncertainty, CategoricalUncertainty, Model, DataSet, save, load, \
+    overwrite, update, populate_defaults
+    
+from .decorators import Real, Integer, Categorical, Permutation, Subset, \
+    Uniform, Normal, LogNormal, Minimize, Maximize, Info, Ignore, \
+    RhodiumModel, Parameters, Responses, Constraints, Levers, Uncertainties
+
+from .plot import scatter2d, scatter3d, joint, pairs, kdeplot, hist, \
+    interact, contour2d, contour3d, animate3d, parallel_coordinates
+
+from .sa import SAResult, sa, oat, regional_sa
+
+from .classification import Cart
+
+from .cache import setup_cache, cached, cache, clear_cache
+
+from .optimization import evaluate, optimize, robust_optimize
+
+from .sampling import sample_uniform, sample_lhs
+
+from .robustness import evaluate_robustness
+ 
+from .brush import Brush, BrushSet, apply_brush, brush_color_map, \
+    color_brush, color_indices
+
+from .utils import promptToRun
+
+from prim import Prim
+from platypus import MapEvaluator, SubmitEvaluator, ApplyEvaluator, \
+    PoolEvaluator, MultiprocessingEvaluator, ProcessPoolEvaluator

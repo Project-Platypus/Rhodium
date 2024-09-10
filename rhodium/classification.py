@@ -27,7 +27,6 @@ import matplotlib.image as mpimg
 import sklearn
 from sklearn import tree
 from packaging.version import Version
-from prim import Prim
 from io import BytesIO, StringIO
 
 class Cart:
