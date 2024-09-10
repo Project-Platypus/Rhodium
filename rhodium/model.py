@@ -571,7 +571,7 @@ class DataSet(list):
 
     def __init__(self, data=[]):
         if isinstance(data, str):
-            self.load(data)
+            warnings.warn("use load(file, ...) instead of DataSet(file)", DeprecationWarning, stacklevel=2)
         else:
             for entry in data:
                 self.append(entry)

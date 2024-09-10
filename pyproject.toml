@@ -32,6 +32,7 @@ dynamic = ["version"]  # Version is read from rhodium/__init__.py
 test = [
   "pytest",
   "flake8",
+  "flake8-pyproject",
   "rhodium[examples]"
 ]
 openmdao = [
@@ -58,7 +59,8 @@ exclude = [
   ".git",
   "__pycache__",
   "build",
-  "examples/Languages/C/src"
+  "examples/Languages/C/src",
+  "examples"  # TODO: Remove this exclusion once examples are updated
 ]
 extend-ignore = [
   "E302",  # Expected 2 blank lines, found N
