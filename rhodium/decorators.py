@@ -24,6 +24,20 @@ from .model import Constraint, Lever, Model, Parameter, Response, \
     LogNormalUncertainty, Direction
 
 class UnnamedObject(metaclass=ABCMeta):
+    """Base class for model components not yet assigned a name.
+
+    Rhodium has the concept of a `NamedObject`, which simply means a name is
+    associated with an object, typically one of Rhodium's classes like `Lever`
+    or `Uncertainty`.  But when using decorators to construct a model, the
+    name is derived from the keyword arguments to a function, which are not
+    known until we can inspect the function.  Thus, this class represents the
+    `NamedObject` before it is assigned a name.
+
+    Parameters
+    ----------
+    constructor : Callable
+        The constructor that converts this unnamed object into a named object
+    """
 
     def __init__(self, constructor, *args, **kwargs):
         self.constructor = constructor
@@ -34,31 +48,37 @@ class UnnamedObject(metaclass=ABCMeta):
         return self.constructor(name, *self.args, **self.kwargs)
 
 class Real(UnnamedObject):
+    """Construct a `RealLever` using the decorator approach."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(RealLever, *args, **kwargs)
 
 class Integer(UnnamedObject):
+    """Construct a `IntegerLever` using the decorator approach."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(IntegerLever, *args, **kwargs)
 
 class Categorical(UnnamedObject):
+    """Construct a `CategoricalLever` using the decorator approach."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(CategoricalLever, *args, **kwargs)
 
 class Permutation(UnnamedObject):
+    """Construct a `PermutationLever` using the decorator approach."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(PermutationLever, *args, **kwargs)
 
 class Subset(UnnamedObject):
+    """Construct a `SubsetLever` using the decorator approach."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(SubsetLever, *args, **kwargs)
 
 class Uniform(float, UnnamedObject):
+    """Construct a `UniformUncertainty` using the decorator approach."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(UniformUncertainty, *args, **kwargs)
@@ -67,6 +87,7 @@ class Uniform(float, UnnamedObject):
         return float.__new__(cls, kwargs.get("default_value", float("NaN")))
 
 class Normal(float, UnnamedObject):
+    """Construct a `NormalUncertainty` using the decorator approach."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(NormalUncertainty, *args, **kwargs)
@@ -75,6 +96,7 @@ class Normal(float, UnnamedObject):
         return float.__new__(cls, kwargs.get("default_value", float("NaN")))
 
 class LogNormal(float, UnnamedObject):
+    """Construct a `LogNormalUncertainty` using the decorator approach."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(LogNormalUncertainty, *args, **kwargs)
