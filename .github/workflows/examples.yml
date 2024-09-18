@@ -36,7 +36,7 @@ jobs:
         run: |
           PYTHON_VERSION="${{ inputs.python-version }}"
 
-          if [ -z "${{ inputs.python-version }}" ]; then
+          if [ -z "$PYTHON_VERSION" ]; then
             PYTHON_VERSION=$(cat pyproject.toml | grep "requires-python" | grep -Eo "[0-9]+\.[0-9]+")
           fi
 
