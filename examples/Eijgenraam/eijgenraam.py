@@ -1,6 +1,7 @@
 import math
 import bisect
 import numbers
+import functools
 import numpy as np
 import matplotlib.pyplot as plt
 from rhodium import * 

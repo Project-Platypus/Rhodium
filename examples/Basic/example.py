@@ -2,6 +2,7 @@ import math
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import seaborn as sns
 from scipy.optimize import brentq as root
 from rhodium import *
 

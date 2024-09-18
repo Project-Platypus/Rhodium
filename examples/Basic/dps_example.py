@@ -1,4 +1,5 @@
 import math
+import platypus
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import brentq as root
@@ -28,9 +29,9 @@ class CubicDPSLever(Lever):
         result = []
 
         for _ in range(self.length):
-            result += [Real(self.c_bounds[0], self.c_bounds[1])] # the center
-            result += [Real(self.r_bounds[0], self.r_bounds[1])] # the radius
-            result += [Real(0, 1)]                               # the weight
+            result += [platypus.Real(self.c_bounds[0], self.c_bounds[1])] # the center
+            result += [platypus.Real(self.r_bounds[0], self.r_bounds[1])] # the radius
+            result += [platypus.Real(0, 1)]                               # the weight
 
         return result
 
