@@ -10,7 +10,7 @@ A C++ compiler is required.  We suggest using MinGW on Windows.
 
 #### Windows
 
-Download [boost_1_56_0.zip](https://sourceforge.net/projects/boost/files/boost/1.56.0/boost_1_56_0.zip/download)
+Download [boost_1_56_0.zip](https://www.boost.org/users/history/version_1_56_0.html)
 and extract to the `src` folder.  After extracting, you should have a folder called
 `src/boost_1_56_0`.
 
